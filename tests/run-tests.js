@@ -10,7 +10,14 @@ const vm = require('vm');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((s) => s.startsWith('js/') && !s.endsWith('app.js'));
+const listed = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((s) => s.startsWith('js/') && !s.endsWith('app.js'));
+// Also load scripts that exist on disk but are not yet registered in index.html (work in progress),
+// so new modules are tested before integration. They are reported below.
+const onDisk = []
+  .concat(fs.readdirSync(path.join(root, 'js')).filter((f) => f.endsWith('.js') && f !== 'app.js').map((f) => 'js/' + f))
+  .concat(fs.readdirSync(path.join(root, 'js', 'calculators')).filter((f) => f.endsWith('.js')).map((f) => 'js/calculators/' + f));
+const unregistered = onDisk.filter((s) => !listed.includes(s));
+const scripts = listed.concat(unregistered.filter((s) => !s.includes('/calculators/')), unregistered.filter((s) => s.includes('/calculators/')));
 
 const ctx = { console, Math, JSON };
 ctx.window = ctx;
@@ -298,7 +305,18 @@ ok(NC.toTex('This is a sentence with several words') === null, 'prose stays plai
   ok(rendered.indexOf('katex') >= 0, 'local KaTeX renders: ' + rendered.slice(0, 60));
 }
 
+/* ---------- per-area test modules: tests/*.test.js ---------- */
+// Each module: module.exports = function (t) { const { NC, run, res, near, ok, throwsInput, inputs } = t; ... }
+const testModules = fs.readdirSync(__dirname).filter((f) => f.endsWith('.test.js')).sort();
+testModules.forEach((f) => {
+  const before = pass + fail;
+  try { require(path.join(__dirname, f))({ NC, run, res, near, ok, throwsInput, inputs, root, vm, fs, path }); }
+  catch (e) { ok(false, f + ' crashed: ' + (e && e.stack ? e.stack.split('\n').slice(0, 3).join(' | ') : e)); }
+  console.log('  ' + f + ': ' + (pass + fail - before) + ' checks');
+});
+
 /* ---------- report ---------- */
+if (unregistered.length) console.log('\nNote: not yet registered in index.html: ' + unregistered.join(', '));
 console.log('\nNanoCalc tests: ' + NC.calculators.length + ' calculators, ' + Object.keys(NC.refs).length + ' references');
 console.log(pass + ' passed, ' + fail + ' failed');
 if (fail) {

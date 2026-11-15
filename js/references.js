@@ -93,6 +93,21 @@
   Object.keys(R).forEach(function (k) { R[k].id = k; });
   NC.refs = R;
 
+  /**
+   * Add references from a calculator file: NC.addRefs({ id: {type, authors, title, ...} }).
+   * Throws on a duplicate id with different content, so two files cannot silently disagree.
+   */
+  NC.addRefs = function (obj) {
+    Object.keys(obj).forEach(function (k) {
+      const r = obj[k];
+      if (R[k] && JSON.stringify(Object.assign({}, R[k], { id: undefined })) !== JSON.stringify(Object.assign({}, r, { id: undefined }))) {
+        throw new Error('Reference id "' + k + '" already exists with different content.');
+      }
+      r.id = k;
+      R[k] = r;
+    });
+  };
+
   const esc = function (s) { return NC.esc(s); };
 
   /** HTML citation (ACS-like). */

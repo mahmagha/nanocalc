@@ -17,13 +17,20 @@
   NC.categories = [
     { id: 'size', label: 'Size-dependent properties', blurb: 'Quantum confinement, surface effects, melting, nanotube structure.' },
     { id: 'lab', label: 'Synthesis & dosing', blurb: 'Precursor masses, dilutions, particle number concentrations.' },
-    { id: 'xrd', label: 'X-ray diffraction', blurb: 'd-spacings, lattice parameters, crystallite size and strain.' },
-    { id: 'optical', label: 'UV-vis spectroscopy', blurb: 'Band gaps, quantum dot sizing, gold nanoparticle sizing.' },
-    { id: 'colloid', label: 'Light scattering & colloids', blurb: 'Hydrodynamic size (DLS) and zeta potential.' },
+    { id: 'carbon', label: 'Carbon nanomaterials', blurb: 'Fullerenes, graphene, nanotubes and carbon dots.' },
+    { id: 'soft', label: 'Soft nanomaterials', blurb: 'Liposomes, lipid nanoparticles, polymer nanoparticles and micelles.' },
+    { id: 'xrd', label: 'Diffraction & crystal structure', blurb: 'XRD lattice parameters, crystallite size and strain, phases, SAED and HRTEM.' },
+    { id: 'optical', label: 'Optical spectroscopy', blurb: 'Band gaps, plasmons (Mie/Gans), quantum dot and gold sizing, quantum yield.' },
+    { id: 'colloid', label: 'Colloids', blurb: 'Hydrodynamic size, zeta potential, DLVO stability and sedimentation.' },
+    { id: 'scatter', label: 'Scattering', blurb: 'SAXS, nanoparticle tracking and DLS correlation analysis.' },
     { id: 'surface', label: 'Surface area & porosity', blurb: 'BET surface area and Kelvin pore size.' },
     { id: 'micro', label: 'Electron microscopy', blurb: 'Particle size distribution statistics from TEM/SEM.' },
     { id: 'spectro', label: 'Raman & XPS', blurb: 'Graphene defects and crystallite size, XPS composition.' },
-    { id: 'thermal', label: 'Thermal analysis', blurb: 'Ligand grafting density from TGA.' }
+    { id: 'analysis', label: 'Elemental analysis', blurb: 'ICP-MS particle concentration, single-particle ICP-MS, EDX.' },
+    { id: 'magnetic', label: 'Magnetism', blurb: 'Saturation magnetization, dead layer, blocking temperature.' },
+    { id: 'electrochem', label: 'Electrochemistry & catalysis', blurb: 'Electrochemical surface area, dispersion, turnover frequency.' },
+    { id: 'thermal', label: 'Thermal analysis', blurb: 'Ligand grafting density from TGA.' },
+    { id: 'data', label: 'Spectrum & peak analysis', blurb: 'Import raw data, smooth, subtract baselines and fit peaks.' }
   ];
 
   NC.calculators = [];
