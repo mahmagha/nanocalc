@@ -4,7 +4,7 @@ Step-by-step calculations and characterization analysis for nanomaterials. Each 
 
 ## Run it
 
-Static app with no build step and no dependencies.
+Static app with no build step and nothing to install. KaTeX, used to typeset equations, loads from a CDN; without internet access, formulas show as plain text.
 
 ```bash
 node tools/serve.js
@@ -34,43 +34,9 @@ The suite runs every calculator on its example and checks that each cited refere
 | Raman & XPS | Graphene La and L_D / n_D (Cançado) · XPS atomic % from sensitivity factors |
 | Thermal | TGA ligand grafting density |
 
-Equations are typeset with KaTeX (LaTeX). Formulas are written in readable Unicode and converted automatically by `js/tex.js`; a step can give hand-written LaTeX through `tex`, `subTex` and `resultTex`. Offline, the app falls back to plain-text formulas. Results export as Markdown (with `$…# NanoCalc
+Equations are typeset with KaTeX (LaTeX). Formulas are written in readable Unicode and converted automatically by `js/tex.js`; a step can give hand-written LaTeX through `tex`, `subTex` and `resultTex`. Offline, the app falls back to plain-text formulas.
 
-Step-by-step calculations and characterization analysis for nanomaterials. Each result shows the formula, the substituted values and the intermediate results, and every equation, constant and empirical coefficient is cited to its source.
-
-## Run it
-
-Static app with no build step and no dependencies.
-
-```bash
-node tools/serve.js
-```
-
-Then open http://localhost:8080. Opening `index.html` directly also works in most browsers.
-
-## Test it
-
-```bash
-node tests/run-tests.js
-```
-
-The suite runs every calculator on its example and checks that each cited reference exists. It also compares results against hand-calculated and literature values.
-
-## Calculators (22)
-
-| Area | Calculators |
-|---|---|
-| Size-dependent properties | **Nanoparticle builder**: pick a material (Ag, Au, Pt, oxides…), a shape (sphere, cube, octahedron, tetrahedron, icosahedron, rod, wire/disc, triangular plate) and its size to get geometry, atoms, surface atoms, specific surface area and concentration · Brus quantum confinement · particle geometry, atom count & surface area · Gibbs–Thomson melting point · carbon nanotube (n, m) structure and RBM |
-| Synthesis & dosing | Precursor mass & dilution · nanoparticle number and molar concentration |
-| X-ray diffraction | Bragg's law & cubic lattice parameter · Scherrer crystallite size · Williamson–Hall size & strain |
-| UV-vis | Tauc band gap (absorbance or Kubelka–Munk) · CdSe/CdTe/CdS QD size & concentration (Yu 2003) · Au NP size & concentration (Haiss 2007) · Beer–Lambert |
-| Colloids | DLS hydrodynamic size (Stokes–Einstein) · zeta potential (Smoluchowski / Hückel / Henry–Ohshima) with Debye length |
-| Surface area & porosity | Multipoint BET with Rouquerol checks · Kelvin / Harkins–Jura pore size |
-| Microscopy | TEM/SEM size distribution statistics, moment diameters, lognormal fit |
-| Raman & XPS | Graphene La and L_D / n_D (Cançado) · XPS atomic % from sensitivity factors |
-| Thermal | TGA ligand grafting density |
-
- LaTeX), print to PDF, or download the full bibliography as BibTeX.
+Results export as Markdown (with LaTeX math), print to PDF, or download the full bibliography as BibTeX.
 
 ## Project layout
 
