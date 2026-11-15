@@ -2,6 +2,18 @@
 
 Step-by-step calculations and characterization analysis for nanomaterials. Each result shows the formula, the substituted values and the intermediate results, and every equation, constant and empirical coefficient is cited to its source (110 references).
 
+## Quick start (make)
+
+| Command | Does |
+|---|---|
+| `make` | list the targets |
+| `make serve` | run the app at http://localhost:8080 (`make serve PORT=9000` to change the port) |
+| `make test` | run the full test suite |
+| `make review` | regenerate `docs/REVIEW.md` |
+| `make check` | run the tests, then fail if `docs/REVIEW.md` is out of date (run before committing) |
+
+Each target is a thin wrapper around the `node` commands below, so you can run those directly if `make` isn't installed.
+
 ## Run it
 
 Static app with no build step and nothing to install. It works fully offline: KaTeX (equation typesetting) is bundled in `vendor/katex/` and checked against hashes recorded from the official release.
