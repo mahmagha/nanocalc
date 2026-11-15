@@ -4,7 +4,7 @@ Step-by-step calculations and characterization analysis for nanomaterials. Each 
 
 ## Run it
 
-Static app with no build step and nothing to install. KaTeX, used to typeset equations, loads from a CDN; without internet access, formulas show as plain text.
+Static app with no build step and nothing to install. It works fully offline: KaTeX (equation typesetting) is bundled in `vendor/katex/` and checked against hashes recorded from the official release.
 
 ```bash
 node tools/serve.js
@@ -34,7 +34,7 @@ The suite runs every calculator on its example and checks that each cited refere
 | Raman & XPS | Graphene La and L_D / n_D (Cançado) · XPS atomic % from sensitivity factors |
 | Thermal | TGA ligand grafting density |
 
-Equations are typeset with KaTeX (LaTeX). Formulas are written in readable Unicode and converted automatically by `js/tex.js`; a step can give hand-written LaTeX through `tex`, `subTex` and `resultTex`. Offline, the app falls back to plain-text formulas.
+Equations are typeset with KaTeX (LaTeX). Formulas are written in readable Unicode and converted automatically by `js/tex.js`; a step can give hand-written LaTeX through `tex`, `subTex` and `resultTex`. If KaTeX is ever unavailable, formulas fall back to plain text.
 
 Results export as Markdown (with LaTeX math), print to PDF, or download the full bibliography as BibTeX.
 
