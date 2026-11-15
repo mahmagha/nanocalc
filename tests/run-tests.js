@@ -303,6 +303,27 @@ ok(NC.toTex('This is a sentence with several words') === null, 'prose stays plai
   let rendered = '';
   try { rendered = kctx.katex.renderToString('D = \\dfrac{K\\lambda}{\\beta\\cos\\theta}', { throwOnError: true }); } catch (e) { rendered = 'ERR ' + e.message; }
   ok(rendered.indexOf('katex') >= 0, 'local KaTeX renders: ' + rendered.slice(0, 60));
+
+  // Every formula of every calculator's example (and every option of a 'mode' select) typesets in KaTeX
+  let typeset = 0;
+  NC.calculators.forEach((def) => {
+    const modeInp = def.inputs.find((i) => i.id === 'mode');
+    const modes = modeInp ? modeInp.options.map((o) => o[0]) : [undefined];
+    modes.forEach((mode) => {
+      let out;
+      try { out = run(def.id, mode === undefined ? {} : { mode }); } catch (e) { return; } // some modes need extra inputs
+      out.steps.forEach((s) => {
+        [[s.formula, s.tex], [s.sub, s.subTex], [s.result, s.resultTex]].forEach(([plain, explicit]) => {
+          const t = explicit || NC.toTex(plain);
+          if (!t) return;
+          typeset++;
+          try { kctx.katex.renderToString(t, { throwOnError: true, strict: 'ignore' }); }
+          catch (e) { ok(false, def.id + (mode ? '/' + mode : '') + ': KaTeX cannot typeset "' + String(plain || explicit).slice(0, 80) + '" → ' + e.message.slice(0, 100)); }
+        });
+      });
+    });
+  });
+  ok(typeset > 300, 'KaTeX typeset ' + typeset + ' formulas');
 }
 
 /* ---------- per-area test modules: tests/*.test.js ---------- */
