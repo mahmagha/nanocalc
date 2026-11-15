@@ -49,20 +49,20 @@
 
       s.add({
         title: 'Brus equation (effective-mass approximation)',
-        formula: 'E(R) = Eg + ħ²π²/(2R²) · [1/(mₑ*m₀) + 1/(mₕ*m₀)] − 1.786·e²/(4πε₀εᵣR)',
+        formula: 'E(R) = Eg + ħ²π²/(2R²) · [1/(mₑ*m₀) + 1/(mₕ*m₀)] − 1.786·e²/(4πε₀εᵣR)', tex: "E(R) = E_g + \\dfrac{\\hbar^2\\pi^2}{2R^2}\\left[\\dfrac{1}{m_e^{*}m_0} + \\dfrac{1}{m_h^{*}m_0}\\right] - \\dfrac{1.786\\,e^2}{4\\pi\\varepsilon_0\\varepsilon_r R}",
         note: 'Terms: the bulk gap, the kinetic (confinement) energy of the electron and hole, and the screened electron–hole Coulomb attraction. The smaller polarization term (≈ −0.248 E*Ry) is left out, as is usual.',
         ref: 'brus1984'
       });
       s.add({
         title: 'Confinement prefactor A (so that the confinement term = A/R²)',
-        formula: 'A = ħ²π²/(2m₀) · (1/mₑ* + 1/mₕ*)',
+        formula: 'A = ħ²π²/(2m₀) · (1/mₑ* + 1/mₕ*)', tex: "A = \\dfrac{\\hbar^2\\pi^2}{2m_0}\\left(\\dfrac{1}{m_e^{*}} + \\dfrac{1}{m_h^{*}}\\right)",
         sub: 'A = (' + f(C.hbar) + ' J·s)² · π² / (2 × ' + f(C.me) + ' kg) × (1/' + mE + ' + 1/' + mH + ')',
         result: 'A = ' + f(A) + ' J·m² = ' + f(Aev) + ' eV·nm²',
         ref: 'codata2018'
       });
       s.add({
         title: 'Coulomb prefactor B (so that the Coulomb term = B/R)',
-        formula: 'B = 1.786·e² / (4πε₀εᵣ)',
+        formula: 'B = 1.786·e² / (4πε₀εᵣ)', tex: "B = \\dfrac{1.786\\,e^2}{4\\pi\\varepsilon_0\\varepsilon_r}",
         sub: 'B = 1.786 × (' + f(C.e) + ' C)² / (4π × ' + f(C.eps0) + ' F·m⁻¹ × ' + er + ')',
         result: 'B = ' + f(B) + ' J·m = ' + f(Bev) + ' eV·nm',
         ref: 'codata2018'
@@ -77,7 +77,7 @@
         E = Eg + Ec - Eq;
         s.add({
           title: 'Evaluate E(R)',
-          formula: 'E = Eg + A/R² − B/R',
+          formula: 'E = Eg + A/R² − B/R', tex: "E = E_g + \\dfrac{A}{R^2} - \\dfrac{B}{R}",
           sub: 'E = ' + f(Eg) + ' + ' + f(Aev) + '/' + f(R) + '² − ' + f(Bev) + '/' + f(R) + ' = ' + f(Eg) + ' + ' + f(Ec) + ' − ' + f(Eq),
           result: 'E = ' + f(E) + ' eV'
         });
@@ -85,7 +85,7 @@
         if (v.mode === 'wavelength') {
           const lam = NC.need(v.lam, 'Wavelength', { positive: true });
           E = NC.HC_EV_NM / lam;
-          s.add({ title: 'Photon energy', formula: 'E = hc / λ', sub: 'E = ' + f(NC.HC_EV_NM, 7) + ' eV·nm / ' + f(lam) + ' nm', result: 'E = ' + f(E) + ' eV', ref: 'codata2018' });
+          s.add({ title: 'Photon energy', formula: 'E = hc / λ', tex: "E = \\dfrac{hc}{\\lambda}", sub: 'E = ' + f(NC.HC_EV_NM, 7) + ' eV·nm / ' + f(lam) + ' nm', result: 'E = ' + f(E) + ' eV', ref: 'codata2018' });
         } else {
           E = NC.need(v.E, 'Band gap energy', { positive: true });
         }
@@ -94,20 +94,20 @@
         R = (-Bev + Math.sqrt(Bev * Bev + 4 * dE * Aev)) / (2 * dE);
         s.add({
           title: 'Solve the Brus equation for R (positive root of a quadratic)',
-          formula: '(E − Eg)·R² + B·R − A = 0  ⇒  R = [−B + √(B² + 4(E − Eg)A)] / [2(E − Eg)]',
+          formula: '(E − Eg)·R² + B·R − A = 0  ⇒  R = [−B + √(B² + 4(E − Eg)A)] / [2(E − Eg)]', tex: "(E-E_g)R^2 + BR - A = 0 \\;\\Rightarrow\\; R = \\dfrac{-B + \\sqrt{B^2 + 4(E-E_g)A}}{2(E-E_g)}",
           sub: 'R = [−' + f(Bev) + ' + √(' + f(Bev) + '² + 4 × ' + f(dE) + ' × ' + f(Aev) + ')] / (2 × ' + f(dE) + ')',
           result: 'R = ' + f(R) + ' nm  ⇒  d = ' + f(2 * R) + ' nm'
         });
       }
       const lamOut = NC.HC_EV_NM / E;
       if (v.mode !== 'wavelength')
-        s.add({ title: 'Corresponding wavelength', formula: 'λ = hc / E', sub: 'λ = ' + f(NC.HC_EV_NM, 7) + ' eV·nm / ' + f(E) + ' eV', result: 'λ = ' + f(lamOut) + ' nm', ref: 'codata2018' });
+        s.add({ title: 'Corresponding wavelength', formula: 'λ = hc / E', tex: "\\lambda = \\dfrac{hc}{E}", sub: 'λ = ' + f(NC.HC_EV_NM, 7) + ' eV·nm / ' + f(E) + ' eV', result: 'λ = ' + f(lamOut) + ' nm', ref: 'codata2018' });
 
       const mu = (mE * mH) / (mE + mH);
       const aB = (er * C.a0 * 1e9) / mu;
       s.add({
         title: 'Exciton Bohr radius (to judge the confinement regime)',
-        formula: 'a_B = εᵣ · (m₀/μ) · a₀,   μ = mₑ*·mₕ*/(mₑ* + mₕ*)',
+        formula: 'a_B = εᵣ · (m₀/μ) · a₀,   μ = mₑ*·mₕ*/(mₑ* + mₕ*)', tex: "a_B = \\varepsilon_r\\,\\dfrac{m_0}{\\mu}\\,a_0,\\quad \\mu = \\dfrac{m_e^{*}m_h^{*}}{m_e^{*}+m_h^{*}}",
         sub: 'μ = ' + f(mE) + ' × ' + f(mH) + ' / (' + f(mE) + ' + ' + f(mH) + ') = ' + f(mu) + ' m₀;   a_B = ' + er + ' × ' + f(C.a0 * 1e9, 6) + ' nm / ' + f(mu),
         result: 'a_B = ' + f(aB) + ' nm;   R/a_B = ' + f(R / aB, 3),
         ref: 'kittel2005'
@@ -181,7 +181,7 @@
         D = 6000 / (rho * ssa);
         s.add({
           title: 'Equivalent spherical diameter from surface area',
-          formula: 'D = 6 / (ρ · S)   ⇒   D[nm] = 6000 / (ρ[g/cm³] · S[m²/g])',
+          formula: 'D = 6 / (ρ · S)   ⇒   D[nm] = 6000 / (ρ[g/cm³] · S[m²/g])', tex: "D = \\dfrac{6}{\\rho S} \\;\\Rightarrow\\; D\\,[\\text{nm}] = \\dfrac{6000}{\\rho\\,[\\text{g/cm}^3]\\;S\\,[\\text{m}^2/\\text{g}]}",
           sub: 'D = 6000 / (' + f(rho) + ' × ' + f(ssa) + ')',
           result: 'D = ' + f(D) + ' nm',
           note: 'Assumes dense, non-porous, monodisperse spheres with fully accessible surfaces.',
@@ -196,15 +196,15 @@
       const mp = rho * V * 1e-21; // g
       s.add({ title: 'Mass of one particle', formula: 'm = ρ·V   (1 nm³ = 10⁻²¹ cm³)', sub: 'm = ' + f(rho) + ' g/cm³ × ' + f(V) + ' × 10⁻²¹ cm³', result: 'm = ' + f(mp) + ' g' });
       const N = (mp * C.NA) / M;
-      s.add({ title: 'Atoms (formula units) per particle', formula: 'N = m·N_A / M', sub: 'N = ' + f(mp) + ' g × ' + f(C.NA) + ' mol⁻¹ / ' + f(M) + ' g/mol', result: 'N = ' + f(N), ref: 'codata2018' });
+      s.add({ title: 'Atoms (formula units) per particle', formula: 'N = m·N_A / M', tex: "N = \\dfrac{m\\,N_A}{M}", sub: 'N = ' + f(mp) + ' g × ' + f(C.NA) + ' mol⁻¹ / ' + f(M) + ' g/mol', result: 'N = ' + f(N), ref: 'codata2018' });
       const ssa = 6000 / (rho * D);
       if (v.mode !== 'ssa')
-        s.add({ title: 'Specific surface area (geometric)', formula: 'S = A/m = 6/(ρD)   ⇒   S[m²/g] = 6000/(ρ[g/cm³]·D[nm])', sub: 'S = 6000 / (' + f(rho) + ' × ' + f(D) + ')', result: 'S = ' + f(ssa) + ' m²/g', ref: 'lowell2004' });
+        s.add({ title: 'Specific surface area (geometric)', formula: 'S = A/m = 6/(ρD)   ⇒   S[m²/g] = 6000/(ρ[g/cm³]·D[nm])', tex: "S = \\dfrac{A}{m} = \\dfrac{6}{\\rho D} \\;\\Rightarrow\\; S\\,[\\text{m}^2/\\text{g}] = \\dfrac{6000}{\\rho\\,[\\text{g/cm}^3]\\;D\\,[\\text{nm}]}", sub: 'S = 6000 / (' + f(rho) + ' × ' + f(D) + ')', result: 'S = ' + f(ssa) + ' m²/g', ref: 'lowell2004' });
       const rws = Math.cbrt((3 * M) / (4 * Math.PI * rho * C.NA)) * 1e7; // nm
       const dat = 2 * rws;
       s.add({
         title: 'Effective atomic diameter (Wigner–Seitz sphere)',
-        formula: 'r_ws = [3M / (4πρN_A)]^(1/3),   d_at = 2r_ws',
+        formula: 'r_ws = [3M / (4πρN_A)]^(1/3),   d_at = 2r_ws', tex: "r_{ws} = \\left(\\dfrac{3M}{4\\pi\\rho N_A}\\right)^{1/3},\\quad d_{at} = 2r_{ws}",
         sub: 'r_ws = [3 × ' + f(M) + ' / (4π × ' + f(rho) + ' × ' + f(C.NA) + ')]^(1/3) cm',
         result: 'r_ws = ' + f(rws) + ' nm;   d_at = ' + f(dat) + ' nm',
         ref: 'kittel2005'
@@ -212,7 +212,7 @@
       const Fs = D > 2 * dat ? 1 - Math.pow((D - 2 * dat) / D, 3) : 1;
       s.add({
         title: 'Fraction of atoms in the outermost shell (geometric shell model)',
-        formula: 'F = 1 − [(D − 2d_at)/D]³',
+        formula: 'F = 1 − [(D − 2d_at)/D]³', tex: "F = 1 - \\left(\\dfrac{D - 2d_{at}}{D}\\right)^3",
         sub: 'F = 1 − [(' + f(D) + ' − 2 × ' + f(dat) + ') / ' + f(D) + ']³',
         result: 'F = ' + f(Fs, 3) + '  (' + NC.fix(Fs * 100, 1) + ' %)  ⇒  N_surface ≈ ' + f(Fs * N),
         note: 'A one-atom-thick shell is treated as “surface”. This is a geometric estimate; the exact value depends on crystal structure and particle shape.',
@@ -274,12 +274,12 @@
       const rho = NC.need(v.rho, 'Density', { positive: true });
       const sig = NC.need(v.sig, 'Interfacial energy', { nonneg: true });
       const L = (dH * 1e6) / M; // J/kg
-      s.add({ title: 'Specific (mass) latent heat of fusion', formula: 'L = ΔH_f / M', sub: 'L = ' + f(dH) + ' × 10³ J/mol / (' + f(M) + ' × 10⁻³ kg/mol)', result: 'L = ' + f(L) + ' J/kg' });
+      s.add({ title: 'Specific (mass) latent heat of fusion', formula: 'L = ΔH_f / M', tex: "L = \\dfrac{\\Delta H_f}{M}", sub: 'L = ' + f(dH) + ' × 10³ J/mol / (' + f(M) + ' × 10⁻³ kg/mol)', result: 'L = ' + f(L) + ' J/kg' });
       const rhoSI = rho * 1000;
       const factor = (4 * sig) / (L * rhoSI * D * 1e-9);
       s.add({
         title: 'Gibbs–Thomson relation for a sphere of diameter D',
-        formula: 'T_m(D) = T_m,bulk · [1 − 4σ_sl / (L·ρ_s·D)]',
+        formula: 'T_m(D) = T_m,bulk · [1 − 4σ_sl / (L·ρ_s·D)]', tex: "T_m(D) = T_{m,\\text{bulk}}\\left[1 - \\dfrac{4\\sigma_{sl}}{L\\,\\rho_s\\,D}\\right]",
         sub: '4σ_sl/(Lρ_sD) = 4 × ' + f(sig) + ' / (' + f(L) + ' × ' + f(rhoSI) + ' × ' + f(D) + '×10⁻⁹) = ' + f(factor),
         result: 'T_m(D) = ' + f(Tm) + ' × (1 − ' + f(factor) + ') = ' + f(Tm * (1 - factor)) + ' K',
         note: 'Equivalent to the classic Pawlow / Gibbs–Thomson treatment; Buffat & Borel tested such models against gold particles.',
@@ -345,7 +345,7 @@
         const w = NC.need(v.rbm, 'RBM frequency', { positive: true });
         if (w <= B) NC.fail('The RBM frequency must be larger than the constant B.');
         const d = A / (w - B);
-        s.add({ title: 'Diameter from the radial breathing mode', formula: 'ω_RBM = A/d + B   ⇒   d = A / (ω_RBM − B)', sub: 'd = ' + f(A) + ' / (' + f(w) + ' − ' + f(B) + ')', result: 'd = ' + f(d) + ' nm', ref: 'jorio2001' });
+        s.add({ title: 'Diameter from the radial breathing mode', formula: 'ω_RBM = A/d + B   ⇒   d = A / (ω_RBM − B)', tex: "\\omega_{\\text{RBM}} = \\dfrac{A}{d} + B \\;\\Rightarrow\\; d = \\dfrac{A}{\\omega_{\\text{RBM}} - B}", sub: 'd = ' + f(A) + ' / (' + f(w) + ' − ' + f(B) + ')', result: 'd = ' + f(d) + ' nm', ref: 'jorio2001' });
         const cands = [];
         for (let n = 3; n <= 45; n++) for (let m = 0; m <= n; m++) cands.push({ n: n, m: m, d: cntDiameter(n, m, acc) });
         cands.sort(function (p, q) { return Math.abs(p.d - d) - Math.abs(q.d - d); });
@@ -369,15 +369,15 @@
       const m = NC.need(v.m, 'Index m', { int: true, nonneg: true });
       if (m > n) NC.fail('By convention n ≥ m ≥ 0. Swap the indices.');
       const d = cntDiameter(n, m, acc);
-      s.add({ title: 'Tube diameter', formula: 'd = a·√(n² + nm + m²) / π', sub: 'd = ' + f(a) + ' × √(' + n + '² + ' + n + '·' + m + ' + ' + m + '²) / π = ' + f(a) + ' × ' + f(Math.sqrt(n * n + n * m + m * m)) + ' / π', result: 'd = ' + f(d) + ' nm', ref: 'saito1998' });
+      s.add({ title: 'Tube diameter', formula: 'd = a·√(n² + nm + m²) / π', tex: "d = \\dfrac{a\\sqrt{n^2 + nm + m^2}}{\\pi}", sub: 'd = ' + f(a) + ' × √(' + n + '² + ' + n + '·' + m + ' + ' + m + '²) / π = ' + f(a) + ' × ' + f(Math.sqrt(n * n + n * m + m * m)) + ' / π', result: 'd = ' + f(d) + ' nm', ref: 'saito1998' });
       const th = NC.deg(Math.atan((Math.sqrt(3) * m) / (2 * n + m)));
-      s.add({ title: 'Chiral angle', formula: 'θ = arctan[√3·m / (2n + m)]', sub: 'θ = arctan[√3 × ' + m + ' / (2 × ' + n + ' + ' + m + ')]', result: 'θ = ' + NC.fix(th, 2) + '°  (0° zigzag … 30° armchair)', ref: 'saito1998' });
+      s.add({ title: 'Chiral angle', formula: 'θ = arctan[√3·m / (2n + m)]', tex: "\\theta = \\arctan\\dfrac{\\sqrt{3}\\,m}{2n + m}", sub: 'θ = arctan[√3 × ' + m + ' / (2 × ' + n + ' + ' + m + ')]', result: 'θ = ' + NC.fix(th, 2) + '°  (0° zigzag … 30° armchair)', ref: 'saito1998' });
       const type = m === 0 ? 'Zigzag' : n === m ? 'Armchair' : 'Chiral';
       const metallic = (n - m) % 3 === 0;
       const elec = n === m ? 'Metallic' : metallic ? 'Metallic (small curvature-induced gap)' : 'Semiconducting';
       s.add({ title: 'Electronic character (zone-folding rule)', formula: '(n − m) mod 3 = 0 ⇒ metallic; otherwise semiconducting', sub: '(' + n + ' − ' + m + ') mod 3 = ' + ((n - m) % 3), result: type + ', ' + elec.toLowerCase(), ref: 'saito1998' });
       const w = A / d + B;
-      s.add({ title: 'Expected radial breathing mode', formula: 'ω_RBM = A/d + B', sub: 'ω = ' + f(A) + ' / ' + f(d) + ' + ' + f(B), result: 'ω_RBM = ' + f(w) + ' cm⁻¹', ref: 'jorio2001' });
+      s.add({ title: 'Expected radial breathing mode', formula: 'ω_RBM = A/d + B', tex: "\\omega_{\\text{RBM}} = \\dfrac{A}{d} + B", sub: 'ω = ' + f(A) + ' / ' + f(d) + ' + ' + f(B), result: 'ω_RBM = ' + f(w) + ' cm⁻¹', ref: 'jorio2001' });
       return {
         results: [
           { label: 'Diameter d', value: d, unit: 'nm', main: true },

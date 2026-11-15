@@ -17,7 +17,7 @@
       eta = NC.waterViscosity(TK);
       s.add({
         title: 'Viscosity of water at T',
-        formula: 'η = 2.414×10⁻⁵ Pa·s × 10^[247.8 K / (T − 140 K)]',
+        formula: 'η = 2.414×10⁻⁵ Pa·s × 10^[247.8 K / (T − 140 K)]', tex: "\\eta = 2.414\\times 10^{-5}\\ \\text{Pa}\\cdot\\text{s}\\times 10^{\\,247.8\\ \\text{K}/(T - 140\\ \\text{K})}",
         sub: 'T = ' + f(tC) + ' °C + 273.15 = ' + f(TK, 6) + ' K;   η = 2.414×10⁻⁵ × 10^(247.8 / ' + f(TK - 140, 5) + ')',
         result: 'η = ' + f(eta) + ' Pa·s = ' + f(eta * 1e3) + ' mPa·s',
         note: 'Vogel-type empirical correlation. Over 0–100 °C it agrees with the IAPWS formulation to within about 1 %.',
@@ -58,14 +58,14 @@
       const w = viscosity(v, s);
       const kT = C.kB * w.TK;
       s.add({ title: 'Thermal energy', formula: 'k_B·T', sub: f(C.kB) + ' J/K × ' + f(w.TK, 6) + ' K', result: 'k_B·T = ' + f(kT) + ' J', ref: 'codata2018' });
-      s.add({ title: 'Stokes–Einstein equation', formula: 'D = k_B·T / (3π·η·d_h)   ⇔   d_h = k_B·T / (3π·η·D)', note: 'Assumes a sphere diffusing freely in a continuous medium, with no interactions between particles (dilute limit).', ref: 'einstein1905' });
+      s.add({ title: 'Stokes–Einstein equation', formula: 'D = k_B·T / (3π·η·d_h)   ⇔   d_h = k_B·T / (3π·η·D)', tex: "D = \\dfrac{k_B T}{3\\pi\\eta\\,d_h} \\;\\Leftrightarrow\\; d_h = \\dfrac{k_B T}{3\\pi\\eta D}", note: 'Assumes a sphere diffusing freely in a continuous medium, with no interactions between particles (dilute limit).', ref: 'einstein1905' });
 
       const results = [];
       let D, dh;
       if (v.mode === 'reverse') {
         dh = NC.need(v.dh, 'Hydrodynamic diameter', { positive: true });
         D = kT / (3 * Math.PI * w.eta * dh * 1e-9);
-        s.add({ title: 'Diffusion coefficient', formula: 'D = k_B·T / (3π·η·d_h)', sub: 'D = ' + f(kT) + ' / (3π × ' + f(w.eta) + ' × ' + f(dh) + '×10⁻⁹ m)', result: 'D = ' + f(D) + ' m²/s = ' + f(D * 1e12) + ' μm²/s' });
+        s.add({ title: 'Diffusion coefficient', formula: 'D = k_B·T / (3π·η·d_h)', tex: "D = \\dfrac{k_B T}{3\\pi\\eta\\,d_h}", sub: 'D = ' + f(kT) + ' / (3π × ' + f(w.eta) + ' × ' + f(dh) + '×10⁻⁹ m)', result: 'D = ' + f(D) + ' m²/s = ' + f(D * 1e12) + ' μm²/s' });
         results.push({ label: 'Diffusion coefficient D', value: D * 1e12, unit: 'μm²/s', main: true });
       } else {
         if (v.mode === 'gamma') {
@@ -74,16 +74,16 @@
           const lam = NC.need(v.lam, 'Wavelength', { positive: true });
           const th = NC.need(v.theta, 'Scattering angle', { gt: 0, max: 180 });
           const q = (4 * Math.PI * n * Math.sin(NC.rad(th) / 2)) / (lam * 1e-9);
-          s.add({ title: 'Scattering vector', formula: 'q = 4πn·sin(θ/2) / λ₀', sub: 'q = 4π × ' + f(n) + ' × sin(' + f(th) + '°/2) / (' + f(lam) + '×10⁻⁹ m)', result: 'q = ' + f(q) + ' m⁻¹', ref: 'berne1976' });
+          s.add({ title: 'Scattering vector', formula: 'q = 4πn·sin(θ/2) / λ₀', tex: "q = \\dfrac{4\\pi n\\sin(\\theta/2)}{\\lambda_0}", sub: 'q = 4π × ' + f(n) + ' × sin(' + f(th) + '°/2) / (' + f(lam) + '×10⁻⁹ m)', result: 'q = ' + f(q) + ' m⁻¹', ref: 'berne1976' });
           D = G / (q * q);
-          s.add({ title: 'Diffusion coefficient from the decay rate', formula: 'g₁(τ) = exp(−Γτ),   Γ = D·q²   ⇒   D = Γ / q²', sub: 'D = ' + f(G) + ' s⁻¹ / (' + f(q) + ' m⁻¹)²', result: 'D = ' + f(D) + ' m²/s = ' + f(D * 1e12) + ' μm²/s', ref: 'berne1976' });
+          s.add({ title: 'Diffusion coefficient from the decay rate', formula: 'g₁(τ) = exp(−Γτ),   Γ = D·q²   ⇒   D = Γ / q²', tex: "g_1(\\tau) = e^{-\\Gamma\\tau},\\quad \\Gamma = Dq^2 \\;\\Rightarrow\\; D = \\dfrac{\\Gamma}{q^2}", sub: 'D = ' + f(G) + ' s⁻¹ / (' + f(q) + ' m⁻¹)²', result: 'D = ' + f(D) + ' m²/s = ' + f(D * 1e12) + ' μm²/s', ref: 'berne1976' });
           results.push({ label: 'Diffusion coefficient D', value: D * 1e12, unit: 'μm²/s' });
           results.push({ label: 'Scattering vector q', value: q, unit: 'm⁻¹' });
         } else {
           D = NC.need(v.Dt, 'Diffusion coefficient', { positive: true }) * 1e-12;
         }
         dh = kT / (3 * Math.PI * w.eta * D);
-        s.add({ title: 'Hydrodynamic diameter', formula: 'd_h = k_B·T / (3π·η·D)', sub: 'd_h = ' + f(kT) + ' J / (3π × ' + f(w.eta) + ' Pa·s × ' + f(D) + ' m²/s)', result: 'd_h = ' + f(dh) + ' m = ' + f(dh * 1e9) + ' nm' });
+        s.add({ title: 'Hydrodynamic diameter', formula: 'd_h = k_B·T / (3π·η·D)', tex: "d_h = \\dfrac{k_B T}{3\\pi\\eta D}", sub: 'd_h = ' + f(kT) + ' J / (3π × ' + f(w.eta) + ' Pa·s × ' + f(D) + ' m²/s)', result: 'd_h = ' + f(dh) + ' m = ' + f(dh * 1e9) + ' nm' });
         dh *= 1e9;
         results.unshift({ label: 'Hydrodynamic diameter d_h', value: dh, unit: 'nm', main: true });
       }
@@ -143,7 +143,7 @@
         kinv = Math.sqrt((eps * C.kB * w.TK) / (2 * C.NA * C.e * C.e * I * 1e-3 * 1000));
         s.add({
           title: 'Debye screening length (1:1 electrolyte)',
-          formula: 'κ⁻¹ = √[εᵣε₀k_BT / (2N_A e² I)]   (I in mol/m³)',
+          formula: 'κ⁻¹ = √[εᵣε₀k_BT / (2N_A e² I)]   (I in mol/m³)', tex: "\\kappa^{-1} = \\sqrt{\\dfrac{\\varepsilon_r\\varepsilon_0 k_B T}{2N_A e^2 I}}\\quad(I\\ \\text{in mol/m}^3)",
           sub: 'κ⁻¹ = √[' + f(er) + ' × ' + f(C.eps0) + ' × ' + f(C.kB) + ' × ' + f(w.TK, 6) + ' / (2 × ' + f(C.NA) + ' × (' + f(C.e) + ')² × ' + f(I) + ')]',
           result: 'κ⁻¹ = ' + f(kinv * 1e9) + ' nm',
           ref: 'israelachvili2011'
@@ -164,7 +164,7 @@
         fk = ohshimaF(ka);
         s.add({
           title: 'Henry function (Ohshima approximation)',
-          formula: 'f(κa) = 1 + 1 / {2·[1 + 2.5 / (κa·(1 + 2e^(−κa)))]³}',
+          formula: 'f(κa) = 1 + 1 / {2·[1 + 2.5 / (κa·(1 + 2e^(−κa)))]³}', tex: "f(\\kappa a) = 1 + \\dfrac{1}{2\\left[1 + \\dfrac{2.5}{\\kappa a\\,(1 + 2e^{-\\kappa a})}\\right]^3}",
           sub: 'f = 1 + 1 / {2·[1 + 2.5 / (' + f(ka) + ' × (1 + 2e^(−' + f(ka) + ')))]³}',
           result: 'f(κa) = ' + f(fk),
           ref: 'ohshima1994'
@@ -176,7 +176,7 @@
       const zeta = (3 * w.eta * mu) / (2 * eps * fk);
       s.add({
         title: 'Zeta potential (Henry equation)',
-        formula: 'μ_e = 2εᵣε₀ζ·f(κa) / (3η)   ⇒   ζ = 3η·μ_e / [2εᵣε₀·f(κa)]',
+        formula: 'μ_e = 2εᵣε₀ζ·f(κa) / (3η)   ⇒   ζ = 3η·μ_e / [2εᵣε₀·f(κa)]', tex: "\\mu_e = \\dfrac{2\\varepsilon_r\\varepsilon_0\\zeta f(\\kappa a)}{3\\eta} \\;\\Rightarrow\\; \\zeta = \\dfrac{3\\eta\\mu_e}{2\\varepsilon_r\\varepsilon_0 f(\\kappa a)}",
         sub: 'ζ = 3 × ' + f(w.eta) + ' × ' + f(mu) + ' / (2 × ' + f(er) + ' × ' + f(C.eps0) + ' × ' + f(fk) + ')',
         result: 'ζ = ' + f(zeta) + ' V = ' + f(zeta * 1e3) + ' mV',
         ref: ['delgado2005', 'hunter1981']

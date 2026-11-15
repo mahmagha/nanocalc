@@ -317,6 +317,8 @@
     Pt: { label: 'Platinum (Pt)', rho: 21.45, M: 195.084, Tm: 2041.4, dHf: 22.17 },
     Pd: { label: 'Palladium (Pd)', rho: 12.0, M: 106.42, Tm: 1828.05, dHf: 16.7 },
     Cu: { label: 'Copper (Cu)', rho: 8.96, M: 63.546, Tm: 1357.77, dHf: 13.26 },
+    Ni: { label: 'Nickel (Ni)', rho: 8.908, M: 58.693 },
+    Fe: { label: 'Iron (Fe)', rho: 7.874, M: 55.845 },
     Fe3O4: { label: 'Magnetite (Fe₃O₄)', rho: 5.17, M: 231.533 },
     TiO2a: { label: 'TiO₂ (anatase)', rho: 3.89, M: 79.866 },
     TiO2r: { label: 'TiO₂ (rutile)', rho: 4.23, M: 79.866 },

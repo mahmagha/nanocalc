@@ -50,11 +50,11 @@
         const a = NC.need(v.a, 'Lattice parameter', { positive: true });
         if (hkl2 === 0) NC.fail('Enter non-zero Miller indices (hkl).');
         const d = a / Math.sqrt(hkl2);
-        s.add({ title: 'Interplanar spacing of a cubic lattice', formula: 'd_hkl = a / √(h² + k² + l²)', sub: 'd = ' + f(a) + ' nm / √' + hkl2, result: 'd' + hklStr + ' = ' + f(d) + ' nm', ref: 'cullity2001' });
+        s.add({ title: 'Interplanar spacing of a cubic lattice', formula: 'd_hkl = a / √(h² + k² + l²)', tex: "d_{hkl} = \\dfrac{a}{\\sqrt{h^2 + k^2 + l^2}}", sub: 'd = ' + f(a) + ' nm / √' + hkl2, result: 'd' + hklStr + ' = ' + f(d) + ' nm', ref: 'cullity2001' });
         const sinT = (n * lam) / (2 * d);
         if (sinT > 1) NC.fail('nλ/(2d) = ' + f(sinT) + ' > 1, so this reflection cannot be reached at this wavelength.');
         const th = NC.deg(Math.asin(sinT));
-        s.add({ title: "Bragg's law solved for θ", formula: 'nλ = 2d·sinθ   ⇒   θ = arcsin[nλ / (2d)]', sub: 'θ = arcsin[' + n + ' × ' + f(lam) + ' / (2 × ' + f(d) + ')] = arcsin(' + f(sinT) + ')', result: 'θ = ' + NC.fix(th, 3) + '°   ⇒   2θ = ' + NC.fix(2 * th, 3) + '°', ref: 'bragg1913' });
+        s.add({ title: "Bragg's law solved for θ", formula: 'nλ = 2d·sinθ   ⇒   θ = arcsin[nλ / (2d)]', tex: "n\\lambda = 2d\\sin\\theta \\;\\Rightarrow\\; \\theta = \\arcsin\\dfrac{n\\lambda}{2d}", sub: 'θ = arcsin[' + n + ' × ' + f(lam) + ' / (2 × ' + f(d) + ')] = arcsin(' + f(sinT) + ')', result: 'θ = ' + NC.fix(th, 3) + '°   ⇒   2θ = ' + NC.fix(2 * th, 3) + '°', ref: 'bragg1913' });
         return {
           results: [
             { label: 'Peak position 2θ', value: 2 * th, unit: '°', main: true },
@@ -70,14 +70,14 @@
       s.add({ title: 'Bragg angle', formula: 'θ = 2θ / 2', sub: 'θ = ' + f(tt) + '° / 2', result: 'θ = ' + f(th, 5) + '°' });
       const sinT = Math.sin(NC.rad(th));
       const d = (n * lam) / (2 * sinT);
-      s.add({ title: "Bragg's law", formula: 'nλ = 2d·sinθ   ⇒   d = nλ / (2 sinθ)', sub: 'd = ' + n + ' × ' + f(lam) + ' nm / (2 × sin ' + f(th, 5) + '°) = ' + f(n * lam) + ' / (2 × ' + f(sinT, 5) + ')', result: 'd = ' + f(d, 5) + ' nm = ' + f(d * 10, 5) + ' Å', ref: 'bragg1913' });
+      s.add({ title: "Bragg's law", formula: 'nλ = 2d·sinθ   ⇒   d = nλ / (2 sinθ)', tex: "n\\lambda = 2d\\sin\\theta \\;\\Rightarrow\\; d = \\dfrac{n\\lambda}{2\\sin\\theta}", sub: 'd = ' + n + ' × ' + f(lam) + ' nm / (2 × sin ' + f(th, 5) + '°) = ' + f(n * lam) + ' / (2 × ' + f(sinT, 5) + ')', result: 'd = ' + f(d, 5) + ' nm = ' + f(d * 10, 5) + ' Å', ref: 'bragg1913' });
       const results = [
         { label: 'd-spacing d', value: d, unit: 'nm', main: true, sig: 5 },
         { label: 'd-spacing (Å)', value: d * 10, unit: 'Å', sig: 5 }
       ];
       if (hkl2 > 0) {
         const a = d * Math.sqrt(hkl2);
-        s.add({ title: 'Cubic lattice parameter', formula: 'a = d_hkl · √(h² + k² + l²)', sub: 'a = ' + f(d, 5) + ' nm × √' + hkl2 + ' (for ' + hklStr + ')', result: 'a = ' + f(a, 5) + ' nm', note: 'Valid only for cubic crystals and a correctly indexed reflection.', ref: 'cullity2001' });
+        s.add({ title: 'Cubic lattice parameter', formula: 'a = d_hkl · √(h² + k² + l²)', tex: "a = d_{hkl}\\sqrt{h^2 + k^2 + l^2}", sub: 'a = ' + f(d, 5) + ' nm × √' + hkl2 + ' (for ' + hklStr + ')', result: 'a = ' + f(a, 5) + ' nm', note: 'Valid only for cubic crystals and a correctly indexed reflection.', ref: 'cullity2001' });
         results.push({ label: 'Lattice parameter a (cubic)', value: a, unit: 'nm', main: true, sig: 5 });
       }
       return { results: results, steps: s.items };
@@ -154,7 +154,7 @@
     compute: function (v) {
       const s = new NC.Steps();
       const P = readPeaks(v, s);
-      s.add({ title: 'Scherrer equation', formula: 'D = Kλ / (β·cosθ)   (β = FWHM in radians, θ = Bragg angle)', note: 'Gives the volume-weighted mean column length normal to the diffracting planes.', ref: ['scherrer1918', 'patterson1939'] });
+      s.add({ title: 'Scherrer equation', formula: 'D = Kλ / (β·cosθ)   (β = FWHM in radians, θ = Bragg angle)', tex: "D = \\dfrac{K\\lambda}{\\beta\\cos\\theta}\\qquad(\\beta = \\text{FWHM in radians},\\ \\theta = \\text{Bragg angle})", note: 'Gives the volume-weighted mean column length normal to the diffracting planes.', ref: ['scherrer1918', 'patterson1939'] });
       const Ds = [];
       const rows = [];
       P.peaks.forEach(function (p, i) {
@@ -162,7 +162,7 @@
         corrStep(s, P, p);
         s.add({ title: 'Convert to radians and Bragg angle', formula: 'β[rad] = β[°]·π/180,   θ = 2θ/2', sub: 'β = ' + f(p.bDeg) + ' × π/180;   θ = ' + f(p.tt) + '/2 = ' + f(p.tt / 2) + '°', result: 'β = ' + f(p.b) + ' rad;   cosθ = ' + f(Math.cos(p.th), 5) });
         const D = (P.K * P.lam) / (p.b * Math.cos(p.th));
-        s.add({ title: 'Crystallite size', formula: 'D = Kλ / (β·cosθ)', sub: 'D = ' + f(P.K) + ' × ' + f(P.lam) + ' nm / (' + f(p.b) + ' × ' + f(Math.cos(p.th), 5) + ')', result: 'D = ' + f(D) + ' nm', ref: 'scherrer1918' });
+        s.add({ title: 'Crystallite size', formula: 'D = Kλ / (β·cosθ)', tex: "D = \\dfrac{K\\lambda}{\\beta\\cos\\theta}", sub: 'D = ' + f(P.K) + ' × ' + f(P.lam) + ' nm / (' + f(p.b) + ' × ' + f(Math.cos(p.th), 5) + ')', result: 'D = ' + f(D) + ' nm', ref: 'scherrer1918' });
         Ds.push(D);
         rows.push([f(p.tt), f(p.bo), P.corr === 'none' ? '—' : f(p.bi), f(p.bDeg), f(D)]);
       });
@@ -171,7 +171,7 @@
       const results = [{ label: Ds.length > 1 ? 'Mean crystallite size' : 'Crystallite size D', value: mean, unit: 'nm', main: true }];
       if (Ds.length > 1) {
         s.heading('Average over peaks');
-        s.add({ title: 'Mean and standard deviation', formula: 'D̄ = ΣDᵢ/N,   s = √[Σ(Dᵢ − D̄)²/(N − 1)]', sub: 'N = ' + Ds.length, result: 'D̄ = ' + f(mean) + ' nm;   s = ' + f(sd) + ' nm' });
+        s.add({ title: 'Mean and standard deviation', formula: 'D̄ = ΣDᵢ/N,   s = √[Σ(Dᵢ − D̄)²/(N − 1)]', tex: "\\bar{D} = \\dfrac{\\sum D_i}{N},\\quad s = \\sqrt{\\dfrac{\\sum (D_i - \\bar{D})^2}{N - 1}}", sub: 'N = ' + Ds.length, result: 'D̄ = ' + f(mean) + ' nm;   s = ' + f(sd) + ' nm' });
         results.push({ label: 'Standard deviation', value: sd, unit: 'nm' });
         results.push({ label: 'Peaks used', value: Ds.length, unit: '' });
       }
@@ -215,7 +215,7 @@
       if (P.peaks.length < 2) NC.fail('A Williamson–Hall plot needs at least two peaks (three or more recommended).');
       s.add({
         title: 'Williamson–Hall relation (uniform deformation model)',
-        formula: 'β·cosθ = Kλ/D + 4ε·sinθ',
+        formula: 'β·cosθ = Kλ/D + 4ε·sinθ', tex: "\\beta\\cos\\theta = \\dfrac{K\\lambda}{D} + 4\\varepsilon\\sin\\theta",
         note: 'Size broadening goes as 1/cosθ and strain broadening as tanθ. Multiplying by cosθ gives a straight line in sinθ.',
         ref: 'williamson1953'
       });
@@ -229,12 +229,12 @@
       s.heading('Linear fit');
       s.add({ title: 'Transform each peak', formula: 'x = 4·sinθ,   y = β[rad]·cosθ', result: 'Values for all ' + xs.length + ' peaks are listed in the table.' });
       const fit = NC.stats.linreg(xs, ys);
-      s.add({ title: 'Least-squares line y = m·x + b', formula: 'm = Σ(x − x̄)(y − ȳ) / Σ(x − x̄)²,   b = ȳ − m·x̄', result: 'm = ' + f(fit.m) + (isFinite(fit.seM) ? ' ± ' + f(fit.seM, 2) : '') + ';   b = ' + f(fit.b) + (isFinite(fit.seB) ? ' ± ' + f(fit.seB, 2) : '') + ' rad;   R² = ' + f(fit.r2, 4) });
+      s.add({ title: 'Least-squares line y = m·x + b', formula: 'm = Σ(x − x̄)(y − ȳ) / Σ(x − x̄)²,   b = ȳ − m·x̄', tex: "m = \\dfrac{\\sum (x - \\bar{x})(y - \\bar{y})}{\\sum (x - \\bar{x})^2},\\quad b = \\bar{y} - m\\,\\bar{x}", result: 'm = ' + f(fit.m) + (isFinite(fit.seM) ? ' ± ' + f(fit.seM, 2) : '') + ';   b = ' + f(fit.b) + (isFinite(fit.seB) ? ' ± ' + f(fit.seB, 2) : '') + ' rad;   R² = ' + f(fit.r2, 4) });
       const warnings = [];
       let D = NaN;
       if (fit.b > 0) {
         D = (P.K * P.lam) / fit.b;
-        s.add({ title: 'Crystallite size from the intercept', formula: 'D = Kλ / b', sub: 'D = ' + f(P.K) + ' × ' + f(P.lam) + ' nm / ' + f(fit.b), result: 'D = ' + f(D) + ' nm', ref: 'williamson1953' });
+        s.add({ title: 'Crystallite size from the intercept', formula: 'D = Kλ / b', tex: "D = \\dfrac{K\\lambda}{b}", sub: 'D = ' + f(P.K) + ' × ' + f(P.lam) + ' nm / ' + f(fit.b), result: 'D = ' + f(D) + ' nm', ref: 'williamson1953' });
       } else {
         warnings.push('The intercept is zero or negative, so no crystallite size can be extracted. Broadening may be strain-dominated, the size may exceed the method’s range, or the data may be too noisy.');
       }

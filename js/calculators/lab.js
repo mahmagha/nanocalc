@@ -40,7 +40,7 @@
         const V2 = NC.need(v.V2, 'Final volume', { positive: true });
         if (C2 > C1) NC.fail('The target concentration cannot be higher than the stock concentration.');
         const V1 = (C2 * V2) / C1;
-        s.add({ title: 'Conservation of amount of substance', formula: 'C₁V₁ = C₂V₂   ⇒   V₁ = C₂V₂ / C₁', sub: 'V₁ = ' + f(C2) + ' × ' + f(V2) + ' mL / ' + f(C1), result: 'V₁ = ' + f(V1) + ' mL', ref: 'iupacGreen' });
+        s.add({ title: 'Conservation of amount of substance', formula: 'C₁V₁ = C₂V₂   ⇒   V₁ = C₂V₂ / C₁', tex: "C_1V_1 = C_2V_2 \\;\\Rightarrow\\; V_1 = \\dfrac{C_2V_2}{C_1}", sub: 'V₁ = ' + f(C2) + ' × ' + f(V2) + ' mL / ' + f(C1), result: 'V₁ = ' + f(V1) + ' mL', ref: 'iupacGreen' });
         s.add({ title: 'Diluent to add', formula: 'V_solvent = V₂ − V₁', sub: 'V = ' + f(V2) + ' − ' + f(V1), result: 'V_solvent = ' + f(V2 - V1) + ' mL', note: 'Assumes volumes are additive. For accurate work, make up to the mark in a volumetric flask.' });
         return {
           results: [{ label: 'Stock volume V₁', value: V1, unit: 'mL', main: true }, { label: 'Diluent volume', value: V2 - V1, unit: 'mL', main: true }, { label: 'Dilution factor', value: C1 / C2, unit: '×' }],
@@ -56,7 +56,7 @@
       const m = n * M * 1000;
       s.add({ title: 'Mass of pure compound', formula: 'm = n · M', sub: 'm = ' + f(n) + ' mol × ' + f(M) + ' g/mol', result: 'm = ' + f(m) + ' mg', ref: 'ciaaw2021' });
       const mw = m / (p / 100);
-      s.add({ title: 'Correct for purity', formula: 'm_weigh = m / (purity/100)', sub: 'm_weigh = ' + f(m) + ' mg / ' + f(p / 100), result: 'm_weigh = ' + f(mw) + ' mg' });
+      s.add({ title: 'Correct for purity', formula: 'm_weigh = m / (purity/100)', tex: "m_{\\text{weigh}} = \\dfrac{m}{\\text{purity}/100}", sub: 'm_weigh = ' + f(m) + ' mg / ' + f(p / 100), result: 'm_weigh = ' + f(mw) + ' mg' });
       return {
         results: [{ label: 'Mass to weigh', value: mw, unit: 'mg', main: true }, { label: 'Amount', value: n * 1e3, unit: 'mmol' }],
         steps: s.items,
@@ -94,9 +94,9 @@
       const mp = rho * V;
       s.add({ title: 'Mass of one particle', formula: 'm_p = ρ · πD³/6', sub: 'm_p = ' + f(rho) + ' g/cm³ × ' + f(V) + ' cm³', result: 'm_p = ' + f(mp) + ' g' });
       const N = (cm * 1e-6) / mp;
-      s.add({ title: 'Number concentration', formula: 'N = c_m / m_p', sub: 'N = ' + f(cm * 1e-6) + ' g/mL / ' + f(mp) + ' g', result: 'N = ' + f(N) + ' particles/mL' });
+      s.add({ title: 'Number concentration', formula: 'N = c_m / m_p', tex: "N = \\dfrac{c_m}{m_p}", sub: 'N = ' + f(cm * 1e-6) + ' g/mL / ' + f(mp) + ' g', result: 'N = ' + f(N) + ' particles/mL' });
       const cM = (N * 1000) / C.NA;
-      s.add({ title: 'Molar particle concentration', formula: 'c = N · 1000 / N_A', sub: 'c = ' + f(N) + ' × 1000 / ' + f(C.NA), result: 'c = ' + f(cM) + ' mol/L = ' + f(cM * 1e9) + ' nM', ref: 'codata2018' });
+      s.add({ title: 'Molar particle concentration', formula: 'c = N · 1000 / N_A', tex: "c = \\dfrac{N\\cdot 1000}{N_A}", sub: 'c = ' + f(N) + ' × 1000 / ' + f(C.NA), result: 'c = ' + f(cM) + ' mol/L = ' + f(cM * 1e9) + ' nM', ref: 'codata2018' });
       const SA = N * Math.PI * D * D * 1e-14; // cm^2/mL
       s.add({ title: 'Total particle surface area per mL', formula: 'A = N · πD²', sub: 'A = ' + f(N) + ' × π × ' + f(D) + '² nm² × 10⁻¹⁴ cm²/nm²', result: 'A = ' + f(SA) + ' cm²/mL' });
       const results = [

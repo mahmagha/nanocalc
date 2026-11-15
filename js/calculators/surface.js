@@ -56,23 +56,23 @@
 
       s.add({
         title: 'Linearized BET equation',
-        formula: 'x / [V(1 − x)] = 1/(V_m·C) + [(C − 1)/(V_m·C)]·x,   x = p/p₀',
+        formula: 'x / [V(1 − x)] = 1/(V_m·C) + [(C − 1)/(V_m·C)]·x,   x = p/p₀', tex: "\\dfrac{x}{V(1 - x)} = \\dfrac{1}{V_m C} + \\dfrac{C - 1}{V_m C}\\,x,\\quad x = p/p_0",
         note: 'Plotting the left-hand side against x gives a straight line with slope s = (C − 1)/(V_m C) and intercept i = 1/(V_m C).',
         ref: 'bet1938'
       });
       const X = fit.map(function (r) { return r[0]; });
       const Y = fit.map(function (r) { return r[0] / (r[1] * (1 - r[0])); });
-      s.add({ title: 'Transform the data in the fit range', formula: 'y = x / [V(1 − x)]', sub: 'e.g. first point: y = ' + f(X[0]) + ' / [' + f(fit[0][1]) + ' × (1 − ' + f(X[0]) + ')]', result: 'y₁ = ' + f(Y[0]) + ' g/cm³ STP  (' + fit.length + ' points, see table)' });
+      s.add({ title: 'Transform the data in the fit range', formula: 'y = x / [V(1 − x)]', tex: "y = \\dfrac{x}{V(1 - x)}", sub: 'e.g. first point: y = ' + f(X[0]) + ' / [' + f(fit[0][1]) + ' × (1 − ' + f(X[0]) + ')]', result: 'y₁ = ' + f(Y[0]) + ' g/cm³ STP  (' + fit.length + ' points, see table)' });
       const lr = NC.stats.linreg(X, Y);
       s.add({ title: 'Least-squares line', formula: 'y = s·x + i', result: 's = ' + f(lr.m) + ',   i = ' + f(lr.b) + ',   R² = ' + NC.fix(lr.r2, 6) });
       if (!(lr.b > 0)) NC.fail('The BET intercept is not positive (i = ' + f(lr.b) + '), so C would be negative. This is typical of microporous materials. Move the fit range to lower p/p₀ (see the Rouquerol criteria).');
       const Vm = 1 / (lr.m + lr.b);
       const Cc = 1 + lr.m / lr.b;
-      s.add({ title: 'Monolayer capacity and BET constant', formula: 'V_m = 1/(s + i),   C = 1 + s/i', sub: 'V_m = 1/(' + f(lr.m) + ' + ' + f(lr.b) + ');   C = 1 + ' + f(lr.m) + '/' + f(lr.b), result: 'V_m = ' + f(Vm) + ' cm³ STP/g;   C = ' + f(Cc), ref: 'bet1938' });
+      s.add({ title: 'Monolayer capacity and BET constant', formula: 'V_m = 1/(s + i),   C = 1 + s/i', tex: "V_m = \\dfrac{1}{s + i},\\quad C = 1 + \\dfrac{s}{i}", sub: 'V_m = 1/(' + f(lr.m) + ' + ' + f(lr.b) + ');   C = 1 + ' + f(lr.m) + '/' + f(lr.b), result: 'V_m = ' + f(Vm) + ' cm³ STP/g;   C = ' + f(Cc), ref: 'bet1938' });
       const S = (Vm * C.NA * sigma * 1e-18) / NC.VM_STP;
       s.add({
         title: 'Specific surface area',
-        formula: 'S_BET = V_m · N_A · σ / V_mol',
+        formula: 'S_BET = V_m · N_A · σ / V_mol', tex: "S_{\\text{BET}} = \\dfrac{V_m N_A \\sigma}{V_{\\text{mol}}}",
         sub: 'S = ' + f(Vm) + ' cm³/g × ' + f(C.NA) + ' mol⁻¹ × ' + f(sigma) + '×10⁻¹⁸ m² / ' + f(NC.VM_STP, 7) + ' cm³/mol',
         result: 'S_BET = ' + f(S) + ' m²/g',
         note: 'V_mol is the molar volume of an ideal gas at STP (273.15 K, 101.325 kPa).',
@@ -189,7 +189,7 @@
       if (v.film !== 'none') {
         const tA = Math.sqrt(13.99 / (0.034 - Math.log10(x)));
         t = tA / 10;
-        s.add({ title: 'Statistical film thickness (Harkins–Jura)', formula: 't [Å] = [13.99 / (0.034 − log₁₀(p/p₀))]^½', sub: 't = [13.99 / (0.034 − log₁₀ ' + f(x) + ')]^½ = [13.99 / ' + f(0.034 - Math.log10(x)) + ']^½', result: 't = ' + f(tA) + ' Å = ' + f(t) + ' nm', ref: 'harkins1944' });
+        s.add({ title: 'Statistical film thickness (Harkins–Jura)', formula: 't [Å] = [13.99 / (0.034 − log₁₀(p/p₀))]^½', tex: "t\\,[\\text{Å}] = \\left[\\dfrac{13.99}{0.034 - \\log_{10}(p/p_0)}\\right]^{1/2}", sub: 't = [13.99 / (0.034 − log₁₀ ' + f(x) + ')]^½ = [13.99 / ' + f(0.034 - Math.log10(x)) + ']^½', result: 't = ' + f(tA) + ' Å = ' + f(t) + ' nm', ref: 'harkins1944' });
       }
       const rp = rk * 1e9 + t;
       s.add({ title: 'Pore radius and diameter', formula: 'r_p = r_K + t,   d_p = 2r_p', sub: 'r_p = ' + f(rk * 1e9) + ' + ' + f(t), result: 'r_p = ' + f(rp) + ' nm;   d_p = ' + f(2 * rp) + ' nm', ref: 'bjh1951' });

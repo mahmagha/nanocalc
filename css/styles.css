@@ -91,7 +91,7 @@ main { padding: 28px 32px 80px; max-width: 1080px; width: 100%; outline: none; }
 .cat-block { margin-bottom: 26px; }
 .cat-block h2 { font-size: 18px; }
 .cat-block > p { margin: 2px 0 10px; color: var(--muted); font-size: 14px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 10px; }
 .card { display: block; padding: 13px 15px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: var(--text); box-shadow: var(--shadow); transition: border-color .12s; }
 .card:hover { border-color: var(--accent); }
 .card b { display: block; font-size: 14.5px; }
@@ -112,7 +112,7 @@ main { padding: 28px 32px 80px; max-width: 1080px; width: 100%; outline: none; }
 .btn.primary:hover { filter: brightness(1.08); color: var(--accent-text); }
 .preset select { padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-size: 13.5px; max-width: 260px; }
 
-.form { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px 16px; }
+.form { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: 12px 16px; }
 .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .field.wide { grid-column: 1 / -1; }
 .field[hidden] { display: none; }
@@ -124,7 +124,7 @@ main { padding: 28px 32px 80px; max-width: 1080px; width: 100%; outline: none; }
 .field .help { font-size: 12.5px; color: var(--muted); }
 .preset-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed var(--border); }
 
-.results { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.results { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); gap: 10px; }
 .result { background: var(--surface-2); border-radius: 8px; padding: 10px 12px; min-width: 0; }
 .result.main { background: var(--accent-weak); }
 .result .k { font-size: 12.5px; color: var(--muted); }
@@ -138,7 +138,7 @@ main { padding: 28px 32px 80px; max-width: 1080px; width: 100%; outline: none; }
 .alert.err { background: var(--err-bg); border: 1px solid var(--err-border); color: var(--err-text); }
 .alert ul { margin: 0; padding-left: 18px; }
 
-.plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.plots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 14px; }
 figure { margin: 0; }
 figcaption { font-size: 13px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
 svg.plot { width: 100%; height: auto; display: block; background: var(--surface); }
@@ -172,6 +172,20 @@ ol.steps > li.heading { padding: 16px 0 4px; font-weight: 700; font-size: 14px; 
 .step .formula { background: var(--code-bg); border-left: 3px solid var(--accent); }
 .step .sub { color: var(--muted); }
 .step .res { background: var(--accent-weak); color: var(--text); font-weight: 600; display: inline-block; }
+.step .tex { font-family: var(--font); white-space: normal; overflow-wrap: normal; padding: 8px 12px; }
+.step .tex .katex { font-size: 1.12em; }
+.step .formula.tex .katex { font-size: 1.22em; }
+.step .sub.tex { color: var(--muted); }
+.step .res.tex { font-weight: 400; }
+figure.sketch { display: flex; flex-direction: column; }
+svg.shape-sketch { width: 100%; max-height: 300px; background: var(--surface-2); border-radius: 8px; }
+svg.shape-sketch .body { fill: var(--accent-weak); stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+svg.shape-sketch .body2 { fill: color-mix(in srgb, var(--accent) 22%, var(--surface)); stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+svg.shape-sketch .body3 { fill: color-mix(in srgb, var(--accent) 38%, var(--surface)); stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+svg.shape-sketch .edge { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; opacity: .8; }
+svg.shape-sketch .dimline { stroke: var(--muted); stroke-width: 1.2; }
+svg.shape-sketch .arrowhead { fill: var(--muted); }
+svg.shape-sketch .dim { fill: var(--text); font-size: 12px; font-family: var(--font); }
 .step .note { font-size: 13px; color: var(--muted); margin-top: 6px; }
 sup.cite a { text-decoration: none; font-weight: 600; font-size: 11px; margin-left: 2px; }
 .notes { margin: 0; padding-left: 18px; color: var(--text); font-size: 14px; }

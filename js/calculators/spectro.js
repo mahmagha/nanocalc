@@ -34,14 +34,14 @@
       const r = NC.need(v.ratio, 'I_D/I_G', { positive: true });
       const EL = NC.HC_EV_NM / lam;
       const l4 = Math.pow(lam, 4);
-      s.add({ title: 'Excitation energy (for reference)', formula: 'E_L = hc / λ_L', sub: 'E_L = ' + f(NC.HC_EV_NM, 7) + ' / ' + f(lam), result: 'E_L = ' + f(EL) + ' eV;   λ_L⁴ = ' + f(l4) + ' nm⁴', ref: 'codata2018' });
+      s.add({ title: 'Excitation energy (for reference)', formula: 'E_L = hc / λ_L', tex: "E_L = \\dfrac{hc}{\\lambda_L}", sub: 'E_L = ' + f(NC.HC_EV_NM, 7) + ' / ' + f(lam), result: 'E_L = ' + f(EL) + ' eV;   λ_L⁴ = ' + f(l4) + ' nm⁴', ref: 'codata2018' });
       if (v.mode === 'LD') {
         const LD = Math.sqrt((1.8e-9 * l4) / r);
         const LDlo = Math.sqrt((1.3e-9 * l4) / r), LDhi = Math.sqrt((2.3e-9 * l4) / r);
-        s.add({ title: 'Mean distance between defects (low-defect regime)', formula: 'L_D² [nm²] = (1.8 ± 0.5)×10⁻⁹ · λ_L⁴ · (I_D/I_G)⁻¹', sub: 'L_D² = 1.8×10⁻⁹ × ' + f(l4) + ' / ' + f(r), result: 'L_D = ' + f(LD) + ' nm  (range ' + f(LDlo) + '–' + f(LDhi) + ' nm)', ref: 'cancado2011' });
+        s.add({ title: 'Mean distance between defects (low-defect regime)', formula: 'L_D² [nm²] = (1.8 ± 0.5)×10⁻⁹ · λ_L⁴ · (I_D/I_G)⁻¹', tex: "L_D^2\\,[\\text{nm}^2] = (1.8 \\pm 0.5)\\times 10^{-9}\\,\\dfrac{\\lambda_L^4}{I_D/I_G}", sub: 'L_D² = 1.8×10⁻⁹ × ' + f(l4) + ' / ' + f(r), result: 'L_D = ' + f(LD) + ' nm  (range ' + f(LDlo) + '–' + f(LDhi) + ' nm)', ref: 'cancado2011' });
         const nD = (1.8e22 / l4) * r;
         const nlo = (1.3e22 / l4) * r, nhi = (2.3e22 / l4) * r;
-        s.add({ title: 'Defect density', formula: 'n_D [cm⁻²] = (1.8 ± 0.5)×10²² / λ_L⁴ · (I_D/I_G)', sub: 'n_D = 1.8×10²² / ' + f(l4) + ' × ' + f(r), result: 'n_D = ' + f(nD) + ' cm⁻²  (range ' + f(nlo) + '–' + f(nhi) + ')', ref: 'cancado2011' });
+        s.add({ title: 'Defect density', formula: 'n_D [cm⁻²] = (1.8 ± 0.5)×10²² / λ_L⁴ · (I_D/I_G)', tex: "n_D\\,[\\text{cm}^{-2}] = \\dfrac{(1.8 \\pm 0.5)\\times 10^{22}}{\\lambda_L^4}\\,\\dfrac{I_D}{I_G}", sub: 'n_D = 1.8×10²² / ' + f(l4) + ' × ' + f(r), result: 'n_D = ' + f(nD) + ' cm⁻²  (range ' + f(nlo) + '–' + f(nhi) + ')', ref: 'cancado2011' });
         const warnings = [];
         if (LD < 10) warnings.push('L_D < 10 nm. These equations hold only in the low-defect regime (L_D ≳ 10 nm). At higher defect densities I_D/I_G decreases again, so the result is not valid here.');
         return {
@@ -56,7 +56,7 @@
         };
       }
       const La = (2.4e-10 * l4) / r;
-      s.add({ title: 'In-plane crystallite size of nanographite', formula: 'L_a [nm] = 2.4×10⁻¹⁰ · λ_L⁴ · (I_D/I_G)⁻¹', sub: 'L_a = 2.4×10⁻¹⁰ × ' + f(l4) + ' / ' + f(r), result: 'L_a = ' + f(La) + ' nm', ref: 'cancado2006' });
+      s.add({ title: 'In-plane crystallite size of nanographite', formula: 'L_a [nm] = 2.4×10⁻¹⁰ · λ_L⁴ · (I_D/I_G)⁻¹', tex: "L_a\\,[\\text{nm}] = 2.4\\times 10^{-10}\\,\\dfrac{\\lambda_L^4}{I_D/I_G}", sub: 'L_a = 2.4×10⁻¹⁰ × ' + f(l4) + ' / ' + f(r), result: 'L_a = ' + f(La) + ' nm', ref: 'cancado2006' });
       const curve = [];
       for (let x = 0.05; x <= 3; x += 0.02) curve.push([x, (2.4e-10 * l4) / x]);
       return {
@@ -94,9 +94,9 @@
       const norm = rows.map(function (r) { return r[0] / r[1]; });
       const total = NC.stats.sum(norm);
       if (!(total > 0)) NC.fail('All normalized intensities are zero.');
-      s.add({ title: 'Sensitivity-normalized intensities', formula: 'Iᵢ′ = Iᵢ / Sᵢ', sub: rows.map(function (r, i) { return r.label + ': ' + f(r[0]) + ' / ' + f(r[1]) + ' = ' + f(norm[i]); }).join(';   '), ref: 'wagner1981' });
+      s.add({ title: 'Sensitivity-normalized intensities', formula: 'Iᵢ′ = Iᵢ / Sᵢ', tex: "I_i' = \\dfrac{I_i}{S_i}", sub: rows.map(function (r, i) { return r.label + ': ' + f(r[0]) + ' / ' + f(r[1]) + ' = ' + f(norm[i]); }).join(';   '), ref: 'wagner1981' });
       const at = norm.map(function (x) { return (100 * x) / total; });
-      s.add({ title: 'Atomic fractions', formula: 'Cᵢ = (Iᵢ/Sᵢ) / Σⱼ(Iⱼ/Sⱼ) × 100 %', sub: 'Σ = ' + f(total), result: rows.map(function (r, i) { return r.label + ' = ' + NC.fix(at[i], 2) + ' at.%'; }).join(';   '), ref: 'wagner1981' });
+      s.add({ title: 'Atomic fractions', formula: 'Cᵢ = (Iᵢ/Sᵢ) / Σⱼ(Iⱼ/Sⱼ) × 100 %', tex: "C_i = \\dfrac{I_i/S_i}{\\sum_j I_j/S_j}\\times 100\\,\\%", sub: 'Σ = ' + f(total), result: rows.map(function (r, i) { return r.label + ' = ' + NC.fix(at[i], 2) + ' at.%'; }).join(';   '), ref: 'wagner1981' });
       return {
         results: rows.map(function (r, i) { return { label: r.label, value: at[i], unit: 'at.%', main: i < 4 }; }),
         steps: s.items,

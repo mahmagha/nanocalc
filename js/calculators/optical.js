@@ -64,11 +64,11 @@
       pts.sort(function (p1, p2) { return p1.E - p2.E; });
 
       const r0 = pts[pts.length - 1];
-      s.add({ title: 'Photon energy for each point', formula: 'E = hν = hc/λ', sub: 'e.g. E = ' + f(NC.HC_EV_NM, 7) + ' eV·nm / ' + f(r0.lam) + ' nm', result: 'E = ' + f(r0.E) + ' eV', ref: 'codata2018' });
+      s.add({ title: 'Photon energy for each point', formula: 'E = hν = hc/λ', tex: "E = h\\nu = \\dfrac{hc}{\\lambda}", sub: 'e.g. E = ' + f(NC.HC_EV_NM, 7) + ' eV·nm / ' + f(r0.lam) + ' nm', result: 'E = ' + f(r0.E) + ' eV', ref: 'codata2018' });
       if (v.dtype === 'refl') {
-        s.add({ title: 'Kubelka–Munk function (proportional to α)', formula: 'F(R) = (1 − R)² / (2R),   R as a fraction', sub: 'e.g. R = ' + f(r0.sig / 100) + ':  F = (1 − ' + f(r0.sig / 100) + ')² / (2 × ' + f(r0.sig / 100) + ')', result: 'F(R) = ' + f(r0.a), ref: 'kubelka1931' });
+        s.add({ title: 'Kubelka–Munk function (proportional to α)', formula: 'F(R) = (1 − R)² / (2R),   R as a fraction', tex: "F(R) = \\dfrac{(1 - R)^2}{2R},\\quad R\\ \\text{as a fraction}", sub: 'e.g. R = ' + f(r0.sig / 100) + ':  F = (1 − ' + f(r0.sig / 100) + ')² / (2 × ' + f(r0.sig / 100) + ')', result: 'F(R) = ' + f(r0.a), ref: 'kubelka1931' });
       } else if (t) {
-        s.add({ title: 'Absorption coefficient', formula: 'α = 2.303 · A / t', sub: 'e.g. α = 2.303 × ' + f(r0.sig) + ' / (' + f(t) + ' × 10⁻⁷ cm)', result: 'α = ' + f(r0.a) + ' cm⁻¹' });
+        s.add({ title: 'Absorption coefficient', formula: 'α = 2.303 · A / t', tex: "\\alpha = \\dfrac{2.303\\,A}{t}", sub: 'e.g. α = 2.303 × ' + f(r0.sig) + ' / (' + f(t) + ' × 10⁻⁷ cm)', result: 'α = ' + f(r0.a) + ' cm⁻¹' });
       } else {
         s.add({ title: 'Absorption coefficient (relative)', formula: 'α ∝ A', result: 'No thickness given, so A is used in place of α. Scaling the y-axis by a constant does not move the x-intercept.' });
       }
@@ -107,7 +107,7 @@
       const Eg = -fit.b / fit.m;
       const e1 = fitPts[0].E, e2 = fitPts[fitPts.length - 1].E;
       s.add({ title: 'Linear fit of the absorption edge', formula: '(αhν)^p = m·hν + b   (least squares)', sub: fitPts.length + ' points, ' + f(e1) + '–' + f(e2) + ' eV (' + how + ')', result: 'm = ' + f(fit.m) + ',  b = ' + f(fit.b) + ',  R² = ' + NC.fix(fit.r2, 4) });
-      s.add({ title: 'Extrapolate to (αhν)^p = 0', formula: 'Eg = −b / m', sub: 'Eg = −(' + f(fit.b) + ') / ' + f(fit.m), result: 'Eg = ' + f(Eg) + ' eV  (λ_edge = ' + f(NC.HC_EV_NM / Eg) + ' nm)', ref: 'tauc1966' });
+      s.add({ title: 'Extrapolate to (αhν)^p = 0', formula: 'Eg = −b / m', tex: "E_g = -\\dfrac{b}{m}", sub: 'Eg = −(' + f(fit.b) + ') / ' + f(fit.m), result: 'Eg = ' + f(Eg) + ' eV  (λ_edge = ' + f(NC.HC_EV_NM / Eg) + ' nm)', ref: 'tauc1966' });
 
       const warnings = [];
       if (fit.r2 < 0.98) warnings.push('The linear fit is poor (R² < 0.98). Check the fit range.');
@@ -182,9 +182,9 @@
       if (A !== null) {
         const l = NC.need(v.l, 'Path length', { positive: true });
         const c = A / (eps * l);
-        s.add({ title: 'Particle concentration (Beer–Lambert)', formula: 'c = A / (ε·l)', sub: 'c = ' + f(A) + ' / (' + f(eps) + ' × ' + f(l) + ')', result: 'c = ' + f(c) + ' M = ' + f(c * 1e6) + ' μM', ref: 'swinehart1962' });
+        s.add({ title: 'Particle concentration (Beer–Lambert)', formula: 'c = A / (ε·l)', tex: "c = \\dfrac{A}{\\varepsilon\\,l}", sub: 'c = ' + f(A) + ' / (' + f(eps) + ' × ' + f(l) + ')', result: 'c = ' + f(c) + ' M = ' + f(c * 1e6) + ' μM', ref: 'swinehart1962' });
         const N = (c * NC.C.NA) / 1000;
-        s.add({ title: 'Number concentration', formula: 'N = c · N_A / 1000   (per mL)', sub: 'N = ' + f(c) + ' × ' + f(NC.C.NA) + ' / 1000', result: 'N = ' + f(N) + ' particles/mL', ref: 'codata2018' });
+        s.add({ title: 'Number concentration', formula: 'N = c · N_A / 1000   (per mL)', tex: "N = \\dfrac{c\\,N_A}{1000}\\quad(\\text{per mL})", sub: 'N = ' + f(c) + ' × ' + f(NC.C.NA) + ' / 1000', result: 'N = ' + f(N) + ' particles/mL', ref: 'codata2018' });
         results.push({ label: 'Concentration c', value: c * 1e6, unit: 'μM', main: true }, { label: 'Particles per mL', value: N, unit: 'mL⁻¹' });
       }
       const warnings = [];
@@ -231,15 +231,15 @@
       const Aspr = NC.need(v.Aspr, 'A_spr', { positive: true });
       const A450 = NC.need(v.A450, 'A₄₅₀', { positive: true });
       const ratio = Aspr / A450;
-      s.add({ title: 'Absorbance ratio', formula: 'r = A_spr / A₄₅₀', sub: 'r = ' + f(Aspr) + ' / ' + f(A450), result: 'r = ' + f(ratio) });
+      s.add({ title: 'Absorbance ratio', formula: 'r = A_spr / A₄₅₀', tex: "r = \\dfrac{A_{\\text{spr}}}{A_{450}}", sub: 'r = ' + f(Aspr) + ' / ' + f(A450), result: 'r = ' + f(ratio) });
       const d = Math.exp(3.0 * ratio - 2.2);
-      s.add({ title: 'Diameter from the absorbance ratio', formula: 'd = exp(B₁·r − B₂),   B₁ = 3.00,  B₂ = 2.20', sub: 'd = exp(3.00 × ' + f(ratio) + ' − 2.20)', result: 'd = ' + f(d) + ' nm', ref: 'haiss2007' });
+      s.add({ title: 'Diameter from the absorbance ratio', formula: 'd = exp(B₁·r − B₂),   B₁ = 3.00,  B₂ = 2.20', tex: "d = \\exp(B_1 r - B_2),\\quad B_1 = 3.00,\\ B_2 = 2.20", sub: 'd = exp(3.00 × ' + f(ratio) + ' − 2.20)', result: 'd = ' + f(d) + ' nm', ref: 'haiss2007' });
       const g = -0.295 + 1.36 * Math.exp(-Math.pow((d - 96.8) / 78.2, 2));
       if (!(g > 0)) NC.fail('The concentration formula is not defined for d = ' + f(d) + ' nm.');
       const N = (A450 * 1e14) / (d * d * g);
-      s.add({ title: 'Number concentration from A₄₅₀', formula: 'N = A₄₅₀ × 10¹⁴ / { d² · [−0.295 + 1.36·exp(−((d − 96.8)/78.2)²)] }   (particles/mL)', sub: 'N = ' + f(A450) + ' × 10¹⁴ / (' + f(d) + '² × ' + f(g) + ')', result: 'N = ' + f(N) + ' particles/mL', ref: 'haiss2007' });
+      s.add({ title: 'Number concentration from A₄₅₀', formula: 'N = A₄₅₀ × 10¹⁴ / { d² · [−0.295 + 1.36·exp(−((d − 96.8)/78.2)²)] }   (particles/mL)', tex: "N = \\dfrac{A_{450}\\times 10^{14}}{d^2\\left[-0.295 + 1.36\\exp\\!\\left(-\\left(\\frac{d - 96.8}{78.2}\\right)^2\\right)\\right]}\\quad(\\text{particles/mL})", sub: 'N = ' + f(A450) + ' × 10¹⁴ / (' + f(d) + '² × ' + f(g) + ')', result: 'N = ' + f(N) + ' particles/mL', ref: 'haiss2007' });
       const cnM = ((N * 1000) / NC.C.NA) * 1e9;
-      s.add({ title: 'Molar particle concentration', formula: 'c = N × 1000 / N_A', sub: 'c = ' + f(N) + ' × 1000 / ' + f(NC.C.NA) + ' mol⁻¹', result: 'c = ' + f(cnM) + ' nM', ref: 'codata2018' });
+      s.add({ title: 'Molar particle concentration', formula: 'c = N × 1000 / N_A', tex: "c = \\dfrac{N\\times 1000}{N_A}", sub: 'c = ' + f(N) + ' × 1000 / ' + f(NC.C.NA) + ' mol⁻¹', result: 'c = ' + f(cnM) + ' nM', ref: 'codata2018' });
 
       const results = [
         { label: 'Diameter d (ratio method)', value: d, unit: 'nm', main: true },
@@ -254,7 +254,7 @@
           warnings.push('λ_spr must be above ~519 nm for the peak-position method. Skipped.');
         } else {
           const d2 = Math.log((lspr - 512) / 6.53) / 0.0216;
-          s.add({ title: 'Diameter from SPR peak position', formula: 'd = ln[(λ_spr − λ₀)/L₁] / L₂,   λ₀ = 512 nm,  L₁ = 6.53,  L₂ = 0.0216', sub: 'd = ln[(' + f(lspr) + ' − 512) / 6.53] / 0.0216', result: 'd = ' + f(d2) + ' nm', note: 'Haiss et al. recommend this method only for d > 25 nm.', ref: 'haiss2007' });
+          s.add({ title: 'Diameter from SPR peak position', formula: 'd = ln[(λ_spr − λ₀)/L₁] / L₂,   λ₀ = 512 nm,  L₁ = 6.53,  L₂ = 0.0216', tex: "d = \\dfrac{\\ln\\left[(\\lambda_{\\text{spr}} - \\lambda_0)/L_1\\right]}{L_2},\\quad \\lambda_0 = 512\\ \\text{nm},\\ L_1 = 6.53,\\ L_2 = 0.0216", sub: 'd = ln[(' + f(lspr) + ' − 512) / 6.53] / 0.0216', result: 'd = ' + f(d2) + ' nm', note: 'Haiss et al. recommend this method only for d > 25 nm.', ref: 'haiss2007' });
           results.push({ label: 'Diameter d (SPR position)', value: d2, unit: 'nm' });
           if (d2 < 25) warnings.push('The peak-position method is recommended only for d > 25 nm. Use the ratio result for smaller particles.');
         }
@@ -301,12 +301,12 @@
         A = NC.need(v.A, 'Absorbance', { nonneg: true });
         c = NC.need(v.c, 'Concentration', { positive: true });
         eps = A / (l * c * 1e-6);
-        s.add({ title: 'Extinction coefficient', formula: 'ε = A / (l·c)', sub: 'ε = ' + f(A) + ' / (' + f(l) + ' × ' + f(c) + '×10⁻⁶ M)', result: 'ε = ' + f(eps) + ' M⁻¹·cm⁻¹' });
+        s.add({ title: 'Extinction coefficient', formula: 'ε = A / (l·c)', tex: "\\varepsilon = \\dfrac{A}{l\\,c}", sub: 'ε = ' + f(A) + ' / (' + f(l) + ' × ' + f(c) + '×10⁻⁶ M)', result: 'ε = ' + f(eps) + ' M⁻¹·cm⁻¹' });
       } else {
         A = NC.need(v.A, 'Absorbance', { nonneg: true });
         eps = NC.need(v.eps, 'ε', { positive: true });
         c = (A / (eps * l)) * 1e6;
-        s.add({ title: 'Concentration', formula: 'c = A / (ε·l)', sub: 'c = ' + f(A) + ' / (' + f(eps) + ' × ' + f(l) + ')', result: 'c = ' + f(c * 1e-6) + ' M = ' + f(c) + ' μM' });
+        s.add({ title: 'Concentration', formula: 'c = A / (ε·l)', tex: "c = \\dfrac{A}{\\varepsilon\\,l}", sub: 'c = ' + f(A) + ' / (' + f(eps) + ' × ' + f(l) + ')', result: 'c = ' + f(c * 1e-6) + ' M = ' + f(c) + ' μM' });
       }
       const warnings = [];
       if (A > 1.5) warnings.push('Absorbance above ~1.5 is often outside the linear range, because of stray light and instrument limits. Dilute the sample and measure again.');

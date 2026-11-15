@@ -34,14 +34,14 @@
       const mp = rho * V * 1e-21;
       s.add({ title: 'Mass of one core', formula: 'm_p = ρ · πD³/6', sub: 'm_p = ' + f(rho) + ' g/cm³ × ' + f(V) + ' nm³ × 10⁻²¹ cm³/nm³', result: 'm_p = ' + f(mp) + ' g', ref: 'crc' });
       const np = wc / 100 / mp;
-      s.add({ title: 'Particles per gram of sample', formula: 'N_p = w_core / m_p', sub: 'N_p = ' + f(wc / 100) + ' g / ' + f(mp) + ' g', result: 'N_p = ' + f(np) + ' per g' });
+      s.add({ title: 'Particles per gram of sample', formula: 'N_p = w_core / m_p', tex: "N_p = \\dfrac{w_{\\text{core}}}{m_p}", sub: 'N_p = ' + f(wc / 100) + ' g / ' + f(mp) + ' g', result: 'N_p = ' + f(np) + ' per g' });
       const nl = (wo / 100 / M) * C.NA;
-      s.add({ title: 'Ligand molecules per gram of sample', formula: 'N_L = (w_org / M) · N_A', sub: 'N_L = (' + f(wo / 100) + ' g / ' + f(M) + ' g/mol) × ' + f(C.NA) + ' mol⁻¹', result: 'N_L = ' + f(nl) + ' per g', ref: 'codata2018' });
+      s.add({ title: 'Ligand molecules per gram of sample', formula: 'N_L = (w_org / M) · N_A', tex: "N_L = \\dfrac{w_{\\text{org}}}{M}\\,N_A", sub: 'N_L = (' + f(wo / 100) + ' g / ' + f(M) + ' g/mol) × ' + f(C.NA) + ' mol⁻¹', result: 'N_L = ' + f(nl) + ' per g', ref: 'codata2018' });
       const per = nl / np;
-      s.add({ title: 'Ligands per particle', formula: 'n = N_L / N_p', sub: 'n = ' + f(nl) + ' / ' + f(np), result: 'n = ' + f(per) });
+      s.add({ title: 'Ligands per particle', formula: 'n = N_L / N_p', tex: "n = \\dfrac{N_L}{N_p}", sub: 'n = ' + f(nl) + ' / ' + f(np), result: 'n = ' + f(per) });
       const A = Math.PI * D * D;
       const sigma = per / A;
-      s.add({ title: 'Grafting density', formula: 'σ = n / (πD²)', sub: 'σ = ' + f(per) + ' / (π × ' + f(D) + '²) = ' + f(per) + ' / ' + f(A) + ' nm²', result: 'σ = ' + f(sigma) + ' ligands/nm²;   footprint = ' + f(1 / sigma) + ' nm²/ligand', ref: 'mansfield2014' });
+      s.add({ title: 'Grafting density', formula: 'σ = n / (πD²)', tex: "\\sigma = \\dfrac{n}{\\pi D^2}", sub: 'σ = ' + f(per) + ' / (π × ' + f(D) + '²) = ' + f(per) + ' / ' + f(A) + ' nm²', result: 'σ = ' + f(sigma) + ' ligands/nm²;   footprint = ' + f(1 / sigma) + ' nm²/ligand', ref: 'mansfield2014' });
       return {
         results: [
           { label: 'Grafting density σ', value: sigma, unit: 'nm⁻²', main: true },

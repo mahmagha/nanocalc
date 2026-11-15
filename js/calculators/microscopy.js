@@ -36,18 +36,18 @@
       const sorted = d.slice().sort(function (a, b) { return a - b; });
       const mean = S.mean(d), sd = S.sd(d), med = S.quantile(sorted, 0.5);
       const se = sd / Math.sqrt(n), t = S.t95(n - 1);
-      s.add({ title: 'Number-weighted (arithmetic) mean', formula: 'D̄ = Σdᵢ / n', sub: 'D̄ = ' + f(S.sum(d)) + ' / ' + n, result: 'D̄ = ' + f(mean) + ' nm', ref: 'iso9276' });
-      s.add({ title: 'Sample standard deviation and coefficient of variation', formula: 's = √[Σ(dᵢ − D̄)² / (n − 1)],   CV = s / D̄', result: 's = ' + f(sd) + ' nm;   CV = ' + NC.fix((sd / mean) * 100, 1) + ' %' });
-      s.add({ title: '95 % confidence interval of the mean', formula: 'D̄ ± t₀.₉₇₅,ₙ₋₁ · s/√n', sub: 'SE = ' + f(sd) + ' / √' + n + ' = ' + f(se) + ' nm;   t = ' + f(t), result: 'D̄ = ' + f(mean) + ' ± ' + f(t * se) + ' nm', note: 'Covers only the random sampling error, not calibration or segmentation errors.' });
+      s.add({ title: 'Number-weighted (arithmetic) mean', formula: 'D̄ = Σdᵢ / n', tex: "\\bar{D} = \\dfrac{\\sum d_i}{n}", sub: 'D̄ = ' + f(S.sum(d)) + ' / ' + n, result: 'D̄ = ' + f(mean) + ' nm', ref: 'iso9276' });
+      s.add({ title: 'Sample standard deviation and coefficient of variation', formula: 's = √[Σ(dᵢ − D̄)² / (n − 1)],   CV = s / D̄', tex: "s = \\sqrt{\\dfrac{\\sum (d_i - \\bar{D})^2}{n - 1}},\\quad \\text{CV} = \\dfrac{s}{\\bar{D}}", result: 's = ' + f(sd) + ' nm;   CV = ' + NC.fix((sd / mean) * 100, 1) + ' %' });
+      s.add({ title: '95 % confidence interval of the mean', formula: 'D̄ ± t₀.₉₇₅,ₙ₋₁ · s/√n', tex: "\\bar{D} \\pm t_{0.975,\\,n-1}\\,\\dfrac{s}{\\sqrt{n}}", sub: 'SE = ' + f(sd) + ' / √' + n + ' = ' + f(se) + ' nm;   t = ' + f(t), result: 'D̄ = ' + f(mean) + ' ± ' + f(t * se) + ' nm', note: 'Covers only the random sampling error, not calibration or segmentation errors.' });
       const s2 = S.sum(d.map(function (x) { return x * x; }));
       const s3 = S.sum(d.map(function (x) { return x * x * x; }));
       const s4 = S.sum(d.map(function (x) { return x * x * x * x; }));
       const d32 = s3 / s2, d43 = s4 / s3;
-      s.add({ title: 'Moment-ratio mean diameters', formula: 'D[3,2] = Σd³/Σd²  (surface-weighted, Sauter);   D[4,3] = Σd⁴/Σd³  (volume-weighted)', sub: 'D[3,2] = ' + f(s3) + ' / ' + f(s2) + ';   D[4,3] = ' + f(s4) + ' / ' + f(s3), result: 'D[3,2] = ' + f(d32) + ' nm;   D[4,3] = ' + f(d43) + ' nm', ref: 'iso9276' });
+      s.add({ title: 'Moment-ratio mean diameters', formula: 'D[3,2] = Σd³/Σd²  (surface-weighted, Sauter);   D[4,3] = Σd⁴/Σd³  (volume-weighted)', tex: "D[3,2] = \\dfrac{\\sum d^3}{\\sum d^2}\\ (\\text{surface-weighted, Sauter});\\quad D[4,3] = \\dfrac{\\sum d^4}{\\sum d^3}\\ (\\text{volume-weighted})", sub: 'D[3,2] = ' + f(s3) + ' / ' + f(s2) + ';   D[4,3] = ' + f(s4) + ' / ' + f(s3), result: 'D[3,2] = ' + f(d32) + ' nm;   D[4,3] = ' + f(d43) + ' nm', ref: 'iso9276' });
       const ln = d.map(Math.log);
       const mu = S.mean(ln), sl = S.sd(ln);
       const gm = Math.exp(mu), gsd = Math.exp(sl);
-      s.add({ title: 'Lognormal fit (moments of ln d)', formula: 'μ = mean(ln dᵢ),  σ = sd(ln dᵢ);   D_g = e^μ,  σ_g = e^σ', sub: 'μ = ' + f(mu) + ',  σ = ' + f(sl), result: 'D_g = ' + f(gm) + ' nm;   σ_g = ' + f(gsd), note: 'About 68 % of particles lie between D_g/σ_g and D_g·σ_g.', ref: 'limpert2001' });
+      s.add({ title: 'Lognormal fit (moments of ln d)', formula: 'μ = mean(ln dᵢ),  σ = sd(ln dᵢ);   D_g = e^μ,  σ_g = e^σ', tex: "\\mu = \\operatorname{mean}(\\ln d_i),\\ \\sigma = \\operatorname{sd}(\\ln d_i);\\quad D_g = e^{\\mu},\\ \\sigma_g = e^{\\sigma}", sub: 'μ = ' + f(mu) + ',  σ = ' + f(sl), result: 'D_g = ' + f(gm) + ' nm;   σ_g = ' + f(gsd), note: 'About 68 % of particles lie between D_g/σ_g and D_g·σ_g.', ref: 'limpert2001' });
 
       let nb = Math.round(v.bins);
       const iqr = S.quantile(sorted, 0.75) - S.quantile(sorted, 0.25);
@@ -60,7 +60,7 @@
           s.add({ title: 'Histogram bin width (Freedman–Diaconis)', formula: 'h = 2·IQR·n^(−1/3)', sub: 'h = 2 × ' + f(iqr) + ' × ' + n + '^(−1/3)', result: 'h = ' + f(h) + ' nm  ⇒  ' + nb + ' bins', ref: 'freedman1981' });
         } else {
           nb = Math.ceil(Math.log2(n) + 1);
-          s.add({ title: 'Histogram bins (Sturges rule, IQR is zero)', formula: 'k = ⌈log₂n + 1⌉', result: 'k = ' + nb });
+          s.add({ title: 'Histogram bins (Sturges rule, IQR is zero)', formula: 'k = ⌈log₂n + 1⌉', tex: "k = \\lceil \\log_2 n + 1 \\rceil", result: 'k = ' + nb });
         }
       }
       nb = Math.min(nb, 200);

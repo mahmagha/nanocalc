@@ -260,9 +260,9 @@
       return '<div class="result' + (r.main ? ' main' : '') + (isText ? ' text' : '') + '"><div class="k">' + esc(r.label) + cite(r.ref) + '</div><div class="v">' + val + (r.unit ? '<small>' + esc(r.unit) + '</small>' : '') + '</div></div>';
     }).join('') + '</div>';
 
-    if (out.plots && out.plots.length) {
-      html += '<div class="plots" style="margin-top:16px">' + out.plots.map(function (p) { return '<figure><figcaption>' + esc(p.title || '') + '</figcaption>' + NC.plot(p) + '</figure>'; }).join('') + '</div>';
-    }
+    const figs = (out.figures || []).map(function (fg) { return '<figure class="sketch"><figcaption>' + esc(fg.title || '') + '</figcaption>' + fg.svg + '</figure>'; })
+      .concat((out.plots || []).map(function (p) { return '<figure><figcaption>' + esc(p.title || '') + '</figcaption>' + NC.plot(p) + '</figure>'; }));
+    if (figs.length) html += '<div class="plots" style="margin-top:16px">' + figs.join('') + '</div>';
     (out.tables || []).forEach(function (t) {
       html += '<h3>' + esc(t.title) + '</h3><div class="table-wrap"><table class="data"><thead><tr>' + t.columns.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') +
         '</tr></thead><tbody>' + t.rows.map(function (row) { return '<tr>' + row.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
@@ -271,10 +271,15 @@
 
     html += '<section class="panel"><h2>Step-by-step solution</h2><ol class="steps">' + (out.steps || []).map(function (s) {
       if (s.kind === 'heading') return '<li class="heading">' + esc(s.title) + '</li>';
+      const box = function (cls, plain, tex) {
+        if (!plain && !tex) return '';
+        const r = NC.renderMath(plain || '', tex);
+        return '<div class="' + cls + (r.tex ? ' tex' : '') + '">' + r.html + '</div>';
+      };
       return '<li class="step"><div class="step-title">' + esc(s.title) + cite(s.ref) + '</div>' +
-        (s.formula ? '<div class="formula">' + esc(s.formula) + '</div>' : '') +
-        (s.sub ? '<div class="sub">' + esc(s.sub) + '</div>' : '') +
-        (s.result ? '<div class="res">' + esc(s.result) + '</div>' : '') +
+        box('formula', s.formula, s.tex) +
+        box('sub', s.sub, s.subTex) +
+        box('res', s.result, s.resultTex) +
         (s.note ? '<div class="note">' + esc(s.note) + '</div>' : '') + '</li>';
     }).join('') + '</ol></section>';
 
@@ -341,9 +346,13 @@
       if (s.kind === 'heading') { L.push('', '### ' + s.title, ''); return; }
       n++;
       L.push(n + '. **' + s.title + '**' + cite(s.ref));
-      if (s.formula) L.push('   - Formula: `' + s.formula + '`');
-      if (s.sub) L.push('   - Substitution: `' + s.sub + '`');
-      if (s.result) L.push('   - Result: **' + s.result + '**');
+      const m = function (plain, tex) {
+        const t = tex || NC.toTex(plain);
+        return t ? '$' + t + '$' : plain;
+      };
+      if (s.formula || s.tex) L.push('   - Formula: ' + m(s.formula, s.tex));
+      if (s.sub || s.subTex) L.push('   - Substitution: ' + m(s.sub, s.subTex));
+      if (s.result || s.resultTex) L.push('   - Result: ' + m(s.result, s.resultTex));
       if (s.note) L.push('   - _' + s.note + '_');
     });
     if (out.notes && out.notes.length) { L.push('', '## Assumptions & notes', ''); out.notes.forEach(function (x) { L.push('- ' + x); }); }

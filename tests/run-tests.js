@@ -10,7 +10,7 @@ const vm = require('vm');
 
 const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((s) => !s.endsWith('app.js'));
+const scripts = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((s) => s.startsWith('js/') && !s.endsWith('app.js'));
 
 const ctx = { console, Math, JSON };
 ctx.window = ctx;
@@ -150,6 +150,60 @@ near(o.results.find((r) => /grafting|density/i.test(r.label)).value, 5.10, 0.01,
 // Solution: 1 mM × 100 mL × 393.83 g/mol → 39.38 mg
 o = run('solution', { mode: 'mass', M: 393.83, C: 1, V: 100, purity: 100 });
 near(o.results.find((r) => /mass/i.test(r.label)).value, 39.383, 0.001, 'Precursor mass');
+
+/* ---------- nanoparticle builder: material + shape + size ---------- */
+// Ag sphere, D = 20 nm: N = ρ(πD³/6)N_A/M ≈ 2.455×10⁵ atoms, SSA = 6000/(ρD) = 28.57 m²/g
+o = run('nanoparticle', { mat: 'Ag', shape: 'sphere', D: 20, conc: '' });
+near(res(o, 'Atoms'), 245548, 0.001, 'AgNP 20 nm atoms');
+near(res(o, 'Specific surface'), 28.571, 0.001, 'AgNP 20 nm SSA');
+near(res(o, 'Surface atoms'), res(run('particle', { mode: 'D', D: 20, rho: 10.5, M: 107.868 }), 'Surface-atom'), 1e-9, 'Builder sphere matches particle calculator');
+// Textbook sphericities (Wadell): cube 0.806, octahedron 0.846, tetrahedron 0.671, icosahedron 0.939, cylinder L=D 0.874
+[['cube', { a: 10 }, 0.806], ['octahedron', { a: 10 }, 0.846], ['tetrahedron', { a: 10 }, 0.671], ['icosahedron', { a: 10 }, 0.939], ['cylinder', { D: 10, L: 10 }, 0.874], ['sphere', { D: 10 }, 1]]
+  .forEach(([shape, dims, psi]) => near(res(run('nanoparticle', Object.assign({ shape: shape, conc: '' }, dims)), 'Sphericity'), psi, 0.002, 'Sphericity of ' + shape));
+// Cube a = 10: V = 1000 nm³, A = 600 nm², D_v = (6000/π)^(1/3)
+o = run('nanoparticle', { shape: 'cube', a: 10, conc: '' });
+near(res(o, 'Volume V'), 1000, 1e-12, 'Cube volume');
+near(res(o, 'Surface area A'), 600, 1e-12, 'Cube area');
+near(res(o, 'Volume-equivalent'), Math.cbrt(6000 / Math.PI), 1e-12, 'Cube D_v');
+// Rod with L = D degenerates to a sphere
+near(res(run('nanoparticle', { shape: 'rod', D: 10, L: 10, conc: '' }), 'Volume V'), Math.PI * 1000 / 6, 1e-12, 'Rod L=D equals sphere');
+throwsInput(() => run('nanoparticle', { shape: 'rod', D: 10, L: 5 }), 'Rod shorter than diameter');
+// Concentration: 20 µg/mL of 20 nm Ag
+o = run('nanoparticle', { mat: 'Ag', shape: 'sphere', D: 20, conc: 20 });
+near(res(o, 'Particles per mL'), 20e-6 / (10.5 * (Math.PI * 8000 / 6) * 1e-21), 1e-9, 'AgNP particles per mL');
+// Every shape runs and every shape's surface fraction is between 0 and 100 %
+Object.keys(NC.shapes).forEach((sh) => {
+  const out = run('nanoparticle', { shape: sh, D: 20, a: 20, L: 60, h: 8, conc: '' });
+  const F = res(out, 'Surface atoms');
+  ok(F > 0 && F < 100, sh + ': surface fraction in range');
+});
+
+/* ---------- LaTeX: every formula converts to brace-balanced LaTeX ---------- */
+function balanced(t) {
+  let d = 0;
+  for (let i = 0; i < t.length; i++) {
+    if (t[i] === '\\') { i++; continue; }
+    if (t[i] === '{') d++;
+    if (t[i] === '}') d--;
+    if (d < 0) return false;
+  }
+  return d === 0;
+}
+let texCount = 0;
+NC.calculators.forEach((def) => {
+  run(def.id).steps.forEach((s) => {
+    [[s.formula, s.tex], [s.sub, s.subTex], [s.result, s.resultTex]].forEach(([plain, explicit]) => {
+      const t = explicit || NC.toTex(plain);
+      if (!t) return;
+      texCount++;
+      ok(balanced(t), def.id + ': unbalanced LaTeX for "' + (plain || explicit) + '" → ' + t);
+    });
+  });
+});
+ok(texCount > 250, 'expected >250 LaTeX formulas, got ' + texCount);
+ok(NC.toTex('x̄ = Σxᵢ/n') === '\\bar{x} = \\Sigma x_{i}/n', 'converter handles x̄ and ᵢ: ' + NC.toTex('x̄ = Σxᵢ/n'));
+ok(NC.toTex('√(a² + b²)') === '\\sqrt{a^{2} + b^{2}}', 'converter handles √(): ' + NC.toTex('√(a² + b²)'));
+ok(NC.toTex('This is a sentence with several words') === null, 'prose stays plain text');
 
 /* ---------- report ---------- */
 console.log('\nNanoCalc tests: ' + NC.calculators.length + ' calculators, ' + Object.keys(NC.refs).length + ' references');

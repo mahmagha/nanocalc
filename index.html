@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NanoCalc</title>
   <meta name="description" content="Step-by-step calculations and characterization analysis for nanomaterials, with citations for every equation.">
+  <!-- KaTeX for LaTeX equations; the app falls back to plain-text formulas if it cannot load (offline). -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.css" crossorigin="anonymous">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.11/katex.min.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -32,6 +35,8 @@
   <script src="js/core.js"></script>
   <script src="js/references.js"></script>
   <script src="js/plot.js"></script>
+  <script src="js/tex.js"></script>
+  <script src="js/calculators/nanoparticle.js"></script>
   <script src="js/calculators/size-effects.js"></script>
   <script src="js/calculators/lab.js"></script>
   <script src="js/calculators/xrd.js"></script>

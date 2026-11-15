@@ -23,6 +23,9 @@
     roduner2006: { type: 'article', authors: 'Roduner, E.', title: 'Size matters: why nanomaterials are different', journal: 'Chem. Soc. Rev.', year: 2006, volume: '35', pages: '583–592', doi: '10.1039/b502142c' },
     pawlow1909: { type: 'article', authors: 'Pawlow, P.', title: 'Über die Abhängigkeit des Schmelzpunktes von der Oberflächenenergie eines festen Körpers', journal: 'Z. Phys. Chem.', year: 1909, volume: '65', pages: '1–35' },
     buffat1976: { type: 'article', authors: 'Buffat, Ph.; Borel, J.-P.', title: 'Size effect on the melting temperature of gold particles', journal: 'Phys. Rev. A', year: 1976, volume: '13', pages: '2287–2298', doi: '10.1103/PhysRevA.13.2287' },
+    xia2009: { type: 'article', authors: 'Xia, Y.; Xiong, Y.; Lim, B.; Skrabalak, S. E.', title: 'Shape-controlled synthesis of metal nanocrystals: simple chemistry meets complex physics?', journal: 'Angew. Chem. Int. Ed.', year: 2009, volume: '48', pages: '60–103', doi: '10.1002/anie.200802248' },
+    coxeter1973: { type: 'book', authors: 'Coxeter, H. S. M.', title: 'Regular Polytopes', edition: '3rd ed.', publisher: 'Dover', place: 'New York', year: 1973 },
+    wadell1935: { type: 'article', authors: 'Wadell, H.', title: 'Volume, shape, and roundness of quartz particles', journal: 'J. Geol.', year: 1935, volume: '43', pages: '250–280', doi: '10.1086/624298' },
     saito1998: { type: 'book', authors: 'Saito, R.; Dresselhaus, G.; Dresselhaus, M. S.', title: 'Physical Properties of Carbon Nanotubes', publisher: 'Imperial College Press', place: 'London', year: 1998 },
     jorio2001: { type: 'article', authors: 'Jorio, A.; Saito, R.; Hafner, J. H.; Lieber, C. M.; Hunter, M.; McClure, T.; Dresselhaus, G.; Dresselhaus, M. S.', title: 'Structural (n, m) determination of isolated single-wall carbon nanotubes by resonant Raman scattering', journal: 'Phys. Rev. Lett.', year: 2001, volume: '86', pages: '1118–1121', doi: '10.1103/PhysRevLett.86.1118' },
 
