@@ -150,9 +150,19 @@
     const label = '<label for="' + id + '">' + esc(inp.label) + (inp.unit ? ' <span class="unit">(' + esc(inp.unit) + ')</span>' : '') + '</label>';
     let control;
     if (inp.type === 'select') {
-      control = '<select id="' + id + '" name="' + inp.id + '">' + inp.options.map(function (o) {
-        return '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
-      }).join('') + '</select>';
+      // options: [value, label] or [value, label, group]; consecutive options sharing a group render as an <optgroup>
+      let html = '', open = null;
+      inp.options.forEach(function (o) {
+        const g = o[2] || null;
+        if (g !== open) {
+          if (open) html += '</optgroup>';
+          if (g) html += '<optgroup label="' + esc(g) + '">';
+          open = g;
+        }
+        html += '<option value="' + esc(o[0]) + '"' + (String(o[0]) === String(val) ? ' selected' : '') + '>' + esc(o[1]) + '</option>';
+      });
+      if (open) html += '</optgroup>';
+      control = '<select id="' + id + '" name="' + inp.id + '">' + html + '</select>';
     } else if (inp.type === 'textarea') {
       control = '<textarea id="' + id + '" name="' + inp.id + '" rows="' + (inp.rows || 8) + '" spellcheck="false" placeholder="' + esc(inp.placeholder || '') + '">' + esc(val) + '</textarea>';
     } else {

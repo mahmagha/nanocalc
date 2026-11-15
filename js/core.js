@@ -311,22 +311,42 @@
   /* rho g/cm^3, M g/mol (per formula unit), Tm K, dHf kJ/mol            */
   /* ------------------------------------------------------------------ */
 
+  /* group: 'metal' | 'oxide' | 'semi' (used to group material menus).
+     Molar masses from IUPAC 2021 standard atomic weights. */
   NC.materials = {
-    Au: { label: 'Gold (Au)', rho: 19.32, M: 196.967, Tm: 1337.33, dHf: 12.55 },
-    Ag: { label: 'Silver (Ag)', rho: 10.5, M: 107.868, Tm: 1234.93, dHf: 11.28 },
-    Pt: { label: 'Platinum (Pt)', rho: 21.45, M: 195.084, Tm: 2041.4, dHf: 22.17 },
-    Pd: { label: 'Palladium (Pd)', rho: 12.0, M: 106.42, Tm: 1828.05, dHf: 16.7 },
-    Cu: { label: 'Copper (Cu)', rho: 8.96, M: 63.546, Tm: 1357.77, dHf: 13.26 },
-    Ni: { label: 'Nickel (Ni)', rho: 8.908, M: 58.693 },
-    Fe: { label: 'Iron (Fe)', rho: 7.874, M: 55.845 },
-    Fe3O4: { label: 'Magnetite (Fe₃O₄)', rho: 5.17, M: 231.533 },
-    TiO2a: { label: 'TiO₂ (anatase)', rho: 3.89, M: 79.866 },
-    TiO2r: { label: 'TiO₂ (rutile)', rho: 4.23, M: 79.866 },
-    ZnO: { label: 'Zinc oxide (ZnO)', rho: 5.61, M: 81.38 },
-    SiO2: { label: 'Silica (amorphous SiO₂)', rho: 2.2, M: 60.084 },
-    CeO2: { label: 'Ceria (CeO₂)', rho: 7.22, M: 172.115 },
-    CdSe: { label: 'CdSe (wurtzite)', rho: 5.81, M: 191.37 }
+    Au: { label: 'Gold (Au)', group: 'metal', rho: 19.32, M: 196.967, Tm: 1337.33, dHf: 12.55 },
+    Ag: { label: 'Silver (Ag)', group: 'metal', rho: 10.5, M: 107.868, Tm: 1234.93, dHf: 11.28 },
+    Pt: { label: 'Platinum (Pt)', group: 'metal', rho: 21.45, M: 195.084, Tm: 2041.4, dHf: 22.17 },
+    Pd: { label: 'Palladium (Pd)', group: 'metal', rho: 12.0, M: 106.42, Tm: 1828.05, dHf: 16.7 },
+    Rh: { label: 'Rhodium (Rh)', group: 'metal', rho: 12.4, M: 102.91 },
+    Ir: { label: 'Iridium (Ir)', group: 'metal', rho: 22.56, M: 192.22 },
+    Cu: { label: 'Copper (Cu)', group: 'metal', rho: 8.96, M: 63.546, Tm: 1357.77, dHf: 13.26 },
+    Ni: { label: 'Nickel (Ni)', group: 'metal', rho: 8.908, M: 58.693 },
+    Co: { label: 'Cobalt (Co)', group: 'metal', rho: 8.86, M: 58.933 },
+    Fe: { label: 'Iron (Fe)', group: 'metal', rho: 7.874, M: 55.845 },
+    Al: { label: 'Aluminium (Al)', group: 'metal', rho: 2.70, M: 26.982 },
+    Fe3O4: { label: 'Magnetite (Fe₃O₄)', group: 'oxide', rho: 5.17, M: 231.533 },
+    Fe2O3: { label: 'Hematite (α-Fe₂O₃)', group: 'oxide', rho: 5.25, M: 159.69 },
+    TiO2a: { label: 'TiO₂ (anatase)', group: 'oxide', rho: 3.89, M: 79.866 },
+    TiO2r: { label: 'TiO₂ (rutile)', group: 'oxide', rho: 4.23, M: 79.866 },
+    ZnO: { label: 'Zinc oxide (ZnO)', group: 'oxide', rho: 5.61, M: 81.38 },
+    SiO2: { label: 'Silica (amorphous SiO₂)', group: 'oxide', rho: 2.2, M: 60.084 },
+    CeO2: { label: 'Ceria (CeO₂)', group: 'oxide', rho: 7.22, M: 172.115 },
+    Al2O3: { label: 'Alumina (α-Al₂O₃)', group: 'oxide', rho: 3.99, M: 101.96 },
+    ZrO2: { label: 'Zirconia (monoclinic ZrO₂)', group: 'oxide', rho: 5.68, M: 123.22 },
+    Co3O4: { label: 'Cobalt oxide (Co₃O₄)', group: 'oxide', rho: 6.11, M: 240.80 },
+    NiO: { label: 'Nickel oxide (NiO)', group: 'oxide', rho: 6.67, M: 74.692 },
+    CuO: { label: 'Copper(II) oxide (CuO)', group: 'oxide', rho: 6.31, M: 79.545 },
+    CdSe: { label: 'CdSe (wurtzite)', group: 'semi', rho: 5.81, M: 191.37 },
+    CdS: { label: 'CdS', group: 'semi', rho: 4.82, M: 144.47 },
+    CdTe: { label: 'CdTe', group: 'semi', rho: 5.85, M: 240.01 },
+    PbS: { label: 'PbS', group: 'semi', rho: 7.60, M: 239.26 },
+    PbSe: { label: 'PbSe', group: 'semi', rho: 8.10, M: 286.17 },
+    ZnS: { label: 'ZnS (sphalerite)', group: 'semi', rho: 4.09, M: 97.44 },
+    InP: { label: 'InP', group: 'semi', rho: 4.81, M: 145.79 },
+    Si: { label: 'Silicon (Si)', group: 'semi', rho: 2.329, M: 28.085 }
   };
+  NC.materialGroups = { metal: 'Metals', oxide: 'Oxides', semi: 'Semiconductors / quantum dots' };
   NC.materialPresets = function (keys, fields) {
     return keys.map(function (k) {
       const m = NC.materials[k];

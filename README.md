@@ -24,7 +24,7 @@ The suite runs every calculator on its example and checks that each cited refere
 
 | Area | Calculators |
 |---|---|
-| Size-dependent properties | **Nanoparticle builder**: pick a material (Ag, Au, Pt, oxides…), a shape (sphere, cube, octahedron, tetrahedron, icosahedron, rod, wire/disc, triangular plate) and its size to get geometry, atoms, surface atoms, specific surface area and concentration · Brus quantum confinement · particle geometry, atom count & surface area · Gibbs–Thomson melting point · carbon nanotube (n, m) structure and RBM |
+| Size-dependent properties | **Nanoparticle builder**: pick one of 32 materials (metals, oxides, quantum-dot semiconductors, or custom), one of 12 shapes (sphere, cube, octahedron, tetrahedron, decahedron, icosahedron, cuboctahedron, truncated octahedron, rod, cylinder/wire/disc, spheroid, triangular plate), its size and its structure (solid, core–shell such as Au@SiO₂, or hollow nanoshell/nanocage). It gives geometry, atom counts, surface atoms, specific surface area and concentration · Brus quantum confinement · particle geometry, atom count & surface area · Gibbs–Thomson melting point · carbon nanotube (n, m) structure and RBM |
 | Synthesis & dosing | Precursor mass & dilution · nanoparticle number and molar concentration |
 | X-ray diffraction | Bragg's law & cubic lattice parameter · Scherrer crystallite size · Williamson–Hall size & strain |
 | UV-vis | Tauc band gap (absorbance or Kubelka–Munk) · CdSe/CdTe/CdS QD size & concentration (Yu 2003) · Au NP size & concentration (Haiss 2007) · Beer–Lambert |

@@ -178,6 +178,75 @@ Object.keys(NC.shapes).forEach((sh) => {
   ok(F > 0 && F < 100, sh + ': surface fraction in range');
 });
 
+/* ---------- new shapes: exact volumes/areas (PLAN.md phase 2) ---------- */
+{
+  const SH = NC.shapes, a = 3;
+  near(SH.cuboctahedron.V({ a }), (5 * Math.SQRT2 / 3) * a ** 3, 1e-12, 'Cuboctahedron volume (5√2/3)a³');
+  near(SH.cuboctahedron.A({ a }), (6 + 2 * Math.sqrt(3)) * a * a, 1e-12, 'Cuboctahedron area (6+2√3)a²');
+  near(SH.truncoct.V({ a }), 8 * Math.SQRT2 * a ** 3, 1e-12, 'Truncated octahedron volume 8√2a³');
+  near(SH.truncoct.A({ a }), (6 + 12 * Math.sqrt(3)) * a * a, 1e-12, 'Truncated octahedron area (6+12√3)a²');
+  near(SH.decahedron.V({ a }), ((5 + Math.sqrt(5)) / 24) * a ** 3, 1e-12, 'Decahedron volume');
+  near(SH.decahedron.A({ a }), 2.5 * Math.sqrt(3) * a * a, 1e-12, 'Decahedron area (10 equilateral faces)');
+  // cube∩octahedron family limits: s ≥ 3h is a cube, s ≤ h an octahedron
+  near(SH.cuboctahedron.V({ h: 2, s: 7 }), 64, 1e-12, 'Cube limit of cube∩octahedron');
+  near(SH.cuboctahedron.V({ h: 5, s: 2 }), (4 / 3) * 8, 1e-12, 'Octahedron limit of cube∩octahedron');
+  near(SH.cuboctahedron.A({ h: 5, s: 2 }), SH.octahedron.A({ a: 2 * Math.SQRT2 }), 1e-12, 'Octahedron limit area');
+  // spheroid areas: prolate (a=1,c=2) 21.478; oblate (a=2,c=1) 34.692
+  near(SH.spheroid.A({ D: 2, L: 4 }), 21.4784, 1e-4, 'Prolate spheroid area');
+  { // oblate check against the independent form A = 2πa² + (πc²/e)·ln[(1+e)/(1−e)]
+    const aa = 2, cc = 1, e = Math.sqrt(1 - (cc * cc) / (aa * aa));
+    near(SH.spheroid.A({ D: 4, L: 2 }), 2 * Math.PI * aa * aa + (Math.PI * cc * cc / e) * Math.log((1 + e) / (1 - e)), 1e-12, 'Oblate spheroid area');
+  }
+  near(SH.spheroid.A({ D: 3, L: 3 }), Math.PI * 9, 1e-12, 'Spheroid → sphere area');
+  // Textbook sphericities: cuboctahedron 0.905, truncated octahedron 0.910
+  [['cuboctahedron', 0.905], ['truncoct', 0.910]].forEach(([sh, psi]) =>
+    near(res(run('nanoparticle', { struct: 'solid', shape: sh, a: 10, conc: '' }), 'Sphericity'), psi, 0.002, 'Sphericity of ' + sh));
+  // Offset consistency: moving every face in by ε removes A·ε of volume (exact offsets only)
+  const base = { D: 20, a: 20, L: 60, h: 8 };
+  Object.keys(SH).filter((k) => !SH[k].approxOffset).forEach((k) => {
+    const sh = SH[k], d = {};
+    sh.dims.forEach((q) => { d[q] = base[q]; });
+    const eps = 1e-5;
+    near((sh.V(d) - sh.V(sh.shrink(d, eps))) / eps, sh.A(d), 1e-3, k + ': dV/dt = A (offset is exact)');
+    // growing then shrinking by the same t gives the original volume
+    near(sh.V(sh.shrink(sh.shrink(d, -3), 3)), sh.V(d), 1e-9, k + ': grow then shrink round-trips');
+  });
+}
+
+/* ---------- core–shell and hollow (PLAN.md phase 3) ---------- */
+{
+  // Au@SiO2: 20 nm Au core + 10 nm SiO2 shell → outer 40 nm sphere
+  const Vc = Math.PI * 20 ** 3 / 6, Vo = Math.PI * 40 ** 3 / 6, Vs = Vo - Vc;
+  const mc = 19.32 * Vc * 1e-21, ms = 2.2 * Vs * 1e-21;
+  o = run('nanoparticle', { struct: 'coreshell', mat: 'Au', shape: 'sphere', D: 20, smat: 'SiO2', ts: 10, conc: '' });
+  near(res(o, 'Outer volume-equivalent'), 40, 1e-9, 'Au@SiO2 outer diameter');
+  near(res(o, 'Shell mass fraction'), (100 * ms) / (mc + ms), 1e-9, 'Au@SiO2 shell mass fraction');
+  near(res(o, 'Shell volume fraction'), (100 * Vs) / Vo, 1e-9, 'Au@SiO2 shell volume fraction');
+  near(res(o, 'Effective density'), (mc + ms) / (Vo * 1e-21), 1e-9, 'Au@SiO2 effective density');
+  near(res(o, 'Atoms in core'), (mc * NC.C.NA) / 196.967, 1e-9, 'Au@SiO2 core atoms');
+  near(res(o, 'Specific surface area'), (Math.PI * 1600 * 1e-18) / (mc + ms), 1e-9, 'Au@SiO2 SSA');
+  // Core–shell cube: 10 nm core + 2 nm shell → 14 nm cube
+  near(res(run('nanoparticle', { struct: 'coreshell', mat: 'Ag', shape: 'cube', a: 10, smat: 'Au', ts: 2, conc: '' }), 'Outer volume-equivalent'), Math.cbrt(6 * 14 ** 3 / Math.PI), 1e-9, 'Core–shell cube grows to a + 2t');
+  // Au nanocage: 50 nm cube, 5 nm wall → wall = 50³ − 40³
+  o = run('nanoparticle', { struct: 'hollow', mat: 'Au', shape: 'cube', a: 50, w: 5, conc: '' });
+  near(res(o, 'Wall volume'), 50 ** 3 - 40 ** 3, 1e-12, 'Nanocage wall volume');
+  near(res(o, 'Cavity volume'), 40 ** 3, 1e-12, 'Nanocage cavity volume');
+  near(res(o, 'Mass vs. solid'), 100 * (1 - 0.512), 1e-9, 'Nanocage mass vs. solid (48.8 %)');
+  near(res(o, 'SSA, open cage'), ((6 * 2500 + 6 * 1600) * 1e-18) / (19.32 * 61000 * 1e-21), 1e-9, 'Nanocage open SSA');
+  throwsInput(() => run('nanoparticle', { struct: 'hollow', shape: 'sphere', D: 10, w: 6 }), 'Wall thicker than radius');
+  // Every shape × every structure runs and gives finite headline numbers
+  Object.keys(NC.shapes).forEach((sh) => ['solid', 'coreshell', 'hollow'].forEach((st) => {
+    let out;
+    try { out = run('nanoparticle', { struct: st, shape: sh, D: 40, a: 40, L: 120, h: 16, ts: 3, w: 3, mat: 'Au', smat: 'SiO2', conc: 10 }); }
+    catch (e) { ok(false, sh + '/' + st + ' threw ' + e.message); return; }
+    ok(out.results.filter((r) => r.main).every((r) => isFinite(r.value)), sh + '/' + st + ': finite main results');
+    ok(out.figures[0].svg.indexOf('<svg') === 0, sh + '/' + st + ': schematic renders');
+  }));
+  // New material presets are present with positive density and molar mass
+  ['CdS', 'CdTe', 'PbS', 'PbSe', 'ZnS', 'InP', 'Si', 'Fe2O3', 'Al2O3', 'ZrO2', 'Co3O4', 'NiO', 'CuO', 'Co', 'Al', 'Rh', 'Ir']
+    .forEach((k) => ok(NC.materials[k] && NC.materials[k].rho > 0 && NC.materials[k].M > 0 && NC.materialGroups[NC.materials[k].group], 'material preset ' + k));
+}
+
 /* ---------- LaTeX: every formula converts to brace-balanced LaTeX ---------- */
 function balanced(t) {
   let d = 0;
