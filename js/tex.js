@@ -17,7 +17,7 @@
   };
   const SYM = {
     '·': '\\cdot ', '×': '\\times ', '⇒': '\\;\\Rightarrow\\; ', '→': '\\to ', '≈': '\\approx ', '≥': '\\ge ', '≤': '\\le ',
-    '≠': '\\ne ', '−': '-', '±': '\\pm ', '∝': '\\propto ', '∞': '\\infty ', '…': '\\ldots ', '°': '^{\\circ}', '≳': '\\gtrsim ',
+    '≠': '\\ne ', '−': '-', '±': '\\pm ', '∝': '\\propto ', '∞': '\\infty ', '…': '\\ldots ', '°': '{}^{\\circ}', '≳': '\\gtrsim ',
     '≲': '\\lesssim ', '′': "'", '%': '\\%', '#': '\\#', '&': '\\&', '~': '\\sim ', '{': '\\{', '}': '\\}', '\\': '\\backslash ',
     '∑': '\\sum ', '$': '\\$', '"': "''", '–': '\\text{–}'
   };
@@ -27,6 +27,27 @@
   const CLOSE = { '(': ')', '[': ']' };
   const FUNCS = { sin: '\\sin', cos: '\\cos', tan: '\\tan', ln: '\\ln', log: '\\log', exp: '\\exp', arctan: '\\arctan', max: '\\max', min: '\\min', mod: '\\bmod' };
   const SUBRUN = /[A-Za-z0-9,.–'′\-]/;
+  const FRAC = { '½': ['1', '2'], '¼': ['1', '4'], '¾': ['3', '4'], '⅓': ['1', '3'], '⅔': ['2', '3'] };
+  /** Characters allowed inside a unit expression such as "J·s", "m²/(V·s)", "g/cm³", "°C". */
+  const UNITCH = /[A-Za-zµÅ°%·\/()^0-9.⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/;
+
+  /** If chars[j…] starts a physical unit after a number, return the end index of the unit run, else -1. */
+  function unitRunEnd(chars, j) {
+    const first = chars[j];
+    if (!first || !/[A-Za-zµÅ°%]/.test(first)) return -1;
+    let k = j, depth = 0;
+    while (k < chars.length && UNITCH.test(chars[k])) {
+      if (chars[k] === '(') depth++;
+      if (chars[k] === ')') { if (depth === 0) break; depth--; }
+      k++;
+    }
+    if (depth !== 0) return -1;
+    const run = chars.slice(j, k).join('');
+    const firstWord = (run.match(/^[A-Za-z]+/) || [''])[0];
+    if (FUNCS[firstWord]) return -1; // "2 sin θ" is not a unit
+    if (/^[A-Za-z]$/.test(run) && !/^[JKCFVWNsmgLMTAHΩ]$/.test(run)) return -1; // lone letter that is not a common SI unit symbol
+    return k;
+  }
 
   /** Strings that are mostly sentences render better as plain text. */
   function isProse(s) {
@@ -46,7 +67,7 @@
   }
   function textWrap(run) { return run.length === 1 || /^[0-9.\-+]+$/.test(run) ? run : '\\text{' + run.replace(/[–]/g, '–') + '}'; }
 
-  function convert(chars) {
+  function convert(chars, unitMode) {
     let out = '';
     let i = 0;
     let lastWord = false;
@@ -57,18 +78,28 @@
         let j = i;
         while (j < chars.length && /\s/.test(chars[j])) j++;
         const next = chars[j];
+        const prevNum = i > 0 && (/[0-9]/.test(chars[i - 1]) || SUP[chars[i - 1]] !== undefined);
+        const uEnd = j - i === 1 && prevNum ? unitRunEnd(chars, j) : -1;
+        if (uEnd > 0) { // "16760 nm³", "1.055×10⁻³⁴ J·s": units upright, thin space
+          out += '\\, ' + convert(chars.slice(j, uEnd), true);
+          lastWord = false;
+          i = uEnd;
+          continue;
+        }
         if (j - i >= 2) out += '\\quad ';
         else if (lastWord && next && /[A-Za-z]/.test(next)) out += '\\ ';
-        else if (i > 0 && /[0-9]/.test(chars[i - 1]) && next && (/[A-Za-zÅ%µ]/.test(next) || GREEK[next])) out += '\\, '; // 16760 nm
+        else if (prevNum && next && (/[A-Za-zÅ%µ]/.test(next) || GREEK[next])) out += '\\, ';
         else out += ' ';
         i = j;
         continue;
       }
+      if (unitMode && ch === '°') { out += '{}^{\\circ}'; i++; continue; }
       // letter runs: functions, single-letter variables, or upright text
       if (/[A-Za-z]/.test(ch)) {
         let j = i;
         while (j < chars.length && /[A-Za-z]/.test(chars[j])) j++;
         const w = chars.slice(i, j).join('');
+        if (unitMode) { out += '\\mathrm{' + w + '}'; lastWord = false; i = j; continue; }
         if (chars[j] === '̄') { // combining macron: x̄ → \bar{x}
           out += (w.length > 1 ? '\\text{' + w.slice(0, -1) + '}' : '') + '\\bar{' + w.slice(-1) + '}';
           lastWord = false;
@@ -94,6 +125,12 @@
         const run = chars.slice(i + 1, j).join('');
         out += run ? '_{' + textWrap(run) + '}' : '\\_';
         i = j;
+        continue;
+      }
+      if (FRAC[ch]) { out += '\\tfrac{' + FRAC[ch][0] + '}{' + FRAC[ch][1] + '}'; i++; continue; }
+      if (ch === '^' && FRAC[chars[i + 1]]) { // x^½
+        out += '^{' + FRAC[chars[i + 1]][0] + '/' + FRAC[chars[i + 1]][1] + '}';
+        i += 2;
         continue;
       }
       if ((ch === '^' || ch === '_') && GREEK[chars[i + 1]]) { // e^μ, σ_κ
@@ -156,13 +193,37 @@
     return convert(Array.from(s));
   };
 
-  /** Render as KaTeX HTML when available; otherwise escaped plain text. */
+  /**
+   * Split a sentence into text and maths tokens: [{text: '...'} | {math: 'LaTeX', src: '...'}].
+   * Words (with punctuation) stay as text so the sentence can wrap; anything with digits,
+   * Greek letters, sub/superscripts, operators or single-letter symbols becomes inline maths.
+   */
+  const WORD = /^[([]?[A-Za-z][a-z]*(?:[-'’][A-Za-z]+)*[)\]]?[,.;:!?]?[)\]]?$/;
+  NC.proseTokens = function (s) {
+    return String(s).split(/(\s+)/).filter(function (t) { return t !== ''; }).map(function (tok) {
+      if (/^\s+$/.test(tok)) return { text: ' ' };
+      const core = tok.replace(/^[([]/, '').replace(/[)\],.;:!?]+$/, '');
+      const isWord = WORD.test(tok) && (core.length > 1 || core === 'a') && !FUNCS[core];
+      return isWord ? { text: tok } : { math: convert(Array.from(tok)), src: tok };
+    });
+  };
+
+  /** Render as KaTeX HTML when available; otherwise escaped plain text. Sentences render as text with inline maths. */
   NC.renderMath = function (plain, explicitTex) {
     const tex = explicitTex || NC.toTex(plain);
     if (tex && global.katex) {
       try {
         return { html: global.katex.renderToString(tex, { throwOnError: true, strict: 'ignore', output: 'html' }), tex: tex };
-      } catch (e) { /* fall through to plain text */ }
+      } catch (e) { /* fall through */ }
+    }
+    if (!explicitTex && plain && global.katex && isProse(String(plain))) {
+      const html = NC.proseTokens(plain).map(function (t) {
+        if (t.text !== undefined) return NC.esc(t.text);
+        try { return global.katex.renderToString(t.math, { throwOnError: true, strict: 'ignore', output: 'html' }); }
+        catch (e) { return NC.esc(t.src); }
+      }).join('');
+      // inline style keeps this self-contained: sentences use the body font and wrap normally
+      return { html: '<span class="prose-math" style="font-family: var(--font); white-space: normal; line-height: 1.7">' + html + '</span>', tex: null, prose: true };
     }
     return { html: NC.esc(plain), tex: null };
   };

@@ -354,6 +354,25 @@
     Si: { label: 'Silicon (Si)', group: 'semi', rho: 2.329, M: 28.085 }
   };
   NC.materialGroups = { metal: 'Metals', oxide: 'Oxides', semi: 'Semiconductors / quantum dots' };
+  /* Where each value comes from. Densities: CRC Handbook (103rd ed.), Section 4 "Properties of the Elements
+     and Inorganic Compounds", rounded, at room temperature, for the phase named in the label. Molar masses:
+     sums of IUPAC 2021 standard atomic weights. Tm and ΔHf (metals only): CRC Handbook, Section 4/6. */
+  NC.materialSources = {
+    rho: { ref: 'crc', text: 'CRC Handbook of Chemistry and Physics, 103rd ed., Section 4 (room temperature, rounded; phase as labelled)' },
+    M: { ref: 'ciaaw2021', text: 'Sum of IUPAC 2021 standard atomic weights for the formula unit' },
+    Tm: { ref: 'crc', text: 'CRC Handbook of Chemistry and Physics, 103rd ed. (melting point of the element)' },
+    dHf: { ref: 'crc', text: 'CRC Handbook of Chemistry and Physics, 103rd ed. (enthalpy of fusion of the element)' }
+  };
+  const PHASE_NOTES = {
+    SiO2: 'Amorphous (vitreous) silica; Stöber silica is often less dense (≈1.9–2.1 g/cm³) because of microporosity.',
+    TiO2a: 'Anatase; rutile is denser (4.23 g/cm³).',
+    CdSe: 'Wurtzite phase; zinc-blende CdSe has a very similar density.',
+    ZnS: 'Sphalerite (zinc blende); wurtzite ZnS is ≈4.09–4.10 g/cm³ as well.',
+    ZrO2: 'Monoclinic (baddeleyite); tetragonal/cubic stabilized zirconia is denser (≈6.0–6.1 g/cm³).',
+    Fe2O3: 'Hematite (α); maghemite (γ-Fe₂O₃) is less dense (≈4.9 g/cm³).',
+    Al2O3: 'Corundum (α); transition aluminas (γ, δ, θ) are less dense.'
+  };
+  Object.keys(NC.materials).forEach(function (k) { if (PHASE_NOTES[k]) NC.materials[k].note = PHASE_NOTES[k]; });
   NC.materialPresets = function (keys, fields) {
     return keys.map(function (k) {
       const m = NC.materials[k];

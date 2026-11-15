@@ -20,7 +20,7 @@ Add bulk densities (CRC Handbook) and molar masses (IUPAC 2021 standard atomic w
 Each shape needs its volume and area, the inward offset used for surface atoms, LaTeX formulas and a schematic.
 
 - ☑ **Decahedron** (regular pentagonal bipyramid, the idealised Ino/Marks decahedron of Ag, Au, Pd)
-  - V = (5 + √5)/24 · a³, A = (5√3/2) · a²
+  - V = (5 + √5)/12 · a³ (corrected from /24 during Plan 2: two pentagonal pyramids), A = (5√3/2) · a²
   - All faces are equivalent, so the shape has an insphere (r_in = 3V/A) and the inner core is the same shape scaled by (1 − t/r_in)
 - ☑ **Cuboctahedron** and **truncated octahedron** (common for Pt, Pd and Au)
   - Both are the intersection of a cube (half-width h) and an octahedron (|x| + |y| + |z| ≤ s)
@@ -57,7 +57,7 @@ Each shape needs its volume and area, the inward offset used for surface atoms, 
 - Hand checks:
   - Au@SiO₂ (20 nm core + 10 nm shell): outer D = 40 nm, SSA = 34.6 m²/g, effective density 4.34 g/cm³
   - Au nanocage (a = 50 nm, w = 5 nm): wall = 61,000 nm³, 48.8 % of a solid cube's mass
-  - Ag decahedron (a = 30 nm): 4.772 × 10⁵ atoms
+  - Ag decahedron (a = 30 nm): 9.544 × 10⁵ atoms (the 4.772 × 10⁵ first recorded here used a volume formula off by a factor of 2; corrected in Plan 2)
 - No horizontal overflow at 375 px
 
 ---
@@ -72,78 +72,95 @@ Rules for every item:
 - Every calculator has an example and known-value tests in `tests/<area>.test.js`.
 
 ## Workstream A: Particle types in the builder [`js/calculators/nanoparticle.js`]
-- ☐ **Porous particles** (mesoporous silica, MOFs): porosity or pore volume input; skeletal vs. apparent density; internal surface from pore diameter (cylindrical pores, S = 4V_p/d_p)
-- ☐ **Janus particles:** two materials split by volume fraction; mass, atoms and density for each half
-- ☐ **Nanostars / branched particles:** spherical core with N conical spikes (spike length and base diameter)
-- ☐ **Rounded corners and edges** for polyhedra: corner radius r, using the Steiner formula for the inner polyhedron plus a ball of radius r (exact)
-- ☐ **Polydisperse samples:** lognormal or normal size distribution (mean, CV); number-, area- and volume-weighted means, ensemble SSA, mean atoms per particle
+- ☑ **Porous particles** (mesoporous silica, MOFs): porosity or pore volume input; skeletal vs. apparent density; internal surface from pore diameter (cylindrical pores, S = 4V_p/d_p)
+- ☑ **Janus particles:** two materials split by volume fraction; mass, atoms and density for each half
+- ☑ **Nanostars / branched particles:** spherical core with N conical spikes (spike length and base diameter)
+- ☑ **Rounded corners and edges** for polyhedra: corner radius r, using the Steiner formula for the inner polyhedron plus a ball of radius r (exact)
+- ☑ **Polydisperse samples:** lognormal or normal size distribution (mean, CV); number-, area- and volume-weighted means, ensemble SSA, mean atoms per particle
 
 ## Workstream B: Carbon and soft nanomaterials [`js/calculators/carbon-soft.js`]
-- ☐ **Carbon structures:** fullerenes (C₆₀, C₇₀ …); graphene sheets (atoms per area, layer count, theoretical SSA); SWCNT/MWCNT atoms per length and mass per length (interlayer spacing); carbon dots (lattice-based atom count)
-- ☐ **Liposomes / vesicles:** lipids per vesicle from area per lipid and bilayer thickness; encapsulated volume; lamellarity
-- ☐ **Lipid nanoparticles:** N/P ratio and lipid amounts for an mRNA dose
-- ☐ **Polymer nanoparticles and micelles:** chains per particle from molar mass and density; aggregation number
+- ☑ **Carbon structures:** fullerenes (C₆₀, C₇₀ …); graphene sheets (atoms per area, layer count, theoretical SSA); SWCNT/MWCNT atoms per length and mass per length (interlayer spacing); carbon dots (lattice-based atom count)
+- ☑ **Liposomes / vesicles:** lipids per vesicle from area per lipid and bilayer thickness; encapsulated volume; lamellarity
+- ☑ **Lipid nanoparticles:** N/P ratio and lipid amounts for an mRNA dose
+- ☑ **Polymer nanoparticles and micelles:** chains per particle from molar mass and density; aggregation number
 
 ## Workstream C: Optics [`js/calculators/optics.js`]
-- ☐ **Mie theory** for spheres (Bohren–Huffman series): extinction, scattering and absorption cross-sections against wavelength; plasmon peak
-- ☐ **Gans theory** (quasi-static spheroids) for nanorods: longitudinal and transverse plasmon peaks against aspect ratio
-- ☐ **Dielectric data:** a Drude/Drude–Lorentz model with cited parameters, or a user-pasted n, k table. No invented tabulated data
-- ☐ **Ag sizing from UV-vis** via Mie (plasmon position and width), labelled as model-based
-- ☐ **Photoluminescence quantum yield,** relative method (IUPAC, Brouwer 2011), with absorbance and refractive-index corrections
-- ☐ **Urbach energy** from the absorption tail
+- ☑ **Mie theory** for spheres (Bohren–Huffman series): extinction, scattering and absorption cross-sections against wavelength; plasmon peak
+- ☑ **Gans theory** (quasi-static spheroids) for nanorods: longitudinal and transverse plasmon peaks against aspect ratio
+- ☑ **Dielectric data:** a Drude/Drude–Lorentz model with cited parameters, or a user-pasted n, k table. No invented tabulated data
+- ☑ **Ag sizing from UV-vis** via Mie (plasmon position and width), labelled as model-based
+- ☑ **Photoluminescence quantum yield,** relative method (IUPAC, Brouwer 2011), with absorbance and refractive-index corrections
+- ☑ **Urbach energy** from the absorption tail
 
 ## Workstream D: Scattering [`js/calculators/scattering.js`]
-- ☐ **SAXS Guinier:** Rg from ln I vs q², validity check (q·Rg < 1.3), sphere radius
-- ☐ **SAXS Porod:** invariant and specific surface from the I·q⁴ plateau
-- ☐ **NTA:** diffusion coefficient and size from 2D mean-squared displacement; concentration from counts and imaged volume
-- ☐ **DLS cumulants:** Γ and polydispersity index from a raw g₂(τ) correlation curve
+- ☑ **SAXS Guinier:** Rg from ln I vs q², validity check (q·Rg < 1.3), sphere radius
+- ☑ **SAXS Porod:** invariant and specific surface from the I·q⁴ plateau
+- ☑ **NTA:** diffusion coefficient and size from 2D mean-squared displacement; concentration from counts and imaged volume
+- ☑ **DLS cumulants:** Γ and polydispersity index from a raw g₂(τ) correlation curve
 
 ## Workstream E: Crystal structure [`js/calculators/structure.js`]
-- ☐ **Lattice parameters** for cubic, tetragonal, hexagonal and orthorhombic crystals, by least squares over several reflections
-- ☐ **Size–strain plot** (an alternative to Williamson–Hall)
-- ☐ **Phase quantification** by the RIR method (Chung 1974)
-- ☐ **SAED:** relativistic electron wavelength; d = λL/R from ring radii; ring indexing against a structure
-- ☐ **HRTEM:** lattice-fringe spacing from a fringe count or an FFT spot
+- ☑ **Lattice parameters** for cubic, tetragonal, hexagonal and orthorhombic crystals, by least squares over several reflections
+- ☑ **Size–strain plot** (an alternative to Williamson–Hall)
+- ☑ **Phase quantification** by the RIR method (Chung 1974)
+- ☑ **SAED:** relativistic electron wavelength; d = λL/R from ring radii; ring indexing against a structure
+- ☑ **HRTEM:** lattice-fringe spacing from a fringe count or an FFT spot
 
 ## Workstream F: Elemental, magnetic and electrochemical analysis [`js/calculators/analysis.js`]
-- ☐ **ICP-MS/OES element concentration → particle number concentration** (with mass fraction for compounds)
-- ☐ **Single-particle ICP-MS:** particle mass and size from pulse intensity and transport efficiency
-- ☐ **EDX quantification:** Cliff–Lorimer k-factors
-- ☐ **Magnetism:** mass and per-particle saturation magnetization, magnetic dead layer, blocking temperature (Néel–Arrhenius, KV = ln(τ_m/τ₀)·k_BT_B)
-- ☐ **Electrochemistry:** Pt ECSA from H-UPD (210 µC/cm²) and CO stripping (420 µC/cm²); mass-normalized ECSA; dispersion; turnover frequency
+- ☑ **ICP-MS/OES element concentration → particle number concentration** (with mass fraction for compounds)
+- ☑ **Single-particle ICP-MS:** particle mass and size from pulse intensity and transport efficiency
+- ☑ **EDX quantification:** Cliff–Lorimer k-factors
+- ☑ **Magnetism:** mass and per-particle saturation magnetization, magnetic dead layer, blocking temperature (Néel–Arrhenius, KV = ln(τ_m/τ₀)·k_BT_B)
+- ☑ **Electrochemistry:** Pt ECSA from H-UPD (210 µC/cm²) and CO stripping (420 µC/cm²); mass-normalized ECSA; dispersion; turnover frequency
 
 ## Workstream G: Colloids and synthesis [`js/calculators/colloid-synthesis.js`]
-- ☐ **DLVO:** van der Waals (Hamaker) plus electrostatic (Debye) interaction energy curves; energy barrier
-- ☐ **Sedimentation:** Stokes settling velocity, settling time, Péclet number
-- ☐ **Seed-mediated growth:** final size from seed count and precursor added, and precursor needed for a target size
-- ☐ **Yield and conversion** mass balance
-- ☐ **Classical nucleation:** critical radius and barrier against supersaturation (LaMer context)
-- ☐ **Ostwald ripening (LSW):** r³ − r₀³ = k·t
+- ☑ **DLVO:** van der Waals (Hamaker) plus electrostatic (Debye) interaction energy curves; energy barrier
+- ☑ **Sedimentation:** Stokes settling velocity, settling time, Péclet number
+- ☑ **Seed-mediated growth:** final size from seed count and precursor added, and precursor needed for a target size
+- ☑ **Yield and conversion** mass balance
+- ☑ **Classical nucleation:** critical radius and barrier against supersaturation (LaMer context)
+- ☑ **Ostwald ripening (LSW):** r³ − r₀³ = k·t
 
 ## Workstream H: Spectrum and peak analysis [`js/calculators/peaks.js`]
-- ☐ **Raw data import** (CSV/TXT/XY) for XRD, Raman, UV-vis and XPS
-- ☐ **Processing:** Savitzky–Golay smoothing; linear, polynomial or Shirley baseline; peak finding
-- ☐ **Peak fitting** (Levenberg–Marquardt; Gaussian, Lorentzian or pseudo-Voigt): position, FWHM, area, with parameter uncertainties
-- ☐ **Export:** fitted peaks as a table ready to paste into Scherrer, Williamson–Hall or XPS
+- ☑ **Raw data import** (CSV/TXT/XY) for XRD, Raman, UV-vis and XPS
+- ☑ **Processing:** Savitzky–Golay smoothing; linear, polynomial or Shirley baseline; peak finding
+- ☑ **Peak fitting** (Levenberg–Marquardt; Gaussian, Lorentzian or pseudo-Voigt): position, FWHM, area, with parameter uncertainties
+- ☑ **Export:** fitted peaks as a table ready to paste into Scherrer, Williamson–Hall or XPS
 
 ## Workstream I: App platform [`js/app.js`, `js/units.js`, `js/uncertainty.js`, `css/styles.css`, `sw.js`, `manifest.webmanifest`, `tools/review-sheet.js`, `docs/REVIEW.md`]
-- ☐ **Error propagation:** a ± uncertainty for every numeric input; Monte Carlo propagation (JCGM 101:2008) through any calculator; every numeric result shown with its uncertainty
-- ☐ **Unit choice:** typed units such as "5 Å" or "0.2 µm" convert to the field's unit, with a unit hint per field
-- ☐ **Saved work:** shareable links that encode the inputs; named saved runs; calculation history
-- ☐ **Installable offline app (PWA):** manifest plus a service worker that caches every file
-- ☐ **File upload** into any data box
-- ☐ **Expert review:** `tools/review-sheet.js` generates `docs/REVIEW.md`, a sign-off checklist of every formula, constant, coefficient and citation, for a domain expert
+- ☑ **Error propagation:** a ± uncertainty for every numeric input; Monte Carlo propagation (JCGM 101:2008) through any calculator; every numeric result shown with its uncertainty
+- ☑ **Unit choice:** typed units such as "5 Å" or "0.2 µm" convert to the field's unit, with a unit hint per field
+- ☑ **Saved work:** shareable links that encode the inputs; named saved runs; calculation history
+- ☑ **Installable offline app (PWA):** manifest plus a service worker that caches every file
+- ☑ **File upload** into any data box
+- ☑ **Expert review:** `tools/review-sheet.js` generates `docs/REVIEW.md`, a sign-off checklist of every formula, constant, coefficient and citation, for a domain expert
 
 ## Workstream J: Small known issues [`js/tex.js`, `js/core.js` material data] (main session)
-- ☐ Single-letter units (J, s, m, K, C, F, V, …) upright in equations
-- ☐ Mixed sentences in steps render with typeset maths instead of falling back to plain text
-- ☐ Each material preset names its specific source table
+- ☑ Single-letter units (J, s, m, K, C, F, V, …) upright in equations
+- ☑ Mixed sentences in steps render with typeset maths instead of falling back to plain text
+- ☑ Each material preset names its specific source table
 
 ## Integration (main session)
-- ☐ Register every new script in `index.html`; update README
-- ☐ Review each agent's formulas and references; run all tests; KaTeX check in the browser; mobile layout
-- ☐ Tick this plan; commit
+- ☑ Register every new script in `index.html`; update README
+- ☑ Review each agent's formulas and references; run all tests; KaTeX check in the browser; mobile layout
+- ☑ Tick this plan; commit
 
 ## Still out of scope
 - Full atomistic models (magic-number clusters, DFT) and Rietveld refinement
 - Built-in instrument-specific data (sensitivity factors, n/k tables) without a verifiable source
+
+## Plan 2 verification record (2026-11-16)
+
+- `node tests/run-tests.js`: 2686 passed, 0 failed; 56 calculators, 110 references; nine per-area test modules
+- Every formula of every calculator's example and mode typeset with the bundled KaTeX in Node (global test)
+- In the browser, all 56 calculators loaded their examples without errors (999 typeset equations, no console errors), with no horizontal overflow at 375 px or 1280 px
+- Service worker active; `docs/REVIEW.md` regenerated (1118 sign-off items)
+- DOIs added by agents (14) checked; DOIs were left out wherever not certain
+- Corrections made during integration:
+  - decahedron volume corrected from (5 + √5)/24·a³ to (5 + √5)/12·a³ (it was one pentagonal pyramid, not two); the test asserting the wrong value was fixed
+  - examples and presets with blank (NaN) optional fields no longer show "NaN is not a number"
+  - degree sign after a superscript typesets correctly
+- Agent decisions to note:
+  - Drude ε∞ for Ag/Au is tuned, not measured (labelled)
+  - Shirley test now checks the method's real guarantees
+  - service worker is network-first with cache fallback, so updates are never served stale
+

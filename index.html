@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="vendor/katex/0.16.11/katex.min.css">
   <script src="vendor/katex/0.16.11/katex.min.js"></script>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0f6f7a">
 </head>
 <body>
   <header class="topbar">
@@ -37,16 +39,27 @@
   <script src="js/references.js"></script>
   <script src="js/plot.js"></script>
   <script src="js/tex.js"></script>
+  <script src="js/units.js"></script>
+  <script src="js/uncertainty.js"></script>
+  <!-- nanoparticle.js first: it defines NC.shapes, used by analysis.js and colloid-synthesis.js -->
   <script src="js/calculators/nanoparticle.js"></script>
   <script src="js/calculators/size-effects.js"></script>
   <script src="js/calculators/lab.js"></script>
+  <script src="js/calculators/materials.js"></script>
+  <script src="js/calculators/colloid-synthesis.js"></script>
+  <script src="js/calculators/carbon-soft.js"></script>
   <script src="js/calculators/xrd.js"></script>
+  <script src="js/calculators/structure.js"></script>
   <script src="js/calculators/optical.js"></script>
+  <script src="js/calculators/optics.js"></script>
   <script src="js/calculators/colloid.js"></script>
+  <script src="js/calculators/scattering.js"></script>
   <script src="js/calculators/surface.js"></script>
   <script src="js/calculators/microscopy.js"></script>
   <script src="js/calculators/spectro.js"></script>
+  <script src="js/calculators/analysis.js"></script>
   <script src="js/calculators/thermal.js"></script>
+  <script src="js/calculators/peaks.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

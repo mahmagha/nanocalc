@@ -192,7 +192,7 @@ Object.keys(NC.shapes).forEach((sh) => {
   near(SH.cuboctahedron.A({ a }), (6 + 2 * Math.sqrt(3)) * a * a, 1e-12, 'Cuboctahedron area (6+2√3)a²');
   near(SH.truncoct.V({ a }), 8 * Math.SQRT2 * a ** 3, 1e-12, 'Truncated octahedron volume 8√2a³');
   near(SH.truncoct.A({ a }), (6 + 12 * Math.sqrt(3)) * a * a, 1e-12, 'Truncated octahedron area (6+12√3)a²');
-  near(SH.decahedron.V({ a }), ((5 + Math.sqrt(5)) / 24) * a ** 3, 1e-12, 'Decahedron volume');
+  near(SH.decahedron.V({ a }), ((5 + Math.sqrt(5)) / 12) * a ** 3, 1e-12, 'Decahedron volume (two pentagonal pyramids)');
   near(SH.decahedron.A({ a }), 2.5 * Math.sqrt(3) * a * a, 1e-12, 'Decahedron area (10 equilateral faces)');
   // cube∩octahedron family limits: s ≥ 3h is a cube, s ≤ h an octahedron
   near(SH.cuboctahedron.V({ h: 2, s: 7 }), 64, 1e-12, 'Cube limit of cube∩octahedron');
@@ -267,7 +267,9 @@ function balanced(t) {
 }
 let texCount = 0;
 NC.calculators.forEach((def) => {
-  run(def.id).steps.forEach((s) => {
+  let out;
+  try { out = run(def.id); } catch (e) { return; } // a throwing example is already reported by the integrity check
+  out.steps.forEach((s) => {
     [[s.formula, s.tex], [s.sub, s.subTex], [s.result, s.resultTex]].forEach(([plain, explicit]) => {
       const t = explicit || NC.toTex(plain);
       if (!t) return;
@@ -337,7 +339,7 @@ testModules.forEach((f) => {
 });
 
 /* ---------- report ---------- */
-if (unregistered.length) console.log('\nNote: not yet registered in index.html: ' + unregistered.join(', '));
+ok(unregistered.length === 0, 'every js file is registered in index.html (missing: ' + unregistered.join(', ') + ')');
 console.log('\nNanoCalc tests: ' + NC.calculators.length + ' calculators, ' + Object.keys(NC.refs).length + ' references');
 console.log(pass + ' passed, ' + fail + ' failed');
 if (fail) {
