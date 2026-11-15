@@ -205,6 +205,30 @@ ok(NC.toTex('x̄ = Σxᵢ/n') === '\\bar{x} = \\Sigma x_{i}/n', 'converter handl
 ok(NC.toTex('√(a² + b²)') === '\\sqrt{a^{2} + b^{2}}', 'converter handles √(): ' + NC.toTex('√(a² + b²)'));
 ok(NC.toTex('This is a sentence with several words') === null, 'prose stays plain text');
 
+/* ---------- vendored KaTeX: present, referenced locally, unmodified ---------- */
+{
+  const crypto = require('crypto');
+  const kdir = path.join(root, 'vendor', 'katex', '0.16.11');
+  ok(/href="vendor\/katex\/0\.16\.11\/katex\.min\.css"/.test(html) && /src="vendor\/katex\/0\.16\.11\/katex\.min\.js"/.test(html), 'index.html loads the local KaTeX copy');
+  ok(!/(src|href)="https?:/.test(html), 'index.html loads no remote scripts or stylesheets');
+  const sri = JSON.parse(fs.readFileSync(path.join(kdir, 'SRI.json'), 'utf8'));
+  Object.keys(sri).forEach((f) => {
+    const p = path.join(kdir, f);
+    const got = fs.existsSync(p) ? 'sha512-' + crypto.createHash('sha512').update(fs.readFileSync(p)).digest('base64') : 'missing';
+    ok(got === sri[f], 'KaTeX file integrity: ' + f);
+  });
+  const css = fs.readFileSync(path.join(kdir, 'katex.min.css'), 'utf8');
+  [...new Set(css.match(/fonts\/[\w-]+\.woff2/g))].forEach((f) => ok(fs.existsSync(path.join(kdir, f)), 'KaTeX font present: ' + f));
+  // KaTeX itself renders a formula in Node
+  const kctx = { console };
+  kctx.window = kctx; kctx.self = kctx; kctx.globalThis = kctx;
+  vm.createContext(kctx);
+  vm.runInContext(fs.readFileSync(path.join(kdir, 'katex.min.js'), 'utf8'), kctx);
+  let rendered = '';
+  try { rendered = kctx.katex.renderToString('D = \\dfrac{K\\lambda}{\\beta\\cos\\theta}', { throwOnError: true }); } catch (e) { rendered = 'ERR ' + e.message; }
+  ok(rendered.indexOf('katex') >= 0, 'local KaTeX renders: ' + rendered.slice(0, 60));
+}
+
 /* ---------- report ---------- */
 console.log('\nNanoCalc tests: ' + NC.calculators.length + ' calculators, ' + Object.keys(NC.refs).length + ' references');
 console.log(pass + ' passed, ' + fail + ' failed');
