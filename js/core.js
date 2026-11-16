@@ -10,7 +10,7 @@
 
   const NC = (global.NC = global.NC || {});
   /** App version; keep in step with package.json and CHANGELOG.md (checked by tools/lint.js). */
-  NC.version = '0.10.0';
+  NC.version = '0.10.1';
 
   /* ------------------------------------------------------------------ */
   /* Registry                                                            */
@@ -92,6 +92,97 @@
     if (opt.int && !Number.isInteger(x)) NC.fail(label + ' must be a whole number.');
     return x;
   };
+  /**
+   * Allowed values of each number input, so the form can flag and snap a bad value as it is typed
+   * instead of only failing at calculation time. An input's own `limits` ({min, max, gt, lt, int},
+   * or positive / nonneg) wins; otherwise they are read from the calculator's own validation calls,
+   * NC.need(v.id, label, {...}) and NC.opt(v.id, ...), keeping only the constraints every call agrees on,
+   * so the form never rejects a value the calculation accepts.
+   */
+  NC.inputLimits = function (def) {
+    if (def._limits) return def._limits;
+    const src = typeof def.compute === 'function' ? String(def.compute) : '';
+    const found = {};
+    const re = /NC\.(?:need|opt)\(\s*v\.(\w+)\s*,/g;
+    let m;
+    while ((m = re.exec(src))) {
+      // find the call's closing parenthesis, skipping strings and nested brackets
+      let i = re.lastIndex, depth = 1, q = null;
+      const start = i;
+      for (; i < src.length && depth; i++) {
+        const c = src[i];
+        if (q) { if (c === '\\') i++; else if (c === q) q = null; continue; }
+        if (c === '"' || c === "'" || c === '`') q = c;
+        else if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+      }
+      const args = src.slice(start, i - 1).trim();
+      const o = {};
+      const om = args.match(/,\s*(\{[^{}]*\})\s*$/);
+      if (om) {
+        om[1].slice(1, -1).split(',').forEach(function (pair) {
+          const kv = pair.match(/^\s*(\w+)\s*:\s*(true|-?\d+(?:\.\d+)?(?:e-?\d+)?)\s*$/);
+          if (kv) o[kv[1]] = kv[2] === 'true' ? true : Number(kv[2]);
+        });
+      }
+      if (o.positive) { delete o.positive; o.gt = o.gt === undefined ? 0 : Math.max(o.gt, 0); }
+      if (o.nonneg) { delete o.nonneg; o.min = o.min === undefined ? 0 : Math.max(o.min, 0); }
+      (found[m[1]] = found[m[1]] || []).push(o);
+    }
+    const out = {}, source = {};
+    def.inputs.forEach(function (inp) {
+      if (inp.type !== 'number') return;
+      let lim = null;
+      source[inp.id] = inp.limits ? 'input' : found[inp.id] ? 'compute' : 'unit';
+      if (inp.limits) {
+        lim = Object.assign({}, inp.limits);
+        if (lim.positive) { delete lim.positive; lim.gt = 0; }
+        if (lim.nonneg) { delete lim.nonneg; lim.min = 0; }
+      } else if (found[inp.id]) {
+        const all = found[inp.id];
+        lim = {};
+        Object.keys(all[0]).forEach(function (k) { if (all.every(function (o) { return o[k] === all[0][k]; })) lim[k] = all[0][k]; });
+      }
+      // Physical quantities that cannot be zero or negative, when nothing more specific is known
+      // (these are often validated in shared helpers that the scan above cannot see).
+      if (!lim && (/^(g\/cm³|g\/mol|mPa·s|K)$/.test(inp.unit) || (inp.unit === 'nm' && /diameter|length|thickness|radius|spike/i.test(inp.label)))) lim = { gt: 0 };
+      if (!lim && inp.unit === '°C') lim = { gt: -273.15 };
+      if (inp.integer) { lim = lim || {}; lim.int = true; }
+      if (lim && Object.keys(lim).length) out[inp.id] = lim;
+    });
+    Object.keys(source).forEach(function (id) { if (!out[id]) delete source[id]; });
+    Object.defineProperty(def, '_limits', { value: out, enumerable: false });
+    Object.defineProperty(def, '_limitSource', { value: source, enumerable: false });
+    return out;
+  };
+  /** Error message for x against limits, or '' when it is allowed. Same wording as NC.need. */
+  NC.limitError = function (x, label, lim) {
+    if (!lim) return '';
+    try { NC.need(x, label || 'It', lim); return ''; } catch (e) { return label ? e.message : 'Must' + e.message.slice('It must'.length); }
+  };
+  /** Nearest allowed value (round whole numbers, clamp to min/max); open bounds (gt/lt) cannot be clamped to. */
+  NC.snapToLimits = function (x, lim) {
+    if (!lim || typeof x !== 'number' || !isFinite(x)) return x;
+    let y = x;
+    if (lim.int) y = Math.round(y);
+    if (lim.min !== undefined && y < lim.min) y = lim.int ? Math.ceil(lim.min) : lim.min;
+    if (lim.max !== undefined && y > lim.max) y = lim.int ? Math.floor(lim.max) : lim.max;
+    if (lim.int && lim.gt !== undefined && !(y > lim.gt)) y = Math.floor(lim.gt) + 1;
+    if (lim.int && lim.lt !== undefined && !(y < lim.lt)) y = Math.ceil(lim.lt) - 1;
+    return y;
+  };
+  /** Short description of the allowed values, e.g. "whole number ≥ 1". */
+  NC.limitText = function (lim) {
+    if (!lim) return '';
+    const parts = [];
+    const lo = lim.min !== undefined ? '≥ ' + lim.min : lim.gt !== undefined ? '> ' + lim.gt : '';
+    const hi = lim.max !== undefined ? '≤ ' + lim.max : lim.lt !== undefined ? '< ' + lim.lt : '';
+    if (lim.int) parts.push(lo === '> 0' || lo === '≥ 1' ? 'whole number ≥ 1' : 'whole number' + (lo ? ' ' + lo : ''));
+    else if (lo) parts.push(lo);
+    if (hi) parts.push(hi);
+    return parts.join(', ').replace(/-/g, '−');
+  };
+
   /** Optional number: returns null when blank. */
   NC.opt = function (x, label, opt) {
     if (typeof x !== 'number' || Number.isNaN(x)) return null;

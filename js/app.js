@@ -453,11 +453,14 @@
   /** Parse raw form strings → values, per-field errors, standard uncertainties, unit conversions. */
   function parseAll(def, raw) {
     const v = {}, errors = {}, unc = {}, conv = {};
+    const LIM = NC.inputLimits(def);
     def.inputs.forEach(function (inp) {
       if (inp.type !== 'number') { v[inp.id] = raw[inp.id]; return; }
       const p = NC.parseUnitDetailed(raw[inp.id], inp.unit);
       v[inp.id] = p.value;
+      const limErr = !p.error && isFinite(p.value) ? NC.limitError(p.value, '', LIM[inp.id]) : '';
       if (p.error) errors[inp.id] = p.error;
+      else if (limErr) errors[inp.id] = limErr;
       else if (p.converted) conv[inp.id] = '= ' + NC.fmt(p.value, 6) + ' ' + inp.unit;
       const us = raw['u_' + inp.id];
       if (us !== undefined && String(us).trim() !== '') {
@@ -474,10 +477,25 @@
   // Range for a number field: the input's own { range: [lo, hi], log, integer } when given, otherwise a
   // range around its current value (a decade either side, on a log scale). No slider for zero or negative
   // values without an explicit range, or when the input says slider: false.
-  function sliderSpec(inp, val) {
+  function sliderSpec(inp, val, lim) {
     if (inp.slider === false) return null;
+    lim = lim || {};
     const x = Number(val);
+    const lower = lim.min !== undefined ? lim.min : lim.gt !== undefined ? lim.gt : -Infinity;
+    const upper = lim.max !== undefined ? lim.max : lim.lt !== undefined ? lim.lt : Infinity;
     let lo, hi, log;
+    if (lim.int && !inp.range) {
+      // whole numbers: a linear slider over allowed values
+      if (isFinite(lower)) {
+        lo = NC.snapToLimits(lower, lim);
+        hi = isFinite(upper) ? NC.snapToLimits(upper, lim) : Math.max(lo + 10, isFinite(x) ? Math.ceil(2 * x) : 0);
+      } else {
+        const span = Math.max(5, isFinite(x) ? Math.ceil(2 * Math.abs(x)) : 0);
+        lo = Math.max(-span, NC.snapToLimits(-span, lim)); hi = isFinite(upper) ? NC.snapToLimits(upper, lim) : span;
+      }
+      if (isFinite(x)) { lo = Math.min(lo, Math.round(x)); hi = Math.max(hi, Math.round(x)); }
+      return hi > lo ? { lo: lo, hi: hi, log: false, int: true } : null;
+    }
     if (inp.range) { lo = inp.range[0]; hi = inp.range[1]; log = inp.log !== undefined ? !!inp.log : lo > 0 && hi / lo >= 100; }
     else if (inp.unit === '°') { lo = 0; hi = isFinite(x) && x > 90 ? 180 : 90; log = false; }
     else if (!(isFinite(x) && x > 0)) return null;
@@ -486,7 +504,12 @@
     if (isFinite(x) && (x < lo || x > hi)) {
       if (log && x > 0) { lo = Math.min(lo, x / 3); hi = Math.max(hi, x * 3); } else { lo = Math.min(lo, x); hi = Math.max(hi, x); }
     }
-    return { lo: lo, hi: hi, log: log, int: !!inp.integer };
+    // keep the slider inside the allowed values; an open bound (> or <) is kept 1 % of the range away, so a 3-digit value never rounds onto it
+    if (lo < lower || (lim.gt !== undefined && lo <= lim.gt)) lo = lim.gt !== undefined && lim.min === undefined ? lower + (hi - lower) / 100 : lower;
+    if (hi > upper || (lim.lt !== undefined && hi >= lim.lt)) hi = lim.lt !== undefined && lim.max === undefined ? upper - (upper - lo) / 100 : upper;
+    if (log && !(lo > 0)) log = false;
+    if (!(hi > lo)) return null;
+    return { lo: lo, hi: hi, log: log, int: false };
   }
   function sliderPos(sl, x) {
     if (!isFinite(x)) return 500;
@@ -502,7 +525,7 @@
   }
   NC.sliderUtil = { spec: sliderSpec, pos: sliderPos };
 
-  function fieldHTML(inp, val, uval) {
+  function fieldHTML(inp, val, uval, lim) {
     const id = 'f-' + inp.id;
     const label = '<label for="' + id + '">' + esc(inp.label) + (inp.unit ? ' <span class="unit">(' + esc(inp.unit) + ')</span>' : '') + '</label>';
     let control, extra = '';
@@ -527,9 +550,10 @@
         '<input type="file" hidden accept="' + UPLOAD_TYPES + '" data-file-for="' + inp.id + '"></div>';
     } else {
       const hint = NC.unitHint ? NC.unitHint(inp.unit) : '';
-      control = '<div class="valrow"><input id="' + id + '" name="' + inp.id + '" type="text" autocomplete="off" spellcheck="false" value="' + esc(val) + '"' + (hint ? ' title="' + esc(hint) + '"' : '') + '>' +
+      const limTxt = NC.limitText(lim);
+      control = '<div class="valrow"><input id="' + id + '" name="' + inp.id + '" type="text" autocomplete="off" spellcheck="false"' + (lim && lim.int ? ' inputmode="numeric"' : '') + ' value="' + esc(val) + '"' + (hint || limTxt ? ' title="' + esc([limTxt ? 'Allowed: ' + limTxt : '', hint].filter(Boolean).join('. ')) + '"' : '') + (lim && (lim.int || lim.min !== undefined || lim.max !== undefined) ? ' aria-describedby="' + id + '-lim"' : '') + '>' +
         '<span class="unc-wrap"><span class="pm" aria-hidden="true">±</span><input name="u_' + inp.id + '" class="unc" type="text" autocomplete="off" spellcheck="false" aria-label="Standard uncertainty of ' + esc(inp.label) + '" placeholder="u (1σ)" value="' + esc(uval || '') + '" title="Standard uncertainty (1σ), in ' + esc(inp.unit || 'the same unit') + '; units allowed"></span></div>';
-      const sl = sliderSpec(inp, val);
+      const sl = sliderSpec(inp, val, lim);
       if (sl) {
         control += '<input type="range" class="slider" min="0" max="1000" step="1" value="' + sliderPos(sl, Number(val)) + '" data-for="' + inp.id + '"' +
           ' data-lo="' + sl.lo + '" data-hi="' + sl.hi + '" data-log="' + (sl.log ? 1 : 0) + '"' + (sl.int ? ' data-int="1"' : '') +
@@ -537,6 +561,8 @@
           '<div class="slider-ends" aria-hidden="true"><span>' + esc(NC.fmt(sl.lo, 3)) + '</span><span>' + esc(NC.fmt(sl.hi, 3)) + '</span></div>';
       }
       extra = '<div class="field-msg" hidden></div>';
+      // say which values are allowed when it is not just "a positive number"
+      if (lim && (lim.int || lim.min !== undefined || lim.max !== undefined)) extra += '<div class="limits" id="' + id + '-lim">' + esc(limTxt.charAt(0).toUpperCase() + limTxt.slice(1)) + '</div>';
     }
     const help = inp.help ? '<div class="help">' + esc(inp.help) + '</div>' : '';
     return '<div class="field' + (inp.type === 'textarea' || inp.wide || inp.full ? ' wide' : '') + '" data-field="' + inp.id + '">' + label + control + extra + help + '</div>';
@@ -544,6 +570,7 @@
 
   function renderCalc(def, urlState) {
     document.title = def.title + ' · NanoCalc';
+    const LIM = NC.inputLimits(def);
     main.classList.add('wide');
     const cat = catOf(def);
     const sec = secOf(def) || { id: '', label: '' };
@@ -573,7 +600,7 @@
       '<button class="btn" id="uncBtn" type="button" aria-pressed="' + showUnc + '">± Uncertainties</button>' +
       '<button class="btn" id="linkBtn" type="button">Copy link</button></div></div>' +
       '<form class="form' + (showUnc ? ' show-unc' : '') + '" id="form" autocomplete="off" onsubmit="return false">' +
-      def.inputs.map(function (inp) { return fieldHTML(inp, raw[inp.id], raw['u_' + inp.id]); }).join('') + '</form>' +
+      def.inputs.map(function (inp) { return fieldHTML(inp, raw[inp.id], raw['u_' + inp.id], LIM[inp.id]); }).join('') + '</form>' +
       '<p class="units-note">Number fields accept units, e.g. <code>5 Å</code>, <code>0.2 µm</code>, <code>25 °C</code>.' +
       '<span class="unc-only"> The ± boxes take standard uncertainties (1σ); they are propagated by Monte Carlo. Data tables are used as entered.</span></p>' +
       (def.presetNote ? '<p class="preset-note">' + esc(def.presetNote) + '</p>' : '') +
@@ -653,7 +680,8 @@
       if (t.classList.contains('slider')) {
         const name = t.getAttribute('data-for');
         const inp = def.inputs.find(function (i) { return i.id === name; }) || {};
-        form.elements[name].value = sliderValue(t);
+        const sv = sliderValue(t);
+        form.elements[name].value = LIM[name] ? String(NC.snapToLimits(Number(sv), LIM[name])) : sv;
         t.setAttribute('aria-valuetext', form.elements[name].value + (inp.unit ? ' ' + inp.unit : ''));
         clearTimeout(timer);
         if (!frame) frame = requestAnimationFrame(function () { frame = 0; run(true); });
@@ -663,9 +691,33 @@
       if (t.name && form.elements[t.name] === t && !t.classList.contains('unc')) syncSlider(t.name);
       clearTimeout(timer); timer = setTimeout(run, 180);
     });
+    // Leaving a field snaps a plain number to the nearest allowed value (whole numbers rounded, min/max clamped);
+    // values with units, and open bounds such as "> 0", are left for the field message to explain.
+    function snapField(t) {
+      const lim = LIM[t.name];
+      if (!lim || !/^\s*[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?\s*$/i.test(t.value)) return false;
+      const x = Number(t.value), y = NC.snapToLimits(x, lim);
+      if (y === x) return false;
+      t.value = String(y);
+      syncSlider(t.name);
+      toast(def.inputs.find(function (i) { return i.id === t.name; }).label + ' set to ' + y + ' (' + NC.limitText(lim) + ')');
+      return true;
+    }
     form.addEventListener('change', function (e) {
       if (e.target.classList.contains('slider')) { clearTimeout(timer); if (frame) { cancelAnimationFrame(frame); frame = 0; } }
+      else if (e.target.name && LIM[e.target.name] && form.elements[e.target.name] === e.target) snapField(e.target);
       run();
+    });
+    // ↑ / ↓ step whole-number fields by one, within their limits
+    form.addEventListener('keydown', function (e) {
+      const t = e.target, lim = t.name && LIM[t.name];
+      if (!lim || !lim.int || form.elements[t.name] !== t || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+      const x = Math.round(Number(t.value));
+      if (!isFinite(x)) return;
+      e.preventDefault();
+      t.value = String(NC.snapToLimits(x + (e.key === 'ArrowUp' ? 1 : -1), lim));
+      syncSlider(t.name);
+      clearTimeout(timer); timer = setTimeout(run, 180);
     });
     $('#output').addEventListener('click', function (e) {
       const id = e.target && e.target.id;

@@ -54,6 +54,26 @@
     return d;
   }
 
+  /* ---------------- allowed values (the same limits js/designer.js checks) ---------------- */
+  const MAX_SHELLS = 12;
+  function limitsFor(path) {
+    const k = path.split('.').pop();
+    if (path === 'core.D' || /^shells\.\d+\.t$/.test(path)) return { gt: 0, max: 20000 };
+    if (path === 'ligand.nC') return { int: true, min: 1, max: 30 };
+    if (path === 'ligand.a') return { gt: 0, max: 2 };
+    if (path === 'ligand.length') return { gt: 0, max: 100 };
+    if (path === 'ligand.excess') return { min: 1, max: 1e6 };
+    if (k === 'k') return { min: 0 };
+    if (/^(rho|M|n|epsInf|wp|gam|value|Mw|volumeMl|massConc|particleConc|min|max|step)$/.test(k)) return { gt: 0 };
+    return null;
+  }
+  function limitAttrs(lim) {
+    if (!lim) return ' step="any" inputmode="decimal"';
+    return (lim.int ? ' step="1" inputmode="numeric"' : ' step="any" inputmode="decimal"') +
+      (lim.min !== undefined ? ' min="' + lim.min + '"' : lim.gt !== undefined ? ' min="' + lim.gt + '"' : '') +
+      (lim.max !== undefined ? ' max="' + lim.max + '"' : '');
+  }
+
   /* ---------------- sliders (log scale for sizes) ---------------- */
   const SLIDER = 1000;
   function toPos(v, lo, hi, log) {
@@ -101,15 +121,20 @@
     function numField(path, label, unit, extra) {
       extra = extra || {};
       return '<div class="field' + (extra.wide ? ' wide' : '') + '"><label for="' + pid(path) + '">' + esc(label) + (unit ? ' <span class="unit">(' + esc(unit) + ')</span>' : '') + '</label>' +
-        '<input id="' + pid(path) + '" type="number" inputmode="decimal" step="any"' + (extra.min !== undefined ? ' min="' + extra.min + '"' : '') + ' data-path="' + path + '" value="' + esc(val(path)) + '"' + (extra.placeholder ? ' placeholder="' + esc(extra.placeholder) + '"' : '') + (extra.help ? ' aria-describedby="' + pid(path) + '-h"' : '') + '>' +
-        (extra.help ? '<span class="help" id="' + pid(path) + '-h">' + esc(extra.help) + '</span>' : '') + '</div>';
+        '<input id="' + pid(path) + '" type="number"' + limitAttrs(limitsFor(path)) + ' data-path="' + path + '" value="' + esc(val(path)) + '"' + (extra.placeholder ? ' placeholder="' + esc(extra.placeholder) + '"' : '') + (extra.help ? ' aria-describedby="' + pid(path) + '-h"' : '') + '>' +
+        (extra.help ? '<span class="help" id="' + pid(path) + '-h">' + esc(extra.help) + '</span>' : '') + msgEl(path) + '</div>';
+    }
+    function msgEl(path) {
+      const lim = limitsFor(path);
+      const txt = lim && (lim.int || lim.max !== undefined || lim.min !== undefined) ? NC.limitText(lim) : '';
+      return (txt ? '<span class="help dz-lim">Allowed: ' + esc(txt) + '</span>' : '') + '<span class="field-msg err" id="' + pid(path) + '-m" hidden></span>';
     }
     function sliderField(path, label, unit, lo, hi, log, help) {
       const v = Number(val(path));
       return '<div class="field wide dz-size"><label for="' + pid(path) + '">' + esc(label) + ' <span class="unit">(' + esc(unit) + ')</span></label><div class="dz-sizerow">' +
         '<input type="range" id="' + pid(path) + '-r" min="0" max="' + SLIDER + '" step="1" value="' + toPos(v, lo, hi, log) + '" data-path="' + path + '" data-range="' + lo + ',' + hi + ',' + (log ? 1 : 0) + '" aria-label="' + esc(label) + ' slider" aria-valuetext="' + esc((isFinite(v) ? v : '') + ' ' + unit) + '">' +
-        '<input type="number" id="' + pid(path) + '" inputmode="decimal" step="any" min="0" data-path="' + path + '" value="' + esc(val(path)) + '"></div>' +
-        (help ? '<span class="help">' + esc(help) + '</span>' : '') + '</div>';
+        '<input type="number" id="' + pid(path) + '"' + limitAttrs(limitsFor(path)) + ' data-path="' + path + '" value="' + esc(val(path)) + '"></div>' +
+        (help ? '<span class="help">' + esc(help) + '</span>' : '') + msgEl(path) + '</div>';
     }
     function selField(path, label, options, extra) {
       extra = extra || {};
@@ -183,7 +208,7 @@
     function envCard() {
       const concMode = state.batch.particleConc !== undefined && state.batch.particleConc !== null && state.batch.particleConc !== '' && (state.batch.massConc === undefined || state.batch.massConc === null || state.batch.massConc === '') ? 'particle' : 'mass';
       let h = '<fieldset class="dz-card"><legend>Medium, batch and spectrum</legend><div class="dz-fields">';
-      h += '<div class="field wide dz-size"><label for="' + pid('medium.n') + '">Refractive index of the medium</label><div class="dz-sizerow"><input type="range" id="' + pid('medium.n') + '-r" min="0" max="' + SLIDER + '" step="1" value="' + toPos(Number(val('medium.n')), 1, 1.8, false) + '" data-path="medium.n" data-range="1,1.8,0" aria-label="Medium refractive index slider"><input type="number" id="' + pid('medium.n') + '" step="any" min="1" data-path="medium.n" value="' + esc(val('medium.n')) + '"></div><span class="help">Water ≈ 1.333 in the visible.</span></div>';
+      h += '<div class="field wide dz-size"><label for="' + pid('medium.n') + '">Refractive index of the medium</label><div class="dz-sizerow"><input type="range" id="' + pid('medium.n') + '-r" min="0" max="' + SLIDER + '" step="1" value="' + toPos(Number(val('medium.n')), 1, 1.8, false) + '" data-path="medium.n" data-range="1,1.8,0" aria-label="Medium refractive index slider"><input type="number" id="' + pid('medium.n') + '"' + limitAttrs(limitsFor('medium.n')) + ' data-path="medium.n" value="' + esc(val('medium.n')) + '"></div><span class="help">Water ≈ 1.333 in the visible.</span>' + msgEl('medium.n') + '</div>';
       h += numField('batch.volumeMl', 'Batch volume', 'mL');
       h += '<div class="field"><label for="' + P + 'cmode">Concentration given as</label><select id="' + P + 'cmode" data-act="cmode"><option value="mass"' + (concMode === 'mass' ? ' selected' : '') + '>Mass (µg/mL)</option><option value="particle"' + (concMode === 'particle' ? ' selected' : '') + '>Particles per mL</option></select></div>';
       h += concMode === 'mass' ? numField('batch.massConc', 'Mass concentration', 'µg/mL', { help: 'Inorganic particle (core + shells).' }) : numField('batch.particleConc', 'Particle concentration', 'mL⁻¹');
@@ -194,7 +219,7 @@
       const active = document.activeElement && el.contains(document.activeElement) ? document.activeElement.id : null;
       stackEl.innerHTML = layerCard(state.core, -1) +
         '<ol class="dz-shells" aria-label="Shells, from the core outward">' + state.shells.map(function (s, i) { return '<li>' + layerCard(s, i) + '</li>'; }).join('') + '</ol>' +
-        '<button type="button" class="btn dz-add" data-act="add">+ Add shell</button>' + ligandCard() + envCard();
+        '<button type="button" class="btn dz-add" data-act="add"' + (state.shells.length >= MAX_SHELLS ? ' disabled title="At most ' + MAX_SHELLS + ' shells"' : '') + '>+ Add shell</button>' + ligandCard() + envCard();
       if (active) { const a = document.getElementById(active); if (a) a.focus(); }
     }
 
@@ -241,9 +266,35 @@
         else state.ligand = { key: v, mode: 'density', value: null, length: null, Mw: v === 'custom' ? null : undefined, excess: 1 };
       }
     }
+    function flag(t, path, v) {
+      const lim = limitsFor(path);
+      const msg = document.getElementById(pid(path) + '-m');
+      const err = lim && v !== null && typeof v === 'number' ? NC.limitError(v, '', lim) : '';
+      if (msg) { msg.textContent = err; msg.hidden = !err; }
+      const f = t.closest && t.closest('.field');
+      if (f) f.classList.toggle('invalid', !!err);
+      t.setAttribute('aria-invalid', err ? 'true' : 'false');
+      if (msg) t.setAttribute('aria-errormessage', msg.id);
+    }
+    // On leaving a number field, snap it to the nearest allowed value (round whole numbers, clamp to min/max).
+    function snap(t, path) {
+      const lim = limitsFor(path);
+      if (!lim || t.type !== 'number' || t.value === '') return;
+      const x = Number(t.value), y = NC.snapToLimits(x, lim);
+      if (!isFinite(x) || y === x) return;
+      t.value = String(y);
+      setPath(state, path, y);
+      const rng = document.getElementById(t.id + '-r');
+      if (rng) { const r = rng.getAttribute('data-range').split(','); rng.value = toPos(y, Number(r[0]), Number(r[1]), r[2] === '1'); }
+      flag(t, path, y);
+    }
     function onInput(e) {
       const t = e.target, path = t.getAttribute && t.getAttribute('data-path');
       if (!path) return;
+      if (t.type === 'number' || t.type === 'range') {
+        const num = t.type === 'range' ? document.getElementById(t.id.replace(/-r$/, '')) : t;
+        if (num) flag(num, path, readValue(t));
+      }
       if (t.tagName === 'SELECT' && e.type === 'input') return; // handled on change (fires once in every browser)
       const v = readValue(t);
       if (path === 'ligand.key') { onStructural('ligand', path, v); rebuild(); schedule(false); return; }
@@ -286,6 +337,7 @@
         return;
       }
       if (t.tagName === 'SELECT' && t.getAttribute('data-path')) { onInput({ target: t, type: 'change' }); return; }
+      if (t.type === 'number' && t.getAttribute('data-path')) snap(t, t.getAttribute('data-path'));
       if (t.type === 'range' || t.type === 'number' || t.type === 'checkbox' || t.tagName === 'TEXTAREA') schedule(false);
     }
     function onClick(e) {
@@ -295,6 +347,7 @@
       const sh = state.shells;
       let focusSel = null;
       if (act === 'add') {
+        if (sh.length >= MAX_SHELLS) return;
         const last = sh.length ? sh[sh.length - 1].material : state.core.material;
         const mat = last === 'SiO2' ? 'Au' : 'SiO2';
         sh.push({ material: mat, t: 5, optical: D.defaultOptical(mat) });
@@ -385,5 +438,5 @@
     };
   }
 
-  NC.designerView = { render: render, storageKey: KEY };
+  NC.designerView = { render: render, storageKey: KEY, limitsFor: limitsFor, maxShells: MAX_SHELLS };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -24,7 +24,7 @@
     refs: ['iso9276', 'limpert2001', 'freedman1981', 'rice2013', 'schneider2012'],
     inputs: [
       NC.data('d', 'Measured diameters (nm)', '', { rows: 10, placeholder: 'One value per line, or separated by commas/spaces/tabs', full: true }),
-      NC.num('bins', 'Number of histogram bins', '', 0, { help: '0 = automatic (Freedman–Diaconis rule)' })
+      NC.num('bins', 'Number of histogram bins', '', 0, { limits: { int: true, min: 0 }, help: '0 = automatic (Freedman–Diaconis rule)' })
     ],
     example: function () { return { d: exampleData(), bins: 0 }; },
     compute: function (v) {

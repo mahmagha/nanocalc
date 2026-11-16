@@ -284,7 +284,7 @@
       NC.num('A', 'Absorbance A', '', 0.5, { showIf: function (v) { return v.mode !== 'A'; } }),
       NC.num('eps', 'Molar extinction coefficient ε', 'M⁻¹·cm⁻¹', 100000, { showIf: function (v) { return v.mode !== 'eps'; } }),
       NC.num('l', 'Path length l', 'cm', 1),
-      NC.num('c', 'Concentration c', 'μM', 5, { showIf: function (v) { return v.mode !== 'c'; } })
+      NC.num('c', 'Concentration c', 'μM', 5, { limits: { positive: true }, showIf: function (v) { return v.mode !== 'c'; } })
     ],
     example: { mode: 'c', A: 0.5, eps: 100000, l: 1, c: 5 },
     compute: function (v) {

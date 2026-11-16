@@ -504,7 +504,7 @@
       NC.num('a', 'Edge length a', 'nm', 20, { showIf: needs('a') }),
       NC.num('L', 'Total length L', 'nm', 60, { showIf: needs('L'), help: 'For a spheroid, L is the length along the symmetry axis: L > D gives a prolate (spindle) shape, L < D an oblate (disc-like) one.' }),
       NC.num('h', 'Plate thickness h', 'nm', 8, { showIf: needs('h') }),
-      NC.num('N', 'Number of spikes N', '', 12, { showIf: needs('N') }),
+      NC.num('N', 'Number of spikes N', '', 12, { limits: { int: true, min: 1 }, showIf: needs('N') }),
       NC.num('sl', 'Spike length l (from the core surface)', 'nm', 20, { showIf: needs('sl') }),
       NC.num('sb', 'Spike base diameter b', 'nm', 10, { showIf: needs('sb') }),
       NC.num('rc', 'Edge and corner radius r', 'nm', 0, { showIf: function (v) { return SHAPES[v.shape] && SHAPES[v.shape].roundable; }, help: '0 = sharp edges. Rounded edges and corners use the exact Steiner formula; r cannot exceed the inradius (r = inradius gives a sphere).' }),

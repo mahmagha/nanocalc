@@ -2,6 +2,12 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
+## [0.10.1] - 2026-11-16
+
+### Added
+- Number fields only take allowed values. Each field knows its limits (whole number, minimum, maximum), read from the calculator's own checks or set on the input; a bad value is flagged under the field as it is typed (e.g. "Must be a whole number."), and leaving the field snaps a plain number to the nearest allowed value (2.5 layers becomes 3). Whole-number fields show their range, step by 1 with the slider and the ↑/↓ keys, and sliders never go outside the limits.
+- Particle designer: the same limits on every number field (browser min/max/step, a message under the field, snapping on leaving), and "+ Add shell" stops at the 12-shell maximum.
+
 ## [0.10.0] - 2026-11-16
 
 ### Added

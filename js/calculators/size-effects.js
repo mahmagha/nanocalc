@@ -328,7 +328,7 @@
       NC.num('m', 'Chiral index m', '', 10, { showIf: function (v) { return v.mode === 'nm'; } }),
       NC.num('rbm', 'RBM frequency ω_RBM', 'cm⁻¹', 180, { showIf: function (v) { return v.mode === 'rbm'; } }),
       NC.num('A', 'RBM constant A (ω = A/d + B)', 'cm⁻¹·nm', 248),
-      NC.num('B', 'RBM constant B', 'cm⁻¹', 0),
+      NC.num('B', 'RBM constant B', 'cm⁻¹', 0, { limits: { nonneg: true } }),
       NC.num('acc', 'C–C bond length a_C–C', 'nm', 0.142)
     ],
     presetNote: 'A = 248 cm⁻¹·nm, B = 0 are the values Jorio et al. (2001) found for isolated SWCNTs on Si/SiO₂. Bundled or solution-dispersed tubes need different constants (B > 0).',

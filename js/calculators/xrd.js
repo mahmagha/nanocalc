@@ -27,7 +27,7 @@
     presetNote: WL_NOTE,
     inputs: [
       NC.sel('mode', 'Calculate', [['d', 'd-spacing (and a) from 2θ'], ['predict', '2θ from lattice parameter and (hkl)']], 'd'),
-      NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593),
+      NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593, { limits: { positive: true } }),
       NC.num('n', 'Diffraction order n', '', 1),
       NC.num('tt', 'Peak position 2θ', '°', 38.18, { showIf: function (v) { return v.mode === 'd'; } }),
       NC.num('a', 'Cubic lattice parameter a', 'nm', 0.4078, { showIf: function (v) { return v.mode === 'predict'; } }),
@@ -88,10 +88,10 @@
   /* Shared peak parsing and broadening correction                       */
   /* ================================================================== */
   const PEAK_INPUTS = [
-    NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593),
-    NC.num('K', 'Shape factor K', '', 0.9, { help: 'Usually 0.89–0.94, depending on crystallite shape and on whether FWHM or integral breadth is used (Langford & Wilson 1978).' }),
+    NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593, { limits: { positive: true } }),
+    NC.num('K', 'Shape factor K', '', 0.9, { limits: { positive: true }, help: 'Usually 0.89–0.94, depending on crystallite shape and on whether FWHM or integral breadth is used (Langford & Wilson 1978).' }),
     NC.sel('corr', 'Instrumental broadening correction', [['none', 'None'], ['gaussian', 'Gaussian: β = √(β_obs² − β_inst²)'], ['lorentzian', 'Lorentzian: β = β_obs − β_inst']], 'gaussian'),
-    NC.num('inst', 'Default instrumental FWHM', '°', 0.05, { help: 'Used for rows without a third column. Measure it on a standard such as LaB₆ or Si.' })
+    NC.num('inst', 'Default instrumental FWHM', '°', 0.05, { limits: { nonneg: true }, help: 'Used for rows without a third column. Measure it on a standard such as LaB₆ or Si.' })
   ];
   const PEAK_DATA = NC.data('data', 'Peaks: 2θ (°), FWHM (°) [, instrumental FWHM (°)]', '', { placeholder: '38.18, 0.52\n44.39, 0.58\n64.58, 0.71' });
 

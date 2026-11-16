@@ -107,12 +107,12 @@
     const isD = function (v) { return v.model === 'drude'; };
     return [
       NC.sel('model', 'Dielectric function', [['drude', 'Drude model (free electrons)'], ['nk', 'Pasted n, k table']], 'drude'),
-      NC.num('epsInf', 'Background permittivity ε∞', '', defaults.epsInf, { showIf: isD }),
-      NC.num('wp', 'Plasma energy ħωp', 'eV', defaults.wp, { showIf: isD }),
-      NC.num('gam', 'Bulk damping ħγ', 'eV', defaults.gam, { showIf: isD }),
+      NC.num('epsInf', 'Background permittivity ε∞', '', defaults.epsInf, { limits: { positive: true }, showIf: isD }),
+      NC.num('wp', 'Plasma energy ħωp', 'eV', defaults.wp, { limits: { positive: true }, showIf: isD }),
+      NC.num('gam', 'Bulk damping ħγ', 'eV', defaults.gam, { limits: { positive: true }, showIf: isD }),
       NC.sel('damp', 'Size-dependent damping', [['on', 'On: γ(R) = γ + A·ħv_F/R'], ['off', 'Off (bulk γ)']], 'on', { showIf: isD }),
-      NC.num('A', 'Surface-scattering constant A', '', 1, { showIf: function (v) { return isD(v) && v.damp === 'on'; }, help: 'Order-unity, model-dependent constant (Kreibig & Vollmer). 1 is a neutral default; adjust it to your system.' }),
-      NC.num('vF', 'Fermi velocity v_F', '10⁶ m/s', defaults.vF, { showIf: function (v) { return isD(v) && v.damp === 'on'; } }),
+      NC.num('A', 'Surface-scattering constant A', '', 1, { limits: { nonneg: true }, showIf: function (v) { return isD(v) && v.damp === 'on'; }, help: 'Order-unity, model-dependent constant (Kreibig & Vollmer). 1 is a neutral default; adjust it to your system.' }),
+      NC.num('vF', 'Fermi velocity v_F', '10⁶ m/s', defaults.vF, { limits: { positive: true }, showIf: function (v) { return isD(v) && v.damp === 'on'; } }),
       NC.data('nk', 'Optical constants: λ (nm), n, k', '', { rows: 8, placeholder: 'λ (nm), n, k — one row per wavelength, from a source you cite\n400, 1.47, 1.95\n…', showIf: function (v) { return v.model === 'nk'; } })
     ];
   }
@@ -231,7 +231,7 @@
 
   const nmedInput = NC.num('nmed', 'Refractive index of the medium', '', 1.333, { help: 'Water ≈ 1.333 in the visible.' });
   const gridInputs = function (a, b, st) {
-    return [NC.num('lmin', 'Start wavelength', 'nm', a), NC.num('lmax', 'End wavelength', 'nm', b), NC.num('lstep', 'Wavelength step', 'nm', st)];
+    return [NC.num('lmin', 'Start wavelength', 'nm', a, { limits: { positive: true } }), NC.num('lmax', 'End wavelength', 'nm', b, { limits: { positive: true } }), NC.num('lstep', 'Wavelength step', 'nm', st, { limits: { positive: true } })];
   };
   const agDefaults = PRESETS[0].values, auDefaults = PRESETS[1].values;
 

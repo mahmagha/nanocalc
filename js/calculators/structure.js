@@ -149,7 +149,7 @@
     presetNote: WL_NOTE,
     inputs: [
       NC.sel('sys', 'Crystal system', Object.keys(SYSTEMS).map(function (k) { return [k, SYSTEMS[k].label]; }), 'cubic'),
-      NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593),
+      NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593, { limits: { positive: true } }),
       NC.data('data', 'Indexed peaks: 2θ (°), h, k, l', '', { placeholder: '38.184, 1, 1, 1\n44.381, 2, 0, 0\n…' })
     ],
     example: function () {
@@ -241,8 +241,8 @@
     presets: WAVELENGTHS,
     presetNote: WL_NOTE,
     inputs: [
-      NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593),
-      NC.num('K', 'Shape factor K', '', 0.9, { help: 'Usually 0.89–0.94 (Langford & Wilson 1978); K = 3/4 is also used with integral breadths in the SSP.' }),
+      NC.num('lambda', 'X-ray wavelength λ', 'nm', 0.1540593, { limits: { positive: true } }),
+      NC.num('K', 'Shape factor K', '', 0.9, { limits: { positive: true }, help: 'Usually 0.89–0.94 (Langford & Wilson 1978); K = 3/4 is also used with integral breadths in the SSP.' }),
       NC.data('data', 'Peaks: 2θ (°), corrected breadth β (°)', '', { placeholder: '38.18, 0.52\n44.39, 0.58\n…', help: 'Enter breadths already corrected for instrumental broadening.' })
     ],
     example: function () { return { lambda: 0.1540593, K: 0.9, data: synthSSP(15, 0.002, 0.9, 0.1540593, [38.18, 44.39, 64.58, 77.55, 81.72]) }; },
