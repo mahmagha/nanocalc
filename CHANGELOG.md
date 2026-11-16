@@ -2,6 +2,21 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
+## [0.7.0] - 2026-11-16
+
+### Changed
+- Site reorganised into four sections (Design & properties, Synthesis & lab, Characterization, Data & reference) with calculators grouped by measurement technique. This replaces 16 flat categories, five of which held a single calculator. Related tools now sit together: DLS with its correlation analysis, SAED/HRTEM/EDX with TEM size statistics.
+- The sidebar is now collapsible sections with counts. The current section opens automatically, and the open/closed state is remembered.
+- Search also matches technique names and aliases (e.g. "XRD", "zeta", "gold").
+- The home page is task-first: a search box, "What do you want to do?" shortcuts, and section cards. It is less than half its former length.
+
+### Added
+- A section overview page for each section, with jump links to each technique group.
+- Breadcrumbs (Home › Section › Technique), a "More in …" box with previous/next links on every calculator, a top navigation bar and a site footer.
+- An About & validation page (validation status, review status, data policy, how to report problems) and a proper not-found page.
+- A filter box on the references page.
+- `js/catalog.js`, the single source of truth for site structure, checked by `tests/catalog.test.js`.
+
 ## [0.6.0] - 2026-11-16
 
 ### Added

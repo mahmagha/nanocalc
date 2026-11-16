@@ -41,34 +41,71 @@
   }
 
   /* ---------------- navigation ---------------- */
+  // Structure comes from js/catalog.js: NC.sections → NC.categories (technique groups) → calculators.
+  const REPO = 'https://github.com/mahmagha/nanocalc';
+  const NAV_OPEN_KEY = 'nc:nav-open';
   function calcsIn(cat) { return NC.calculators.filter(function (c) { return c.category === cat; }); }
+  function groupsIn(sec) { return NC.categories.filter(function (g) { return g.section === sec; }); }
+  function catOf(def) { return NC.categories.find(function (g) { return g.id === def.category; }) || { id: '', label: '', section: '' }; }
+  function secOf(def) { return NC.sectionOf ? NC.sectionOf(def.category) : null; }
+  function haystack(c) {
+    const g = catOf(c);
+    return (c.title + ' ' + (c.short || '') + ' ' + c.description + ' ' + c.id + ' ' + g.label + ' ' + (g.aliases || '')).toLowerCase();
+  }
+  /** Every word of the query must appear (in title, description, technique name or aliases). */
+  function matches(c, q) { return q.split(/\s+/).filter(Boolean).every(function (w) { return haystack(c).indexOf(w) >= 0; }); }
+  function calcCard(c) { return '<a class="card" href="#/calc/' + c.id + '"><b>' + esc(c.title) + '</b><span>' + esc(c.short || '') + '</span></a>'; }
 
   function buildNav(query) {
     const q = (query || '').trim().toLowerCase();
-    const match = function (c) {
-      return !q || (c.title + ' ' + (c.short || '') + ' ' + c.description).toLowerCase().indexOf(q) >= 0;
-    };
-    let html = '<div class="nav-top"><a href="#/" data-nav="home">Overview</a><a href="#/references" data-nav="references">All references</a></div>';
+    const h = parseHash().parts;
+    const cur = h[0] === 'calc' ? NC.byId[h[1]] : null;
+    const curSec = cur ? (secOf(cur) || {}).id : h[0] === 'section' ? h[1] : null;
+    const openSet = store.get(NAV_OPEN_KEY) || {};
+    let html = '<div class="nav-top"><a href="#/" data-nav="home">Home</a><a href="#/references" data-nav="references">References</a><a href="#/about" data-nav="about">About &amp; validation</a></div>';
     let any = false;
-    NC.categories.forEach(function (cat) {
-      const list = calcsIn(cat.id).filter(match);
-      if (!list.length) return;
+    NC.sections.forEach(function (sec) {
+      let inner = '', count = 0;
+      groupsIn(sec.id).forEach(function (g) {
+        const list = calcsIn(g.id).filter(function (c) { return !q || matches(c, q); });
+        if (!list.length) return;
+        count += list.length;
+        inner += '<div class="nav-group"><h4>' + esc(g.label) + '</h4>' +
+          list.map(function (c) { return '<a href="#/calc/' + c.id + '" data-nav="' + c.id + '">' + esc(c.title) + '</a>'; }).join('') + '</div>';
+      });
+      if (!count) return;
       any = true;
-      html += '<div class="nav-group"><h3>' + esc(cat.label) + '</h3>' +
-        list.map(function (c) { return '<a href="#/calc/' + c.id + '" data-nav="' + c.id + '">' + esc(c.title) + '</a>'; }).join('') + '</div>';
+      const open = !!q || curSec === sec.id || openSet[sec.id];
+      html += '<details class="nav-sec" data-sec="' + sec.id + '"' + (open ? ' open' : '') + '><summary><span>' + esc(sec.label) + '</span><span class="count">' + count + '</span></summary>' +
+        (q ? '' : '<a class="nav-overview" href="#/section/' + sec.id + '" data-nav="section:' + sec.id + '">Overview of ' + esc(sec.label.toLowerCase()) + '</a>') + inner + '</details>';
     });
-    if (!any) html += '<p class="nav-empty">No calculators match “' + esc(query) + '”.</p>';
+    if (!any) html += '<p class="nav-empty">No calculators match “' + esc(query) + '”. Try a technique (XRD, DLS, BET) or a quantity (band gap, zeta).</p>';
     $('#sidebar').innerHTML = html;
+    if (!q) {
+      document.querySelectorAll('.nav-sec').forEach(function (d) {
+        d.querySelector('summary').addEventListener('click', function () {
+          // the click happens before the toggle: store the state it is about to have
+          const s = store.get(NAV_OPEN_KEY) || {};
+          s[d.getAttribute('data-sec')] = !d.open;
+          store.set(NAV_OPEN_KEY, s);
+        });
+      });
+    }
     markActive();
   }
   function markActive() {
     const key = currentKey();
-    document.querySelectorAll('[data-nav]').forEach(function (a) { a.classList.toggle('active', a.getAttribute('data-nav') === key); });
+    document.querySelectorAll('[data-nav]').forEach(function (a) {
+      const on = a.getAttribute('data-nav') === key;
+      a.classList.toggle('active', on);
+      if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
   }
   function currentKey() {
     const h = parseHash().parts;
     if (h[0] === 'calc') return h[1];
-    if (h[0] === 'references') return 'references';
+    if (h[0] === 'section') return 'section:' + h[1];
+    if (h[0] === 'references' || h[0] === 'about') return h[0];
     return 'home';
   }
   function setNav(open) {
@@ -88,12 +125,18 @@
   function route() {
     setNav(false);
     const h = parseHash();
+    const p = h.parts;
     mcToken++; // cancel any running propagation
-    if (h.parts[0] === 'calc' && NC.byId[h.parts[1]]) renderCalc(NC.byId[h.parts[1]], h.state ? NC.decodeState(h.state) : null);
-    else if (h.parts[0] === 'references') renderReferences();
-    else renderHome();
-    markActive();
-    window.scrollTo(0, 0);
+    let scrollTarget = null;
+    if (p[0] === 'calc' && NC.byId[p[1]]) renderCalc(NC.byId[p[1]], h.state ? NC.decodeState(h.state) : null);
+    else if (p[0] === 'section' && NC.sections.some(function (s) { return s.id === p[1]; })) scrollTarget = renderSection(p[1], p[2]);
+    else if (p[0] === 'references') renderReferences();
+    else if (p[0] === 'about') renderAbout();
+    else if (p[0] === '' || p[0] === undefined) renderHome();
+    else renderNotFound(p.join('/'));
+    buildNav($('#search').value);
+    if (scrollTarget) scrollTarget.scrollIntoView(); else window.scrollTo(0, 0);
+    main.focus({ preventScroll: true });
   }
 
   /* ---------------- history ---------------- */
@@ -124,32 +167,108 @@
   }
 
   /* ---------------- home ---------------- */
+  function footer() {
+    return '<footer class="site-foot"><span>NanoCalc v' + esc(NC.version) + '</span><span>MIT licence</span>' +
+      '<a href="#/about">About &amp; validation</a><a href="' + REPO + '" target="_blank" rel="noopener">Source on GitHub</a>' +
+      '<span class="foot-note">Tested and cross-checked against SciPy and miepython; not yet reviewed by a domain expert. Check results against the cited sources before publishing.</span></footer>';
+  }
+
   function renderHome() {
-    document.title = 'NanoCalc';
+    document.title = 'NanoCalc · nanomaterials calculations, step by step';
     let html = '<section class="hero"><h1>Nanomaterials calculations, shown step by step</h1>' +
-      '<p>NanoCalc does ' + NC.calculators.length + ' calculations used in nanomaterials synthesis and characterization. Every result shows each step with the numbers filled in, and every equation, constant and empirical coefficient is cited to its source.</p></section>' +
-      '<div class="pillars">' +
-      '<div class="pillar"><b>Transparent</b><span>Each step shows the formula, the substituted values and the intermediate result.</span></div>' +
-      '<div class="pillar"><b>Cited</b><span>Inline citation numbers link to the full reference list, with DOIs where they exist.</span></div>' +
-      '<div class="pillar"><b>With uncertainties</b><span>Add ± to any input to propagate it (Monte Carlo, GUM Supplement 1). Export to Markdown or PDF; share runs as links.</span></div></div>';
-    const hist = getHistory().filter(function (e) { return NC.byId[e.id]; });
+      '<p>' + NC.calculators.length + ' calculators for nanoparticle design, synthesis and characterization. Every result shows the formula, the numbers substituted in and each intermediate value, and every equation and constant is cited to its source.</p>' +
+      '<div class="home-search"><input id="homeSearch" type="search" placeholder="What are you calculating? e.g. crystallite size, band gap, zeta, BET, gold…" aria-label="Search calculators" autocomplete="off"></div>' +
+      '<div id="homeResults" aria-live="polite"></div></section>';
+
+    html += '<section class="home-block"><h2>What do you want to do?</h2><div class="tasks">' +
+      NC.tasks.filter(function (t) { return NC.byId[t.calc]; }).map(function (t) {
+        return '<a class="task" href="#/calc/' + t.calc + '"><b>' + esc(t.text) + '</b><span>' + esc(catOf(NC.byId[t.calc]).label) + '</span></a>';
+      }).join('') + '</div></section>';
+
+    html += '<section class="home-block"><h2>Browse by section</h2><div class="sections">' +
+      NC.sections.map(function (s) {
+        const groups = groupsIn(s.id);
+        const n = groups.reduce(function (k, g) { return k + calcsIn(g.id).length; }, 0);
+        return '<div class="sec-card"><a class="sec-title" href="#/section/' + s.id + '"><b>' + esc(s.label) + '</b><span class="count">' + n + '</span></a>' +
+          '<p>' + esc(s.blurb) + '</p><ul>' + groups.map(function (g) {
+            return '<li><a href="#/section/' + s.id + '/' + g.id + '">' + esc(g.label) + '</a> <span class="muted">' + calcsIn(g.id).length + '</span></li>';
+          }).join('') + '</ul></div>';
+      }).join('') + '</div></section>';
+
+    const hist = getHistory().filter(function (e) { return NC.byId[e.id]; }).slice(0, 6);
     if (hist.length) {
-      html += '<section class="cat-block history"><div class="hist-head"><h2>Recent calculations</h2><button class="btn small" id="clearHist" type="button">Clear history</button></div><ul class="hist-list">' +
+      html += '<section class="home-block history"><div class="hist-head"><h2>Recent calculations</h2><button class="btn small" id="clearHist" type="button">Clear history</button></div><ul class="hist-list">' +
         hist.map(function (e) {
           return '<li><a href="' + esc(calcLink(e.id, e.raw)) + '"><b>' + esc(e.title) + '</b><span>' + esc(e.headline || '') + '</span></a><time datetime="' + esc(e.date) + '">' + esc(relTime(e.date)) + '</time></li>';
         }).join('') + '</ul></section>';
     }
-    NC.categories.forEach(function (cat) {
-      const list = calcsIn(cat.id);
-      if (!list.length) return;
-      html += '<section class="cat-block"><h2>' + esc(cat.label) + '</h2><p>' + esc(cat.blurb) + '</p><div class="cards">' +
-        list.map(function (c) { return '<a class="card" href="#/calc/' + c.id + '"><b>' + esc(c.title) + '</b><span>' + esc(c.short || '') + '</span></a>'; }).join('') +
-        '</div></section>';
+
+    html += '<section class="home-block"><div class="pillars">' +
+      '<div class="pillar"><b>Transparent</b><span>Each step shows the formula, the substituted values and the intermediate result.</span></div>' +
+      '<div class="pillar"><b>Cited</b><span>Inline citation numbers link to the full reference list, with DOIs where they exist.</span></div>' +
+      '<div class="pillar"><b>With uncertainties</b><span>Add ± to any input to propagate it (Monte Carlo, GUM Supplement 1). Export to Markdown or PDF; share runs as links.</span></div></div></section>';
+    main.innerHTML = html + footer();
+
+    const hs = $('#homeSearch'), out = $('#homeResults');
+    hs.addEventListener('input', function () {
+      const q = hs.value.trim().toLowerCase();
+      if (!q) { out.innerHTML = ''; return; }
+      const hits = NC.calculators.filter(function (c) { return matches(c, q); });
+      out.innerHTML = hits.length
+        ? '<p class="muted">' + hits.length + ' match' + (hits.length > 1 ? 'es' : '') + '</p><div class="cards">' + hits.slice(0, 12).map(calcCard).join('') + '</div>'
+        : '<p class="muted">No calculator matches “' + esc(hs.value) + '”. Try a technique (XRD, DLS, BET, TEM) or a quantity (band gap, zeta, surface area).</p>';
     });
-    html += '<p class="disclaimer">NanoCalc v' + esc(NC.version) + ' · MIT licence · Results are tested and cross-checked against SciPy and miepython, ' +
-      'but not yet reviewed by a domain expert. Check them against the cited sources before publishing.</p>';
-    main.innerHTML = html;
+    hs.addEventListener('keydown', function (e) {
+      const first = out.querySelector('.card');
+      if (e.key === 'Enter' && first) location.hash = first.getAttribute('href');
+    });
     if ($('#clearHist')) $('#clearHist').addEventListener('click', function () { store.del(HISTORY_KEY); renderHome(); });
+  }
+
+  /* ---------------- section pages ---------------- */
+  function renderSection(secId, groupId) {
+    const s = NC.sections.find(function (x) { return x.id === secId; });
+    const groups = groupsIn(secId);
+    document.title = s.label + ' · NanoCalc';
+    let html = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>' + esc(s.label) + '</h1><p class="lede">' + esc(s.blurb) + '</p>' +
+      (groups.length > 1 ? '<div class="chips">' + groups.map(function (g) { return '<a class="chip" href="#/section/' + secId + '/' + g.id + '">' + esc(g.label) + '</a>'; }).join('') + '</div>' : '') + '</header>';
+    groups.forEach(function (g) {
+      html += '<section class="cat-block" id="g-' + g.id + '"><h2>' + esc(g.label) + '</h2><p>' + esc(g.blurb) + '</p><div class="cards">' + calcsIn(g.id).map(calcCard).join('') + '</div></section>';
+    });
+    main.innerHTML = html + footer();
+    return groupId ? document.getElementById('g-' + groupId) : null;
+  }
+
+  /* ---------------- about ---------------- */
+  function renderAbout() {
+    document.title = 'About & validation · NanoCalc';
+    const doc = function (file, text) { return '<a href="' + REPO + '/blob/main/' + file + '" target="_blank" rel="noopener">' + text + '</a>'; };
+    main.innerHTML = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>About &amp; validation</h1>' +
+      '<p class="lede">What NanoCalc is, how its results are checked, and how to report a problem.</p></header>' +
+      '<section class="panel prose"><h2>What it is</h2><p>NanoCalc is a free, open-source web app with ' + NC.calculators.length + ' calculators for nanomaterials work, citing ' + Object.keys(NC.refs).length + ' sources. ' +
+      'Each calculation shows its working step by step, with every equation, constant and empirical coefficient cited. It runs entirely in your browser: nothing you enter is sent anywhere. Once loaded it works offline and can be installed as an app.</p></section>' +
+      '<section class="panel prose"><h2>How results are checked</h2><ul>' +
+      '<li><b>About 2,800 automated checks</b> compare every calculator with values worked out by hand, from textbooks, or from synthetic data with a known answer. Every formula is also tested to make sure it typesets.</li>' +
+      '<li><b>Cross-validation against established software:</b> Mie theory against miepython; quadrature, smoothing, curve fitting, regression, statistics and constants against SciPy and NumPy. Agreement is to 10⁻⁶ or better. ' + doc('docs/VALIDATION.md', 'Validation report') + '.</li>' +
+      '<li><b>Not yet reviewed by a domain expert.</b> A sign-off checklist of every formula, value and reference is ready (' + doc('docs/REVIEW.md', 'REVIEW.md') + ', ' + doc('docs/EXPERT-REVIEW-GUIDE.md', 'reviewer guide') + '). Until it is signed off, check important results against the cited sources.</li></ul></section>' +
+      '<section class="panel prose"><h2>Data policy</h2><p>Literature data is built in only when its source is certain, for example CODATA constants, CRC densities and IUPAC atomic weights; see the <a href="#/calc/materials">material database</a>. ' +
+      'Values that vary between instruments or sources are inputs you supply: optical constants, XPS and EDX sensitivity factors, Hamaker constants, lipid areas. These come with labelled typical defaults.</p></section>' +
+      '<section class="panel prose"><h2>Using the app</h2><ul>' +
+      '<li><b>Units:</b> type them with the number, e.g. <code>5 Å</code>, <code>0.2 µm</code> or <code>25 °C</code>.</li>' +
+      '<li><b>Uncertainties:</b> press <b>± Uncertainties</b> on a calculator to give inputs a standard uncertainty. It is propagated by Monte Carlo (JCGM 101).</li>' +
+      '<li><b>Share and save:</b> <b>Copy link</b> shares a calculation with its inputs; <b>Saved runs</b> keeps named runs in this browser.</li>' +
+      '<li><b>Export:</b> a Markdown report (with LaTeX), print to PDF, or BibTeX from the <a href="#/references">references</a> page.</li></ul></section>' +
+      '<section class="panel prose"><h2>Report a problem</h2><p>Found an error in a formula, value or reference? Please ' +
+      '<a href="' + REPO + '/issues/new?template=review-finding.md" target="_blank" rel="noopener">open a scientific review finding</a>. For app bugs, ' +
+      '<a href="' + REPO + '/issues/new?template=bug-report.md" target="_blank" rel="noopener">report a bug</a> and use <b>Copy link</b> to include your inputs.</p></section>' +
+      '<section class="panel prose"><h2>Version &amp; licence</h2><p>NanoCalc v' + esc(NC.version) + ' (' + doc('CHANGELOG.md', 'changelog') + '). MIT licence; source on <a href="' + REPO + '" target="_blank" rel="noopener">GitHub</a>. ' +
+      'Equations are typeset with KaTeX (MIT), bundled for offline use.</p></section>' + footer();
+  }
+
+  function renderNotFound(path) {
+    document.title = 'Not found · NanoCalc';
+    main.innerHTML = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>Page not found</h1>' +
+      '<p class="lede">There is no page at “' + esc(path) + '”. The calculator may have been renamed. Search for it in the sidebar, or go to the <a href="#/">home page</a>.</p></header>' + footer();
   }
 
   /* ---------------- references page ---------------- */
@@ -160,13 +279,25 @@
       collectRefIds(c, null).forEach(function (id) { (used[id] = used[id] || []).push(c); });
     });
     const ids = Object.keys(NC.refs).sort(function (a, b) { return NC.refs[a].authors.localeCompare(NC.refs[b].authors); });
-    main.innerHTML = '<header class="calc-head"><div class="crumb">Bibliography</div><h1>All references</h1>' +
+    main.innerHTML = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>References</h1>' +
       '<p class="lede">Every source the calculators cite, with the calculators that use it.</p></header>' +
-      '<section class="panel"><div class="panel-head"><h2>' + ids.length + ' sources</h2><div class="actions"><button class="btn" id="bibBtn">Download BibTeX</button></div></div>' +
+      '<section class="panel"><div class="panel-head"><h2 id="refCount">' + ids.length + ' sources</h2><div class="actions">' +
+      '<input id="refFilter" class="filter" type="search" placeholder="Filter by author, title, year, calculator…" aria-label="Filter references">' +
+      '<button class="btn" id="bibBtn">Download BibTeX</button></div></div>' +
       '<ol class="refs refs-all">' + ids.map(function (id) {
         const u = used[id] || [];
         return '<li>' + NC.formatRef(NC.refs[id]) + (u.length ? '<span class="used">Used in: ' + u.map(function (c) { return '<a href="#/calc/' + c.id + '">' + esc(c.title) + '</a>'; }).join(', ') + '</span>' : '') + '</li>';
-      }).join('') + '</ol><p class="disclaimer">Citations are given so you can trace every number. Check the original publications before using a result in your own work.</p></section>';
+      }).join('') + '</ol><p class="disclaimer">Citations are given so you can trace every number. Check the original publications before using a result in your own work.</p></section>' + footer();
+    $('#refFilter').addEventListener('input', function (e) {
+      const words = e.target.value.toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      document.querySelectorAll('.refs-all > li').forEach(function (li) {
+        const hit = words.every(function (w) { return li.textContent.toLowerCase().indexOf(w) >= 0; });
+        li.hidden = !hit;
+        if (hit) shown++;
+      });
+      $('#refCount').textContent = words.length ? shown + ' of ' + ids.length + ' sources' : ids.length + ' sources';
+    });
     $('#bibBtn').addEventListener('click', function () {
       download('nanocalc-references.bib', ids.map(function (id) { return NC.toBibTeX(NC.refs[id]); }).join('\n\n') + '\n', 'application/x-bibtex');
     });
@@ -252,7 +383,17 @@
 
   function renderCalc(def, urlState) {
     document.title = def.title + ' · NanoCalc';
-    const cat = NC.categories.find(function (c) { return c.id === def.category; }) || { label: '' };
+    const cat = catOf(def);
+    const sec = secOf(def) || { id: '', label: '' };
+    const siblings = calcsIn(cat.id);
+    const idx = siblings.indexOf(def);
+    const prev = siblings[idx - 1], next = siblings[idx + 1];
+    const related = siblings.length > 1
+      ? '<nav class="related" aria-label="More in ' + esc(cat.label) + '"><h2>More in ' + esc(cat.label) + '</h2><div class="cards">' +
+        siblings.filter(function (c) { return c !== def; }).map(calcCard).join('') + '</div>' +
+        '<div class="pager">' + (prev ? '<a href="#/calc/' + prev.id + '">← ' + esc(prev.title) + '</a>' : '<span></span>') +
+        (next ? '<a href="#/calc/' + next.id + '">' + esc(next.title) + ' →</a>' : '') + '</div></nav>'
+      : '';
     const raw = Object.assign(defaults(def), urlState || store.get('nc:v:' + def.id) || {});
     const showUnc = hasUnc(raw) || !!store.get('nc:unc-open');
     const presets = def.presets && def.presets.length
@@ -260,7 +401,10 @@
         def.presets.map(function (p, i) { return '<option value="' + i + '">' + esc(p.label) + '</option>'; }).join('') + '</select></label>'
       : '';
     main.innerHTML =
-      '<header class="calc-head"><div class="crumb">' + esc(cat.label) + '</div><h1>' + esc(def.title) + '</h1><p class="lede">' + esc(def.description) + '</p></header>' +
+      '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a><span aria-hidden="true">›</span>' +
+      '<a href="#/section/' + sec.id + '">' + esc(sec.label) + '</a><span aria-hidden="true">›</span>' +
+      '<a href="#/section/' + sec.id + '/' + cat.id + '">' + esc(cat.label) + '</a></nav>' +
+      '<h1>' + esc(def.title) + '</h1><p class="lede">' + esc(def.description) + '</p></header>' +
       '<section class="panel"><div class="panel-head"><h2>Inputs</h2><div class="actions">' + presets +
       (def.example ? '<button class="btn" id="exBtn" type="button">Load example</button>' : '') +
       '<button class="btn" id="resetBtn" type="button">Reset</button>' +
@@ -274,7 +418,7 @@
       '<details class="saved-runs" id="savedRuns"><summary>Saved runs</summary><div class="save-row">' +
       '<input id="saveName" type="text" placeholder="Name this run" aria-label="Name for the saved run" maxlength="80">' +
       '<button class="btn" id="saveBtn" type="button">Save run</button></div><ul id="savedList"></ul></details></section>' +
-      '<div id="output" aria-live="polite"></div>';
+      '<div id="output" aria-live="polite"></div>' + related + footer();
 
     const form = $('#form');
     const setValues = function (vals, clearUnc) {

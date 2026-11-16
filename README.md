@@ -92,6 +92,7 @@ js/tex.js                  Unicode formula → LaTeX converter, KaTeX rendering
 js/units.js                typed-unit parsing and conversion
 js/uncertainty.js          Monte Carlo uncertainty propagation
 js/calculators/*.js        one file per area; each calls NC.register(...)
+js/catalog.js              site structure: sections → technique groups → calculator order
 js/app.js                  UI: navigation, forms, steps, citations, export, saved work
 sw.js, manifest.webmanifest   offline / installable app
 tests/run-tests.js         test runner (+ tests/*.test.js modules)
@@ -105,7 +106,7 @@ vendor/katex/              bundled KaTeX 0.16.11 (verified, MIT)
 1. Call `NC.register({ id, category, title, description, refs, inputs, example, compute })` in a file under `js/calculators/`. Add any new citations with `NC.addRefs({...})`.
 2. `compute(values)` returns `results` and `steps`, and optionally `tables`, `plots`, `figures`, `notes` and `warnings`.
 3. Each step is `{ title, formula, sub, result, ref, note }`, optionally with `tex`, `subTex` and `resultTex`.
-4. Register the file in `index.html` and add known-value checks in `tests/<area>.test.js`.
+4. Register the file in `index.html` (before `js/catalog.js`), place the calculator in a group in `js/catalog.js`, and add known-value checks in `tests/<area>.test.js`.
 
 ## Accuracy
 
