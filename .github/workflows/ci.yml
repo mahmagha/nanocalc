@@ -25,3 +25,33 @@ jobs:
         run: make lint
       - name: Tests and up-to-date review sheet
         run: make check
+
+  browsers:
+    name: Browser tests (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the site as deployed
+        run: node tools/build.js _site
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock @playwright/test@1.49.1
+          npx playwright install --with-deps ${{ matrix.browser }}
+      - name: Browser tests
+        run: npx playwright test -c tests/e2e --project=${{ matrix.browser }}
+      - name: Keep screenshots and the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-tests-${{ matrix.browser }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 14

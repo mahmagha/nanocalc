@@ -50,3 +50,28 @@
   .dz-editor { display: none; }
   .dz-grid { display: block; }
 }
+
+/* ---------- foldable cards, saved designs, compare, target peak ---------- */
+.dz-card > legend { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dz-fold { border: 0; background: none; color: var(--muted); font-size: 14px; width: 24px; height: 24px; border-radius: 6px; cursor: pointer; padding: 0; line-height: 1; }
+.dz-fold:hover { background: var(--surface-2); color: var(--text); }
+.dz-sum { display: none; font-weight: 500; color: var(--muted); font-size: 13px; }
+.dz-card.collapsed .dz-sum { display: inline; }
+.dz-card.collapsed .dz-sum::before { content: "· "; }
+.dz-card.collapsed > .dz-fields, .dz-card.collapsed > .dz-card-actions { display: none; }
+.dz-card.collapsed { padding-bottom: 6px; }
+.dz-mine .btn { flex: none; }
+.dz-target { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin: 0 0 12px; background: var(--surface); }
+.dz-target-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.dz-target-row label { font-size: 13.5px; font-weight: 600; }
+.dz-target-row .dz-by { font-weight: 400; color: var(--muted); }
+.dz-target-row input { width: 90px; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.dz-target-row select { max-width: 100%; }
+.dz-tmsg { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+.dz-tmsg:empty { display: none; }
+.dz-tmsg.err { color: var(--err-text); }
+.dz-compare { margin-bottom: 14px; }
+.dz-compare h2 { font-size: 16px; margin: 0 0 4px; }
+.dz-toolbar.dz-mine { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+.dz-toolbar.dz-mine label { width: 100%; }
+.dz-toolbar.dz-mine select { flex: 1 1 160px; width: auto; }

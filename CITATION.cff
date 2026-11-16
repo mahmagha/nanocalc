@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use NanoCalc in your work, please cite it as below, with the version you used."
+title: "NanoCalc: step-by-step, fully cited calculations for nanomaterials"
+type: software
+authors:
+  - given-names: Mahmoud
+    family-names: Agha
+repository-code: "https://github.com/mahmagha/nanocalc"
+url: "https://mahmagha.github.io/nanocalc/"
+license: MIT
+version: 0.11.0
+date-released: 2026-11-16
+keywords:
+  - nanomaterials
+  - nanoparticles
+  - characterization
+  - Mie theory
+  - synthesis

@@ -42,17 +42,29 @@ Then open http://localhost:8080. When served over http(s), the app can be instal
 node tests/run-tests.js
 ```
 
-The suite (about 2,700 checks):
+The suite (about 6,400 checks):
 - runs every calculator on its example;
 - typesets every formula with the bundled KaTeX;
 - checks that every cited reference exists and every script is registered;
 - compares results with values worked out by hand, from textbooks, or from synthetic data with known answers (`tests/*.test.js`, one file per area).
+
+Browser tests run the built site in Chromium, Firefox and WebKit (Safari's engine) with Playwright, in CI on every push:
+
+```bash
+node tools/build.js _site                         # the site as deployed: one script and one stylesheet bundle
+npm install --no-save @playwright/test@1.49.1 && npx playwright install chromium
+npx playwright test -c tests/e2e --project=chromium
+```
+
+They load every calculator's example and check for errors, flagged inputs, sliders outside their limits and pages wider than a phone, then exercise search, the designer, protocols and projects (`tests/e2e/smoke.js` runs in the page, so it can also be pasted into any browser's console). Screenshots of key pages in light and dark mode are kept as CI artifacts.
 
 ## What you can do
 
 - **Design** a particle in the particle designer: a spherical core with any number of shells and a ligand layer. It gives the geometry and composition of every layer, the extinction, scattering and absorption spectrum (multilayer Mie theory), ligands per particle and the hydrodynamic size, and a build plan that links each layer to a synthesis protocol with the precursor amounts for your batch.
 - **Make** it with 13 published synthesis protocols (citrate Au and Ag, Au nanorods, Brust Au, Stöber silica, silica shells on Au, Fe₃O₄ by two routes, CdSe, CdS and ZnS shells, PEG-thiol exchange, purification). Each has reagents scaled to your batch with the mass to weigh, numbered steps, safety notes, the expected result and links to the calculators that check it. Quantities that could not be confirmed from the paper are marked "check against the original".
 - **Characterise** it with the calculators below. Every page is a live workspace: sliders on number fields, results and interactive plots that update while you drag, and the step-by-step working and references underneath.
+- **Keep it together** in a project: the design, the protocols you used with their batch sizes, and your measurements. The project page sets the designer's predictions beside what you measured (TEM, DLS, UV-vis, ICP-MS, TGA …) and exports one lab report.
+- **Find anything** with the search box (Ctrl+K): calculators, protocols, materials, references and further reading, with abbreviations understood (TEM, QD, Au …).
 
 ## Calculators (58)
 
@@ -114,10 +126,14 @@ js/protocols.js            synthesis protocol library (data, batch scaling, mola
 js/protocols-view.js       synthesis pages
 js/designer.js             layered-particle engine: geometry, multilayer Mie, ligands, build route
 js/designer-view.js        particle designer page
+js/projects.js             projects: design + protocols + measurements, predicted vs measured, report
+js/search.js               site-wide search index and matching
 js/app.js                  UI: navigation, forms, steps, citations, export, saved work
 sw.js, manifest.webmanifest   offline / installable app
 tests/run-tests.js         test runner (+ tests/*.test.js modules)
-tools/serve.js             local static server
+tools/serve.js             local static server (node tools/serve.js [port] [folder])
+tools/build.js             builds the deployed site (_site) with one script and one stylesheet bundle
+tests/e2e/                 browser tests (Playwright) and the in-page smoke test
 tools/review-sheet.js      generates docs/REVIEW.md
 tools/verify-refs.js       verifies references against Crossref / Open Library
 tools/build-treatise.js    generates docs/REFERENCE-TREATISE.md

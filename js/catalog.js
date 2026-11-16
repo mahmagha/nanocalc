@@ -14,9 +14,9 @@
   // A section's "pages" are full workspaces (not calculators) listed first in the navigation.
   NC.sections = [
     { id: 'design', label: 'Design', verb: 'Design a nanoparticle', blurb: 'Design a particle layer by layer (core, shells, ligands) and predict its size, composition, optical spectrum and size-dependent properties.',
-      pages: [{ key: 'design', href: '#/design', label: 'Particle designer', blurb: 'Core + any number of shells + ligands: geometry, composition, optical spectrum (multilayer Mie), ligand counts and a step-by-step build plan.' }] },
+      pages: [{ key: 'design', href: '#/design', label: 'Particle designer', keywords: 'core shell layered multilayer coated ligand design spectrum plasmon build', blurb: 'Core + any number of shells + ligands: geometry, composition, optical spectrum (multilayer Mie), ligand counts and a step-by-step build plan.' }] },
     { id: 'synthesis', label: 'Make', verb: 'Make it in the lab', blurb: 'Step-by-step synthesis protocols from the literature, scaled to your batch, and the lab calculations around them.',
-      pages: [{ key: 'synthesis', href: '#/synthesis', label: 'Synthesis protocols', blurb: 'Published procedures for cores, shells and ligand exchange: reagents scaled to your batch, steps, safety, expected results and checks.' }] },
+      pages: [{ key: 'synthesis', href: '#/synthesis', label: 'Synthesis protocols', keywords: 'synthesis protocol recipe procedure make lab bench reagents', blurb: 'Published procedures for cores, shells and ligand exchange: reagents scaled to your batch, steps, safety, expected results and checks.' }] },
     { id: 'characterization', label: 'Characterise', verb: 'Characterise what you made', blurb: 'Turn measurements into results, organised by technique.' },
     { id: 'tools', label: 'Data & reference', verb: 'Look up data', blurb: 'Process raw spectra and look up the material data the calculators use.' }
   ];
@@ -47,6 +47,21 @@
   ];
 
   /* "What do you want to do?" shortcuts on the home page. */
+  // How each calculator was checked (shown on its page). Every calculator has automated checks against
+  // hand-worked values and published examples (tests/); these were also cross-checked against independent
+  // reference software (docs/VALIDATION.md, tests/validation/). `caution` flags an approximate model.
+  const DRUDE = 'The built-in Drude presets are free-electron models: qualitative for gold and silver (interband transitions are left out). Paste measured n, k for quantitative spectra.';
+  NC.validation = {
+    mie: { by: 'miepython (Mie efficiencies agree to 2.5 × 10⁻¹¹)', caution: DRUDE },
+    agsize: { by: 'miepython (the Mie code it uses agrees to 2.5 × 10⁻¹¹)', caution: DRUDE },
+    gans: { by: 'SciPy numerical integration (depolarization factors agree to 1.1 × 10⁻⁹)', caution: DRUDE },
+    psd: { by: 'NumPy and SciPy (all size statistics through the calculator agree to 10⁻¹⁰)' },
+    bet: { by: 'pyGAPS (BET area and C agree to 10⁻⁹)' },
+    tplot: { by: 'pyGAPS (external area and micropore volume agree to 10⁻⁹)' },
+    bjh: { by: 'pyGAPS (pore volume, area and dV/dD of every size class agree to 2.3 × 10⁻¹⁰)' },
+    peakfit: { by: 'SciPy (Savitzky–Golay coefficients, least squares and Gaussian fits incl. standard errors)' }
+  };
+
   NC.tasks = [
     { href: '#/design', text: 'Design a core–shell particle with ligands', where: 'Particle designer' },
     { href: '#/synthesis', text: 'Follow a synthesis protocol', where: 'Synthesis protocols' },

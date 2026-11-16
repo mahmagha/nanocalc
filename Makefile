@@ -21,7 +21,7 @@ endif
 PYTHON ?= $(if $(wildcard $(VENV_PY)),$(VENV_PY),python)
 
 .DEFAULT_GOAL := help
-.PHONY: help serve test lint review check validate-refs verify-refs treatise
+.PHONY: help serve test lint review check validate-refs verify-refs treatise build e2e
 
 help:
 	@echo NanoCalc make targets:
@@ -33,6 +33,8 @@ help:
 	@echo   make validate-refs  - regenerate the SciPy/miepython/pyGAPS reference values [needs Python]
 	@echo   make verify-refs    - verify all references against Crossref/Open Library [needs network]
 	@echo   make treatise       - rebuild docs/REFERENCE-TREATISE.md
+	@echo   make build          - build the deployed site into _site [one script and one stylesheet bundle]
+	@echo   make e2e            - browser tests of _site with Playwright [needs: npm install --no-save @playwright/test]
 
 serve:
 	$(NODE) tools/serve.js $(PORT)
@@ -42,6 +44,12 @@ test:
 
 lint:
 	$(NODE) tools/lint.js
+
+build:
+	$(NODE) tools/build.js _site
+
+e2e: build
+	npx playwright test -c tests/e2e
 
 review:
 	$(NODE) tools/review-sheet.js

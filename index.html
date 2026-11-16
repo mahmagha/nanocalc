@@ -26,14 +26,11 @@
       <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="16" cy="16" r="5" fill="currentColor"/><circle cx="16" cy="16" r="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 3"/><circle cx="28" cy="16" r="2.4" fill="currentColor"/><circle cx="7.5" cy="7.5" r="2" fill="currentColor"/></svg>
       <span>NanoCalc</span>
     </a>
-    <nav class="topnav" aria-label="Site">
-      <a href="#/" data-nav="home">Calculators</a>
-      <a href="#/reading" data-nav="reading">Further reading</a>
-      <a href="#/references" data-nav="references">References</a>
-      <a href="#/about" data-nav="about">About</a>
-    </nav>
-    <div class="search">
-      <input id="search" type="search" placeholder="Search calculators…" aria-label="Search calculators" autocomplete="off">
+    <div class="search" role="search">
+      <input id="search" type="search" placeholder="Search calculators, protocols, references…" aria-label="Search the site" autocomplete="off"
+        role="combobox" aria-expanded="false" aria-controls="searchPanel" aria-autocomplete="list" aria-keyshortcuts="Control+K /">
+      <kbd class="search-key" aria-hidden="true">Ctrl K</kbd>
+      <div id="searchPanel" class="search-panel" role="listbox" aria-label="Search results" hidden></div>
     </div>
     <button class="icon-btn" id="themeBtn" aria-label="Toggle dark mode" title="Toggle dark mode">
       <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" fill="currentColor"/></svg>
@@ -78,6 +75,8 @@
   <script src="js/protocols-view.js"></script>
   <script src="js/designer.js"></script>
   <script src="js/designer-view.js"></script>
+  <script src="js/projects.js"></script>
+  <script src="js/search.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

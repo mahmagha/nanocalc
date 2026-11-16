@@ -27,11 +27,8 @@ jobs:
           node-version: 22
       - name: Test before deploying
         run: make lint && make test
-      - name: Assemble the static site (app files only)
-        run: |
-          mkdir _site
-          cp -r index.html sw.js manifest.webmanifest css js icons vendor LICENSE _site/
-          touch _site/.nojekyll
+      - name: Build the static site (app files only; scripts and styles bundled)
+        run: node tools/build.js _site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

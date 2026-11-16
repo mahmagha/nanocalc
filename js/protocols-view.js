@@ -132,6 +132,59 @@
   /* ------------------------------------------------------------------ */
   /* One protocol                                                        */
   /* ------------------------------------------------------------------ */
+  /* ---------------- at the bench: checklist, timers, notes, bench mode ---------------- */
+  /** Duration in seconds from a step's time text ("≈ 2 min stirring", "≈ 1 h", "30 s"); null when it has no number. */
+  function parseDuration(text) {
+    const m = String(text || '').match(/(\d+(?:[.,]\d+)?)\s*(?:–|-|to)?\s*(?:\d+(?:[.,]\d+)?)?\s*(s|sec|seconds?|min|minutes?|h|hr|hours?)\b/i);
+    if (!m) return null;
+    const x = Number(m[1].replace(',', '.'));
+    const u = m[2].toLowerCase();
+    return Math.round(x * (u[0] === 'h' ? 3600 : u[0] === 'm' ? 60 : 1));
+  }
+  function fmtClock(s) {
+    s = Math.max(0, Math.round(s));
+    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = s % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(r).padStart(2, '0');
+  }
+  const RUN = function (id) { return 'nc:proto-run:' + id; };
+  function getRun(id) { try { const s = global.localStorage && global.localStorage.getItem(RUN(id)); const o = s ? JSON.parse(s) : null; return o && typeof o === 'object' ? o : { checked: [], notes: '' }; } catch (e) { return { checked: [], notes: '' }; } }
+  function setRun(id, run) { try { if (global.localStorage) global.localStorage.setItem(RUN(id), JSON.stringify(run)); } catch (e) { /* storage unavailable */ } }
+
+  /**
+   * One reagent list for several protocols (a build route): amounts for each batch, added up by reagent.
+   * items: [{ id, volumeMl }]. Returns HTML.
+   */
+  function shoppingList(items) {
+    const rows = {}, order = [], used = [];
+    items.forEach(function (it) {
+      const p = NC.protocolById[it.id];
+      if (!p) return;
+      used.push(p.title);
+      const vol = it.volumeMl > 0 ? it.volumeMl : p.baseVolume;
+      const sc = NC.protocolScale(p, vol, {});
+      sc.reagents.forEach(function (r) {
+        const k = r.name;
+        if (!rows[k]) { rows[k] = { name: r.name, formula: r.formula, massG: 0, volumeMl: 0, open: false, from: [] }; order.push(k); }
+        const row = rows[k];
+        if (typeof r.massG === 'number' && isFinite(r.massG)) row.massG += r.massG;
+        else if (typeof r.volumeMl === 'number' && isFinite(r.volumeMl)) row.volumeMl += r.volumeMl;
+        else row.open = true;
+        if (row.from.indexOf(p.title) < 0) row.from.push(p.title);
+      });
+    });
+    if (!order.length) return '<p class="muted">No protocols to combine.</p>';
+    const amt = function (row) {
+      const bits = [];
+      if (row.massG > 0) bits.push(row.massG >= 1 ? NC.fmt(row.massG, 4) + ' g' : NC.fmt(row.massG * 1000, 4) + ' mg');
+      if (row.volumeMl > 0) bits.push(NC.fmt(row.volumeMl, 4) + ' mL');
+      if (row.open) bits.push('see protocol');
+      return bits.join(' + ') || '—';
+    };
+    return '<div class="table-wrap"><table class="proj-cmp pv-shop"><thead><tr><th>Reagent</th><th>Total for these batches</th><th>Used in</th></tr></thead><tbody>' +
+      order.map(function (k) { const r = rows[k]; return '<tr><td><b>' + esc(r.name) + '</b>' + (r.formula ? ' <span class="muted">' + fmtFormula(r.formula) + '</span>' : '') + '</td><td>' + esc(amt(r)) + '</td><td class="small">' + esc(r.from.join('; ')) + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="muted small">Pure compound (mass) or neat liquid (volume) for each batch, added up; “see protocol” where the amount is left to the original paper. Stoichiometric amounts from the protocols as written; allow for losses and stock solutions.</p>';
+  }
+
   function renderProtocol(el, id, opts) {
     opts = opts || {};
     const p = NC.protocolById[id];
@@ -163,7 +216,7 @@
         : 'This procedure is transcribed from the cited source' + cite(p.refs) + ' and must be checked against the original paper.') +
       ' Do a local risk assessment (for example COSHH) before you start. Items marked ' + VERIFY + ' could not be confirmed by NanoCalc; amounts shown as “as in the original paper” are deliberately left out.</div>';
 
-    html += '<div class="actions pv-actions no-print"><button class="btn" type="button" data-act="print">Print / PDF</button><button class="btn" type="button" data-act="md">Download as Markdown</button></div>';
+    html += '<div class="actions pv-actions no-print"><button class="btn primary" type="button" data-act="bench" aria-pressed="false">Bench mode</button><button class="btn" type="button" data-act="print">Print / PDF</button><button class="btn" type="button" data-act="md">Download as Markdown</button></div>';
 
     // batch size
     if (scalable) {
@@ -195,17 +248,26 @@
     if ((p.equipment || []).length) html += '<section class="panel" aria-labelledby="pv-eq-h"><h2 id="pv-eq-h">Equipment</h2><ul class="pv-list">' + p.equipment.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul></section>';
 
     // steps
-    html += '<section class="panel" aria-labelledby="pv-steps-h"><h2 id="pv-steps-h">Procedure</h2><ol class="pv-steps">';
+    const run = getRun(p.id);
+    html += '<section class="panel pv-proc" aria-labelledby="pv-steps-h"><div class="panel-head"><h2 id="pv-steps-h">Procedure</h2><div class="actions no-print"><span class="pv-progress" aria-live="polite"></span><button class="btn small" type="button" data-act="uncheck">Clear ticks</button></div></div>' +
+      '<div class="pv-bench-nav no-print"><button class="btn" type="button" data-act="prev">← Previous</button><span class="pv-bench-pos" aria-live="polite"></span><button class="btn primary" type="button" data-act="next">Done, next →</button><button class="btn" type="button" data-act="bench">Exit bench mode</button></div><ol class="pv-steps">';
     stage = null;
+    let si = -1;
     (p.steps || []).forEach(function (s) {
+      si++;
       if (s.stage && s.stage !== stage) { stage = s.stage; html += '<li class="pv-step-stage"><span>' + esc(stage) + '</span></li>'; }
       const badges = (s.temp ? '<span class="pv-badge temp" title="Temperature"><span class="pv-sr">Temperature: </span>' + esc(s.temp) + '</span>' : '') +
         (s.time ? '<span class="pv-badge time" title="Time"><span class="pv-sr">Time: </span>' + esc(s.time) + '</span>' : '') +
         (s.general ? '<span class="pv-badge general">general practice</span>' : '');
-      html += '<li class="pv-step' + (s.critical ? ' critical' : '') + '">' + (badges ? '<div class="pv-badges">' + badges + '</div>' : '') +
-        '<p>' + (s.critical ? '<strong class="pv-crit">Critical: </strong>' : '') + esc(s.text) + cite(s.ref) + chk(s.verify) + '</p></li>';
+      const dur = parseDuration(s.time);
+      const done = run.checked.indexOf(si) >= 0;
+      html += '<li class="pv-step' + (s.critical ? ' critical' : '') + (done ? ' done' : '') + '" data-step="' + si + '">' +
+        '<label class="pv-check no-print"><input type="checkbox" data-step="' + si + '"' + (done ? ' checked' : '') + '><span class="pv-sr">Step ' + (si + 1) + ' done</span></label>' +
+        '<div class="pv-step-body">' + (badges || dur ? '<div class="pv-badges">' + badges + (dur ? '<button type="button" class="pv-timer no-print" data-secs="' + dur + '" aria-label="Start a ' + esc(fmtClock(dur)) + ' timer for step ' + (si + 1) + '">⏱ ' + esc(fmtClock(dur)) + '</button>' : '') + '</div>' : '') +
+        '<p>' + (s.critical ? '<strong class="pv-crit">Critical: </strong>' : '') + esc(s.text) + cite(s.ref) + chk(s.verify) + '</p></div></li>';
     });
     html += '</ol></section>';
+    html += '<section class="panel no-print" aria-labelledby="pv-notes-h"><h2 id="pv-notes-h">Your notes</h2><textarea class="pv-notes" rows="4" aria-labelledby="pv-notes-h" placeholder="Lot numbers, what you changed, observations… (kept in this browser)">' + esc(run.notes || '') + '</textarea></section>';
 
     // safety
     const seen = {};
@@ -319,8 +381,77 @@
       });
     });
     wireCitations(el);
+    wireBench(el, p);
     update();
   }
 
-  NC.protocolsView = { renderIndex: renderIndex, renderProtocol: renderProtocol, fmtFormula: fmtFormula };
+  function wireBench(el, p) {
+    const art = el.querySelector('.protocol');
+    const steps = Array.prototype.slice.call(el.querySelectorAll('li.pv-step'));
+    const prog = el.querySelector('.pv-progress');
+    let cur = 0, wake = null;
+    const save = function () {
+      const run = getRun(p.id);
+      run.checked = steps.filter(function (li) { return li.classList.contains('done'); }).map(function (li) { return Number(li.getAttribute('data-step')); });
+      setRun(p.id, run);
+      prog.textContent = run.checked.length + ' of ' + steps.length + ' steps done';
+    };
+    const mark = function (li, on) { li.classList.toggle('done', on); const c = li.querySelector('input[type=checkbox]'); if (c) c.checked = on; };
+    const show = function (k) {
+      cur = Math.max(0, Math.min(steps.length - 1, k));
+      steps.forEach(function (li, j) { li.classList.toggle('current', j === cur); });
+      el.querySelector('.pv-bench-pos').textContent = 'Step ' + (cur + 1) + ' of ' + steps.length;
+      if (art.classList.contains('bench')) steps[cur].scrollIntoView({ block: 'center' });
+    };
+    el.addEventListener('change', function (e) {
+      const t = e.target;
+      if (t.matches && t.matches('.pv-check input')) { mark(t.closest('li'), t.checked); save(); }
+    });
+    let nt = null;
+    const notes = el.querySelector('.pv-notes');
+    notes.addEventListener('input', function () { clearTimeout(nt); nt = setTimeout(function () { const run = getRun(p.id); run.notes = notes.value; setRun(p.id, run); }, 400); });
+    el.addEventListener('click', function (e) {
+      const b = e.target.closest ? e.target.closest('button') : null;
+      if (!b || !el.contains(b)) return;
+      const act = b.getAttribute('data-act');
+      if (b.classList.contains('pv-timer')) return startTimer(b);
+      if (act === 'uncheck') { steps.forEach(function (li) { mark(li, false); }); save(); }
+      else if (act === 'bench') {
+        const on = !art.classList.contains('bench');
+        art.classList.toggle('bench', on);
+        document.body.classList.toggle('bench-mode', on);
+        el.querySelectorAll('[data-act="bench"]').forEach(function (x) { if (x.hasAttribute('aria-pressed')) x.setAttribute('aria-pressed', String(on)); });
+        if (on) {
+          const first = steps.findIndex(function (li) { return !li.classList.contains('done'); });
+          show(first >= 0 ? first : 0);
+          // keep the screen on while working, where the browser allows it
+          if (global.navigator && navigator.wakeLock && navigator.wakeLock.request) navigator.wakeLock.request('screen').then(function (w) { wake = w; }, function () { /* not allowed */ });
+        } else { steps.forEach(function (li) { li.classList.remove('current'); }); if (wake) { wake.release(); wake = null; } }
+      } else if (act === 'next') { mark(steps[cur], true); save(); show(cur + 1); }
+      else if (act === 'prev') show(cur - 1);
+    });
+    save();
+  }
+  // Countdown timers: several can run at once; the button shows the time left and flashes when done.
+  function startTimer(b) {
+    if (b._t) { clearInterval(b._t); b._t = null; b.classList.remove('running'); b.textContent = '⏱ ' + fmtClock(Number(b.getAttribute('data-secs'))); return; }
+    const total = Number(b.getAttribute('data-secs')), end = Date.now() + total * 1000;
+    b.classList.add('running'); b.classList.remove('finished');
+    const tick = function () {
+      const left = (end - Date.now()) / 1000;
+      if (left <= 0) {
+        clearInterval(b._t); b._t = null;
+        b.classList.remove('running'); b.classList.add('finished');
+        b.textContent = '⏱ Time is up';
+        b.setAttribute('role', 'status');
+        if (global.navigator && navigator.vibrate) navigator.vibrate([300, 150, 300]);
+        return;
+      }
+      b.textContent = '⏱ ' + fmtClock(left) + ' left (tap to stop)';
+    };
+    tick();
+    b._t = setInterval(tick, 500);
+  }
+
+  NC.protocolsView = { renderIndex: renderIndex, renderProtocol: renderProtocol, fmtFormula: fmtFormula, shoppingList: shoppingList, parseDuration: parseDuration };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,0 +1,8 @@
+{
+  "title": "NanoCalc: step-by-step, fully cited calculations for nanomaterials",
+  "upload_type": "software",
+  "description": "A browser app for designing, making and characterising nanomaterials: a layered particle designer with multilayer Mie theory, published synthesis protocols scaled to your batch, and 58 calculators that show every step and cite every equation and constant.",
+  "creators": [{ "name": "Agha, Mahmoud" }],
+  "license": "MIT",
+  "keywords": ["nanomaterials", "nanoparticles", "characterization", "Mie theory", "synthesis"]
+}

@@ -107,3 +107,29 @@ ol.pv-steps > li.pv-step.critical::before { left: 9px; }
   .table-wrap { overflow: visible; }
   table.pv-reagents th, table.pv-reagents td { white-space: normal; }
 }
+
+/* ---------- at the bench: checklist, timers, notes, bench mode ---------- */
+.pv-steps li.pv-step { display: flex; gap: 10px; align-items: flex-start; }
+.pv-step-body { flex: 1; min-width: 0; }
+.pv-check { flex: none; padding-top: 3px; cursor: pointer; }
+.pv-check input { width: 20px; height: 20px; accent-color: var(--accent); cursor: pointer; }
+.pv-step.done .pv-step-body p { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--border); }
+.pv-progress { font-size: 13px; color: var(--muted); }
+.pv-timer { font: inherit; font-size: 12.5px; font-weight: 600; border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: 99px; padding: 2px 10px; cursor: pointer; }
+.pv-timer:hover { background: var(--accent-weak); }
+.pv-timer.running { background: var(--accent); color: var(--accent-text); }
+.pv-timer.finished { background: var(--warn-bg); color: var(--warn-text); border-color: var(--warn-border); animation: pv-flash 1s ease-in-out 4; }
+@keyframes pv-flash { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .pv-timer.finished { animation: none; } }
+.pv-notes { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; }
+.pv-bench-nav { display: none; }
+.protocol.bench > :not(.pv-proc):not(.pv-title) { display: none; }
+.protocol.bench .pv-proc .panel-head { display: none; }
+.protocol.bench .pv-bench-nav { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; position: sticky; top: 56px; z-index: 5; background: var(--surface); padding: 10px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+.protocol.bench .pv-bench-pos { flex: 1; text-align: center; font-weight: 650; }
+.protocol.bench li.pv-step:not(.current), .protocol.bench li.pv-step-stage { display: none; }
+.protocol.bench li.pv-step.current { font-size: clamp(19px, 2.6vw, 26px); line-height: 1.45; padding: 18px 0; }
+.protocol.bench li.pv-step.current .pv-check input { width: 28px; height: 28px; }
+.protocol.bench li.pv-step.current .pv-timer { font-size: 18px; padding: 6px 16px; }
+@media print { .pv-check, .pv-timer { display: none !important; } .pv-step.done .pv-step-body p { text-decoration: none; color: inherit; } }
+ol.pv-steps > li.pv-step.done::before { content: "✓"; background: var(--accent); color: var(--accent-text); }

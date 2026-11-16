@@ -2,6 +2,26 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
+## [0.11.0] - 2026-11-16
+
+### Added
+- **Search everything** from the header (Ctrl+K or /): calculators, workspaces, synthesis protocols, materials, references and further reading, grouped by kind and keyboard navigable. Accents are ignored (Stober finds Stöber), words of three letters or fewer match whole words (TEM no longer finds "temperature"), and common abbreviations match their spelled-out forms (TEM, UV-vis, QD, Au, SiO₂ …). Reference results open the reference list filtered to that work.
+- **Projects** (`#/projects`): keep a design, the protocols used with their batch sizes, and measurements together. "Add to project" on every calculator result and protocol, "Save to project" in the designer, values measured elsewhere typed in by hand. The project page compares predicted with measured (core, inorganic and hydrodynamic diameter, λ_max, particle concentration, ligands per particle) and says what each method sees, lists the measurements the protocols recommend with the calculators filled in from the design, and exports a Markdown lab report or a project file (import on another computer).
+- Designer → protocol links carry the batch volume; protocol → calculator links open with values from your design (or the protocol's material) filled in.
+- **Phones:** an Inputs / Results switch on calculator and designer pages, and a bar with the main result while you edit.
+- **Designer:** layer cards fold to a one-line summary; named saved designs; compare with a saved design (spectrum overlaid, key numbers side by side); **target peak**: find the core diameter or a shell thickness that puts λ_max at a chosen wavelength (scan and bisection, with the steps shown).
+- **Protocols at the bench:** tick steps as you go (remembered), timers for steps with a stated time, bench mode (one step at a time in large type, screen kept on where the browser allows), notes per protocol, and a combined reagent list for a whole build route.
+- **Calculators:** optional inputs folded under "More inputs"; click a result's unit to switch (nm/Å/pm/µm, M…pM, g…ag, mol…nmol, eV/meV, K/°C), remembered per result; uploaded data files with header lines or extra columns open a preview to choose the columns.
+- Each calculator says how it was checked: cross-checked against reference software (miepython, SciPy, NumPy, pyGAPS) or by the automated tests, with a note where a model is only qualitative (free-electron Drude presets).
+- "Report a problem with this page" opens a prefilled GitHub issue (page and version only, never your inputs).
+- `CITATION.cff` (GitHub's "Cite this repository") and `.zenodo.json`, ready for a DOI once Zenodo is switched on.
+- Browser tests (Playwright) on Chromium, Firefox and WebKit in CI, with screenshots in light and dark mode kept as artifacts.
+
+### Changed
+- The deployed site loads one script and one stylesheet bundle (`tools/build.js`) instead of 38 files; the repository still runs unbuilt.
+- Sidebar: technique groups fold, with the current one open; the header no longer repeats the sidebar's links.
+- Home page about half as long: the three jobs, your projects and recent work first; common tasks folded.
+
 ## [0.10.1] - 2026-11-16
 
 ### Added

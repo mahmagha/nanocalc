@@ -5,3 +5,6 @@ Thumbs.db
 .claude/settings.local.json
 .venv/
 __pycache__/
+_site/
+playwright-report/
+test-results/

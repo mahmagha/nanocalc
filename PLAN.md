@@ -273,3 +273,60 @@ Rules as before: every equation, constant and procedure is cited; nothing is inc
 - Browser: all 58 calculators load their examples in the new workspace with no errors (313 sliders, 39 interactive plots); a slider frame recalculates in 12–31 ms (Mie) and the full update after release in about 56 ms; designer and protocol pages have no horizontal overflow at 375 px; a shared designer link restores a three-layer design
 - Corrections during integration: Li et al. 2003 is a CdS (not ZnS) shell, so Dabbousi et al. 1997 was added for ZnS; seven library entries duplicated new protocol citations and now link to them; designer links stored nested designs as "[object Object]" (now JSON); a long equation result widened the page (now capped)
 - Not covered: optical constants for Fe₃O₄, CdSe and ZnS are not built in (no certain source), so those layers need user n, k for a spectrum; the Drude models for Au and Ag are qualitative; visual look and dark mode of the designer were checked only through the DOM
+
+# Plan 5: findable, connected, usable at the bench (2026-11-16)
+
+From the site review after v0.10.1. **Status:** done (2026-11-16), except where noted. Rules as before: every number cited, every step shown, nothing presented as checked that was not.
+
+## A. Search and navigation [`js/search.js`, `js/app.js`, `css/styles.css`]
+- ☑ One search over everything: calculators, protocols, references, further reading and materials, grouped by kind, opened with Ctrl+K or /, keyboard navigable
+- ☑ Whole-word and prefix matching (TEM no longer matches "temperature"), accents ignored (Stober = Stöber), common synonyms (TEM, UV-vis, BET, DLS, XRD, QD …)
+- ☑ Sidebar: technique groups collapse, the current one opens; header no longer repeats the sidebar
+- ☑ Shorter home page: the three jobs, your projects and recent work; the rest folded
+
+## B. Projects: one particle from design to measurement [`js/projects.js`, `js/app.js`]
+- ☑ A project holds a design, the protocols used with their batch size, and measurements from calculators; stored in the browser, exported and imported as a file
+- ☑ Designer → protocol links carry the batch volume; protocol → calculator links fill in the values the protocol expects
+- ☑ "Add to project" on calculator results; the project page shows predicted (designer) against measured values side by side and exports one Markdown lab report
+
+## C. Phones [`js/app.js`, `css/styles.css`]
+- ☑ Sticky bar with the main result while you edit inputs; Inputs / Results switch on narrow screens so the answer is one tap away
+
+## D. Particle designer [`js/designer-view.js`, `js/designer.js`]
+- ☑ Layer cards collapse to a one-line summary
+- ☑ Named saved designs (list, load, rename, delete) and compare two designs (spectra overlaid, key numbers side by side)
+- ☑ Target peak: find the core diameter or a shell thickness that puts λ_max at a chosen wavelength (bisection on the multilayer Mie peak, steps shown)
+
+## E. Protocols at the bench [`js/protocols-view.js`, `css/protocols.css`]
+- ☑ Step checklist that is remembered, timers for steps with a stated time, bench mode (large type, one step at a time, screen kept awake where supported)
+- ☑ Notes field per protocol run; combined reagent list for a whole build route
+
+## F. Calculator pages [`js/app.js`]
+- ☑ Optional and advanced inputs folded under "More inputs"
+- ☑ Unit switch on results with a length or concentration unit
+- ☑ CSV/text upload preview: choose the x and y columns and skip header rows before the data go into the box
+
+## G. Speed, feedback, citation [`.github/workflows/pages.yml`, `tools/`, `CITATION.cff`]
+- ☑ Deployed site loads one bundle instead of 38 files (sources unchanged; built in the Pages workflow). Not minified: fetching esbuild was not allowed here, and an untested minifier was not put in the deploy; Pages serves the bundle gzip-compressed (308 kB)
+- ☑ "Report a problem with this page" link (prefilled GitHub issue with the page and version; no data sent anywhere else)
+- ☑ CITATION.cff so GitHub offers "Cite this repository"; .zenodo.json ready for a DOI once Zenodo is switched on for the repository
+- ☑ Each calculator states how it was checked (cross-checked against reference software, checked against published worked examples, or qualitative model)
+
+## H. Automated browser tests [`tests/e2e/`, `.github/workflows/ci.yml`]
+- ☑ Playwright in CI on Chromium, Firefox and WebKit (Safari's engine) against the built site: every calculator loads its example without errors, sliders stay in range, no horizontal overflow at 375 px, search, designer, protocol, project flow; screenshots of light and dark pages kept as CI artifacts
+
+## Plan 5 verification record (2026-11-16)
+
+- `node tests/run-tests.js`: 6454 passed, 0 failed (new: search 20, projects/solver/bench 48)
+- In-page smoke test (`tests/e2e/smoke.js`) on the built site (`_site`, one bundle) in the app's Chromium browser: desktop: 58 calculators, 314 sliders, no failures, no page errors; phone width (375 px): home, designer, protocols, projects, reading, references and about with no failures or overflow; calculator pages at 375 px have no overflow and the first result is 622 px down (was 1,700–2,650 px)
+- Search: "stober" → Stöber protocol, "TEM" no longer finds melting-point depression, "transmission electron microscopy" → TEM calculators, every calculator and protocol found by its title
+- Projects: predicted vs measured matched by method (DLS → hydrodynamic, TEM → inorganic, Haiss → core, TGA → ligands); export → import round trip
+- Target peak: shell thickness 4.655 nm puts λ_max at 535.0 nm (35 spectra, 0.2 s); core 33.6 nm puts a bare Au sphere at 530.0 nm; unreachable targets give the range that can be reached
+- Home page 1,750 px (was 3,330); sidebar shows 12 links on a calculator page (was 68); designer with cards folded 1,105 px (was 2,090)
+- Not verified here: the Playwright harness itself (installing Playwright and its browsers was not possible in this session), so its first CI run on Chromium, Firefox and WebKit is its first run; screenshots are checked by eye only in Chromium (dark project page, phone calculator page)
+
+## Needs people, accounts or data (not in this plan)
+- Expert review, comparison with vendor software, testing with screen-reader users
+- Minting the DOI (needs the owner to switch on Zenodo for the repository)
+- Usage analytics (a privacy decision for the owner)
+- Optical constants for Fe₃O₄, CdSe and ZnS (need a tabulated, citable source); non-spherical particles in the designer (Mie theory covers spheres; rods are in the Gans calculator)

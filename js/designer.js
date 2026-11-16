@@ -927,7 +927,83 @@
     if (Ntot === null) warnings.push('Set a batch volume and a mass or particle concentration to get layer, precursor and ligand amounts.');
   }
 
+  /* ------------------------------------------------------------------ */
+  /* Inverse design: find a size that puts the extinction peak at a target */
+  /* ------------------------------------------------------------------ */
+  /** Extinction peak λ_max (nm) of a design, or null when it has no spectrum or the peak is at the range edge. */
+  function peakLambda(design) {
+    const geo = geometry(design);
+    const lams = lambdaGrid(design.lambda);
+    const sp = spectrum(geo, design, lams);
+    if (sp.missing) NC.fail('Every layer needs optical constants to compute a spectrum (missing: ' + sp.missing.join(', ') + ').');
+    const pk = NC.optics.peakOf(lams, sp.qe);
+    return pk.edge ? null : pk.x;
+  }
+  /**
+   * Find the core diameter (param 'core') or the thickness of shell i (param 'shell:i') that puts the
+   * extinction peak at `target` nm. Scans 32 log-spaced values over the range, takes the bracket
+   * (a change of sign of λ_max − target) nearest the current value, then bisects in log space until
+   * λ_max is within 0.05 nm of the target. The peak need not be monotonic in size; only the bracket
+   * found is searched. Returns { value, lam, evaluations, grid: [[size, λ_max]], steps }.
+   */
+  function solvePeak(design, target, param) {
+    target = NC.need(Number(target), 'Target wavelength', { positive: true });
+    const d = JSON.parse(JSON.stringify(design));
+    const lr = d.lambda || {};
+    if (!(target > lr.min && target < lr.max)) NC.fail('The target ' + target + ' nm is outside the wavelength range (' + lr.min + '–' + lr.max + ' nm). Widen the range first.');
+    let get, set, label, lo, hi;
+    if (param === 'core') {
+      get = function () { return Number(d.core.D); }; set = function (x) { d.core.D = x; };
+      label = 'core diameter D'; lo = 1; hi = 500;
+    } else {
+      const i = Number(String(param).split(':')[1]);
+      if (!d.shells || !d.shells[i]) NC.fail('There is no shell ' + (i + 1) + ' in this design.');
+      get = function () { return Number(d.shells[i].t); }; set = function (x) { d.shells[i].t = x; };
+      label = 'thickness of shell ' + (i + 1); lo = 0.2; hi = 200;
+    }
+    const x0 = get();
+    let evals = 0;
+    const lamAt = function (x) { set(x); evals++; try { return peakLambda(d); } catch (e) { if (/optical constants/.test(e.message)) throw e; return null; } };
+    const N = 32, grid = [];
+    for (let k = 0; k < N; k++) { const x = lo * Math.pow(hi / lo, k / (N - 1)); grid.push([x, lamAt(x)]); }
+    const brackets = [];
+    for (let k = 0; k + 1 < N; k++) {
+      const a = grid[k], b = grid[k + 1];
+      if (a[1] !== null && b[1] !== null && (a[1] - target) * (b[1] - target) <= 0) brackets.push([a, b]);
+    }
+    const valid = grid.filter(function (g) { return g[1] !== null; }).map(function (g) { return g[1]; });
+    if (!brackets.length) {
+      NC.fail('No ' + label + ' between ' + lo + ' and ' + hi + ' nm puts the extinction peak at ' + target + ' nm' +
+        (valid.length ? ' (the peak moves between ' + fmt(Math.min.apply(null, valid)) + ' and ' + fmt(Math.max.apply(null, valid)) + ' nm over that range).' : '.') + ' Change another layer, the medium or the materials.');
+    }
+    const lx = function (x) { return Math.log(x); };
+    brackets.sort(function (p, q) {
+      const dp = Math.min(Math.abs(lx(p[0][0]) - lx(x0 || 1)), Math.abs(lx(p[1][0]) - lx(x0 || 1)));
+      const dq = Math.min(Math.abs(lx(q[0][0]) - lx(x0 || 1)), Math.abs(lx(q[1][0]) - lx(x0 || 1)));
+      return dp - dq;
+    });
+    let a = brackets[0][0], b = brackets[0][1], m = null;
+    for (let it = 0; it < 40; it++) {
+      const xm = Math.sqrt(a[0] * b[0]);
+      const lm = lamAt(xm);
+      if (lm === null) break;
+      m = [xm, lm];
+      if (Math.abs(lm - target) < 0.05 || b[0] / a[0] < 1 + 1e-6) break;
+      if ((a[1] - target) * (lm - target) <= 0) b = m; else a = m;
+    }
+    if (!m) m = Math.abs(a[1] - target) < Math.abs(b[1] - target) ? a : b;
+    const value = Number(m[0].toPrecision(4));
+    const steps = [
+      { title: 'Scan the ' + label, formula: 'λ_max(x) for ' + N + ' values of x from ' + lo + ' to ' + hi + ' nm (log spaced)', result: brackets.length + ' range' + (brackets.length > 1 ? 's' : '') + ' where λ_max crosses ' + target + ' nm; the one nearest the current ' + fmt(x0) + ' nm is used' },
+      { title: 'Bisect the bracket', formula: 'x ← √(x_a·x_b) until |λ_max(x) − λ_target| < 0.05 nm', sub: 'bracket ' + fmt(brackets[0][0][0]) + '–' + fmt(brackets[0][1][0]) + ' nm (λ_max ' + fmt(brackets[0][0][1]) + '–' + fmt(brackets[0][1][1]) + ' nm)', result: label + ' = ' + fmt(value) + ' nm gives λ_max = ' + fmt(m[1]) + ' nm (' + evals + ' spectra computed)' }
+    ];
+    return { param: param, label: label, value: value, lam: m[1], evaluations: evals, grid: grid, alternatives: brackets.length - 1, steps: steps };
+  }
+  const fmt = function (x) { return NC.fmt(x, 4); };
+
   NC.designer = {
+    peakLambda: peakLambda,
+    solvePeak: solvePeak,
     compute: compute,
     defaults: defaults,
     presets: presetDesigns,

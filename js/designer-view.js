@@ -27,6 +27,10 @@
   function save(st) {
     try { if (global.localStorage) global.localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* storage unavailable */ }
   }
+  // named designs saved in this browser: [{ name, date, design }]
+  const SAVED = 'nc:designer:saved';
+  function savedList() { try { const s = global.localStorage && global.localStorage.getItem(SAVED); const a = s ? JSON.parse(s) : []; return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function setSavedList(a) { try { if (global.localStorage) global.localStorage.setItem(SAVED, JSON.stringify(a)); } catch (e) { /* storage unavailable */ } }
   function getPath(o, path) {
     return path.split('.').reduce(function (a, k) { return a === undefined || a === null ? undefined : a[k]; }, o);
   }
@@ -100,11 +104,19 @@
       (opts.heading === false ? '' : '<div class="dz-head"><h1>Layered particle designer</h1><p class="lede">Build a core with any number of shells and a ligand layer. NanoCalc works out the geometry and composition, the optical spectrum (multilayer Mie theory), the ligand amounts and a synthesis route with the precursor amounts for your batch, each with its steps and sources.</p></div>') +
       '<div class="dz-grid">' +
       '<form class="dz-editor" novalidate aria-label="Particle design"><div class="dz-toolbar"><label for="' + P + 'preset">Example design</label><select id="' + P + 'preset" data-act="preset"><option value="">Choose an example…</option>' +
-      presets.map(function (p, i) { return '<option value="' + i + '">' + esc(p.label) + '</option>'; }).join('') + '</select></div><div class="dz-stack"></div></form>' +
+      presets.map(function (p, i) { return '<option value="' + i + '">' + esc(p.label) + '</option>'; }).join('') + '</select></div>' +
+      '<div class="dz-toolbar dz-mine"><label for="' + P + 'mine">My designs</label><select id="' + P + 'mine" data-act="mine"></select>' +
+      '<button type="button" class="btn small" data-act="saveas">Save as…</button><button type="button" class="btn small" data-act="delsaved">Delete</button></div>' +
+      '<div class="dz-toolbar"><label for="' + P + 'cmp">Compare with</label><select id="' + P + 'cmp" data-act="compare"></select></div>' +
+      '<div class="dz-target"><div class="dz-target-row"><label for="' + P + 'tgt">Target peak λ_max</label><input id="' + P + 'tgt" type="number" min="1" step="any" inputmode="decimal" placeholder="nm" aria-describedby="' + P + 'tmsg">' +
+      '<label for="' + P + 'tparam" class="dz-by">by changing</label><select id="' + P + 'tparam"></select><button type="button" class="btn small" data-act="solve">Find</button></div>' +
+      '<p class="dz-tmsg" id="' + P + 'tmsg" role="status"></p></div>' +
+      '<div class="dz-stack"></div></form>' +
       '<div class="dz-out">' +
       '<div class="dz-error" role="alert" aria-live="assertive"></div>' +
       '<figure class="panel dz-fig"><figcaption>Cross-section (to scale)</figcaption><div class="dz-fig-body"></div></figure>' +
       '<div class="dz-live"></div>' +
+      '<section class="panel dz-compare" hidden aria-label="Comparison with a saved design"></section>' +
       '<section class="panel dz-route-panel" aria-labelledby="' + P + 'route-h"><h2 id="' + P + 'route-h">Synthesis route</h2><ol class="dz-route"></ol>' +
       '<p class="dz-note">Amounts are stoichiometric minima from a mass balance for the batch; published protocols use excess reagents. Follow the linked protocol and its source for the real quantities.</p></section>' +
       '<div class="dz-detail"></div>' +
@@ -115,6 +127,9 @@
     const liveEl = el.querySelector('.dz-live');
     const routeEl = el.querySelector('.dz-route');
     const detailEl = el.querySelector('.dz-detail');
+    const cmpEl = el.querySelector('.dz-compare');
+    const collapsed = {};
+    let compareWith = null, compareCache = null;
 
     /* ---------------- editor HTML ---------------- */
     const val = function (path) { const v = getPath(state, path); return v === undefined || v === null ? '' : v; };
@@ -171,12 +186,19 @@
       }
       return h;
     }
+    function matShort(k) { const m = NC.materials && NC.materials[k]; return m ? (m.label.match(/\(([^)]+)\)/) || [null, m.label])[1].split(' ').pop() : k === 'custom' ? 'custom' : k; }
+    function foldBtn(k, label) {
+      return '<button type="button" class="dz-fold" data-act="fold" data-k="' + k + '" aria-expanded="' + !collapsed[k] + '" aria-label="' + (collapsed[k] ? 'Expand ' : 'Collapse ') + esc(label) + '">' + (collapsed[k] ? '▸' : '▾') + '</button>';
+    }
     function layerCard(layer, i) {
       const isCore = i < 0;
       const p = isCore ? 'core' : 'shells.' + i;
       const n = state.shells.length;
+      const k = isCore ? 'core' : 's' + i;
       const sw = 'var(--s' + ((isCore ? 0 : i + 1) % 5) + ')';
-      let h = '<fieldset class="dz-card" data-layer="' + (isCore ? 'core' : i) + '"><legend><span class="dz-swatch" style="background:' + sw + '"></span>' + (isCore ? 'Core' : 'Shell ' + (i + 1)) + '</legend>';
+      const name = isCore ? 'Core' : 'Shell ' + (i + 1);
+      const sum = matShort(layer.material) + ' · ' + (isCore ? NC.fmt(Number(layer.D), 4) + ' nm diameter' : NC.fmt(Number(layer.t), 4) + ' nm thick');
+      let h = '<fieldset class="dz-card' + (collapsed[k] ? ' collapsed' : '') + '" data-layer="' + (isCore ? 'core' : i) + '"><legend>' + foldBtn(k, name) + '<span class="dz-swatch" style="background:' + sw + '"></span>' + name + '<span class="dz-sum">' + esc(sum) + '</span></legend>';
       if (!isCore) {
         h += '<div class="dz-card-actions">' +
           '<button type="button" class="btn small" data-act="up" data-i="' + i + '"' + (i === 0 ? ' disabled' : '') + ' aria-label="Move shell ' + (i + 1) + ' inward">↑</button>' +
@@ -192,7 +214,8 @@
     function ligandCard() {
       const lg = state.ligand;
       const L = D.ligands;
-      let h = '<fieldset class="dz-card"><legend><span class="dz-swatch dz-hatch"></span>Ligand shell</legend><div class="dz-fields">';
+      const lsum = lg && lg.key ? (L[lg.key] ? L[lg.key].label : lg.key) : 'none';
+      let h = '<fieldset class="dz-card' + (collapsed.lig ? ' collapsed' : '') + '"><legend>' + foldBtn('lig', 'ligand shell') + '<span class="dz-swatch dz-hatch"></span>Ligand shell<span class="dz-sum">' + esc(lsum) + '</span></legend><div class="dz-fields">';
       h += selField('ligand.key', 'Ligand', [['', 'None']].concat(Object.keys(L).map(function (k) { return [k, L[k].label]; })), { rebuild: 'ligand', wide: true });
       if (lg && lg.key) {
         h += selField('ligand.mode', 'Surface coverage given as', [['density', 'Grafting density (molecules/nm²)'], ['footprint', 'Footprint (nm² per molecule)']], { wide: true });
@@ -207,7 +230,8 @@
     }
     function envCard() {
       const concMode = state.batch.particleConc !== undefined && state.batch.particleConc !== null && state.batch.particleConc !== '' && (state.batch.massConc === undefined || state.batch.massConc === null || state.batch.massConc === '') ? 'particle' : 'mass';
-      let h = '<fieldset class="dz-card"><legend>Medium, batch and spectrum</legend><div class="dz-fields">';
+      const esum = 'n = ' + state.medium.n + ' · ' + state.batch.volumeMl + ' mL · ' + state.lambda.min + '–' + state.lambda.max + ' nm';
+      let h = '<fieldset class="dz-card' + (collapsed.env ? ' collapsed' : '') + '"><legend>' + foldBtn('env', 'medium, batch and spectrum') + 'Medium, batch and spectrum<span class="dz-sum">' + esc(esum) + '</span></legend><div class="dz-fields">';
       h += '<div class="field wide dz-size"><label for="' + pid('medium.n') + '">Refractive index of the medium</label><div class="dz-sizerow"><input type="range" id="' + pid('medium.n') + '-r" min="0" max="' + SLIDER + '" step="1" value="' + toPos(Number(val('medium.n')), 1, 1.8, false) + '" data-path="medium.n" data-range="1,1.8,0" aria-label="Medium refractive index slider"><input type="number" id="' + pid('medium.n') + '"' + limitAttrs(limitsFor('medium.n')) + ' data-path="medium.n" value="' + esc(val('medium.n')) + '"></div><span class="help">Water ≈ 1.333 in the visible.</span>' + msgEl('medium.n') + '</div>';
       h += numField('batch.volumeMl', 'Batch volume', 'mL');
       h += '<div class="field"><label for="' + P + 'cmode">Concentration given as</label><select id="' + P + 'cmode" data-act="cmode"><option value="mass"' + (concMode === 'mass' ? ' selected' : '') + '>Mass (µg/mL)</option><option value="particle"' + (concMode === 'particle' ? ' selected' : '') + '>Particles per mL</option></select></div>';
@@ -221,6 +245,18 @@
         '<ol class="dz-shells" aria-label="Shells, from the core outward">' + state.shells.map(function (s, i) { return '<li>' + layerCard(s, i) + '</li>'; }).join('') + '</ol>' +
         '<button type="button" class="btn dz-add" data-act="add"' + (state.shells.length >= MAX_SHELLS ? ' disabled title="At most ' + MAX_SHELLS + ' shells"' : '') + '>+ Add shell</button>' + ligandCard() + envCard();
       if (active) { const a = document.getElementById(active); if (a) a.focus(); }
+      const tp = el.querySelector('#' + P + 'tparam'), cur = tp.value;
+      tp.innerHTML = '<option value="core">core diameter</option>' + state.shells.map(function (s, i) { return '<option value="shell:' + i + '">shell ' + (i + 1) + ' thickness (' + esc(matShort(s.material)) + ')</option>'; }).join('');
+      if (cur && tp.querySelector('option[value="' + cur + '"]')) tp.value = cur; else if (state.shells.length) tp.value = 'shell:' + (state.shells.length - 1);
+    }
+    function renderSaved() {
+      const list = savedList();
+      const opts = list.map(function (s, i) { return '<option value="' + i + '">' + esc(s.name) + '</option>'; }).join('');
+      el.querySelector('#' + P + 'mine').innerHTML = '<option value="">' + (list.length ? 'Load a saved design…' : 'None saved yet') + '</option>' + opts;
+      const c = el.querySelector('#' + P + 'cmp');
+      const curName = compareWith ? compareWith.name : '';
+      c.innerHTML = '<option value="">' + (list.length ? 'Nothing' : 'Save a design to compare') + '</option>' + opts;
+      if (curName) { const j = list.findIndex(function (s) { return s.name === curName; }); c.value = j >= 0 ? String(j) : ''; if (j < 0) compareWith = null; }
     }
 
     /* ---------------- events ---------------- */
@@ -329,6 +365,20 @@
         const sel = el.querySelector('[data-act="preset"]'); if (sel) sel.value = '';
         return;
       }
+      if (act === 'mine') {
+        const list = savedList(), j = Number(t.value);
+        if (t.value === '' || !list[j]) return;
+        state = normalize(list[j].design);
+        rebuild(); schedule(false);
+        return;
+      }
+      if (act === 'compare') {
+        const list = savedList(), j = Number(t.value);
+        compareWith = t.value === '' || !list[j] ? null : list[j];
+        compareCache = null;
+        schedule(false);
+        return;
+      }
       if (act === 'cmode') {
         const b = state.batch;
         if (t.value === 'particle') { b.particleConc = b.particleConc || null; delete b.massConc; }
@@ -346,6 +396,39 @@
       const act = b.getAttribute('data-act'), i = Number(b.getAttribute('data-i'));
       const sh = state.shells;
       let focusSel = null;
+      if (act === 'fold') { const k = b.getAttribute('data-k'); collapsed[k] = !collapsed[k]; rebuild(); const fb = el.querySelector('[data-act="fold"][data-k="' + k + '"]'); if (fb) fb.focus(); return; }
+      if (act === 'saveas') {
+        const list = savedList();
+        const name = global.prompt ? global.prompt('Name for this design', NC.projects ? NC.projects.designSummary(state) : 'My design') : null;
+        if (!name || !name.trim()) return;
+        const j = list.findIndex(function (s) { return s.name === name.trim(); });
+        const rec = { name: name.trim(), date: new Date().toISOString(), design: clone(state) };
+        if (j >= 0) list[j] = rec; else list.unshift(rec);
+        setSavedList(list.slice(0, 100)); renderSaved();
+        return;
+      }
+      if (act === 'delsaved') {
+        const sel = el.querySelector('#' + P + 'mine'), list = savedList(), j = Number(sel.value);
+        if (sel.value === '' || !list[j]) { if (global.alert) global.alert('Choose a saved design in the list first.'); return; }
+        if (global.confirm && !global.confirm('Delete the saved design “' + list[j].name + '”?')) return;
+        list.splice(j, 1); setSavedList(list); renderSaved(); schedule(false);
+        return;
+      }
+      if (act === 'solve') {
+        const msg = el.querySelector('#' + P + 'tmsg');
+        const tgt = Number(el.querySelector('#' + P + 'tgt').value), param = el.querySelector('#' + P + 'tparam').value;
+        msg.className = 'dz-tmsg'; msg.textContent = 'Searching…';
+        setTimeout(function () {
+          try {
+            const r = D.solvePeak(state, tgt, param);
+            if (param === 'core') state.core.D = r.value; else state.shells[Number(param.split(':')[1])].t = r.value;
+            rebuild(); schedule(false);
+            msg.textContent = r.label.charAt(0).toUpperCase() + r.label.slice(1) + ' set to ' + NC.fmt(r.value, 4) + ' nm, which puts λ_max at ' + NC.fmt(r.lam, 4) + ' nm (' + r.evaluations + ' spectra computed by bisection).' +
+              (r.alternatives ? ' Other sizes also reach this peak; this is the one nearest the previous value.' : '');
+          } catch (e) { msg.className = 'dz-tmsg err'; msg.textContent = e.message; }
+        }, 20);
+        return;
+      }
       if (act === 'add') {
         if (sh.length >= MAX_SHELLS) return;
         const last = sh.length ? sh[sh.length - 1].material : state.core.material;
@@ -371,7 +454,7 @@
     function routeHTML(route) {
       return route.map(function (r) {
         const links = r.protocols && r.protocols.length
-          ? '<ul class="dz-protos">' + r.protocols.map(function (p) { return '<li><a href="#/synthesis/' + encodeURIComponent(p.id) + '">' + esc(p.title) + '</a></li>'; }).join('') + '</ul>' : '';
+          ? '<ul class="dz-protos">' + r.protocols.map(function (p) { return '<li><a href="#/synthesis/' + encodeURIComponent(p.id) + (state.batch && state.batch.volumeMl > 0 ? '?volume=' + encodeURIComponent(state.batch.volumeMl) : '') + '">' + esc(p.title) + '</a></li>'; }).join('') + '</ul>' : '';
         return '<li class="dz-rstep dz-r-' + esc(r.role) + '"><div class="dz-rlabel">' + esc(r.label) + '</div>' +
           (r.amount ? '<div class="dz-ramount">' + esc(r.amount) + '</div>' : '') + links +
           (r.note ? '<div class="dz-rnote">' + esc(r.note.charAt(0).toUpperCase() + r.note.slice(1)) + '.</div>' : '') + '</li>';
@@ -407,6 +490,7 @@
       errEl.innerHTML = '';
       el.querySelector('.dz-out').classList.remove('dz-stale');
       lastOut = out;
+      out = withComparison(out);
       figEl.innerHTML = out.figures[0].svg;
       routeEl.innerHTML = routeHTML(out.route);
       if (typeof NC.renderOutput === 'function') {
@@ -420,7 +504,34 @@
       }
     }
 
+    /** Overlay a saved design: its extinction curve on the spectrum and its key numbers beside this design's. */
+    function withComparison(out) {
+      if (!compareWith) { cmpEl.hidden = true; cmpEl.innerHTML = ''; return out; }
+      if (!compareCache) { try { compareCache = { out: D.compute(compareWith.design) }; } catch (e) { compareCache = { error: e.message }; } }
+      const c = compareCache;
+      const KEYS = ['Outer diameter', 'Extinction peak λ_max', 'FWHM', 'Particles per mL', 'Mass per particle', 'Effective density', 'Molar extinction coefficient'];
+      const val = function (o, k) { const r = o && (o.results || []).find(function (x) { return x.label === k; }); return r ? r : null; };
+      if (c.error) { cmpEl.hidden = false; cmpEl.innerHTML = '<h2>Compared with “' + esc(compareWith.name) + '”</h2><p class="alert warn">That design cannot be computed: ' + esc(c.error) + '</p>'; return out; }
+      cmpEl.hidden = false;
+      cmpEl.innerHTML = '<h2>Compared with “' + esc(compareWith.name) + '”</h2><p class="muted">' + esc(NC.projects ? NC.projects.designSummary(compareWith.design) : '') + '</p>' +
+        '<div class="table-wrap"><table class="proj-cmp"><thead><tr><th>Quantity</th><th>This design</th><th>' + esc(compareWith.name) + '</th></tr></thead><tbody>' +
+        KEYS.map(function (k) {
+          const a = val(out, k), b = val(c.out, k);
+          if (!a && !b) return '';
+          const show = function (r) { return r ? esc(NC.fmt(r.value, r.sig || 4)) + (r.unit ? ' ' + esc(r.unit) : '') : '—'; };
+          return '<tr><th scope="row">' + esc(k) + '</th><td>' + show(a) + '</td><td>' + show(b) + '</td></tr>';
+        }).join('') + '</tbody></table></div>';
+      const o = Object.assign({}, out, { plots: (out.plots || []).map(function (p, i) {
+        const cp = (c.out.plots || [])[i];
+        if (!cp) return p;
+        const ext = cp.series[0];
+        return Object.assign({}, p, { series: p.series.concat([{ name: compareWith.name + ': ' + ext.name.toLowerCase(), mode: 'line', color: 2, dashed: true, points: ext.points }]) });
+      }) });
+      return o;
+    }
+
     rebuild();
+    renderSaved();
     update(false);
 
     return {

@@ -33,7 +33,10 @@
     const path = qi >= 0 ? full.slice(0, qi) : full;
     const query = qi >= 0 ? full.slice(qi + 1) : '';
     const m = query.match(/(?:^|&)state=([^&]*)/);
-    return { parts: path.split('/'), state: m ? m[1] : null };
+    const q = query.match(/(?:^|&)q=([^&]*)/);
+    let qv = null;
+    if (q) { try { qv = decodeURIComponent(q[1]); } catch (e) { qv = q[1]; } }
+    return { parts: path.split('/'), state: m ? m[1] : null, q: qv };
   }
   function calcLink(id, raw) {
     const enc = raw ? NC.encodeState(raw) : '';
@@ -48,45 +51,49 @@
   function groupsIn(sec) { return NC.categories.filter(function (g) { return g.section === sec; }); }
   function catOf(def) { return NC.categories.find(function (g) { return g.id === def.category; }) || { id: '', label: '', section: '' }; }
   function secOf(def) { return NC.sectionOf ? NC.sectionOf(def.category) : null; }
-  function haystack(c) {
-    const g = catOf(c);
-    return (c.title + ' ' + (c.short || '') + ' ' + c.description + ' ' + c.id + ' ' + g.label + ' ' + (g.aliases || '')).toLowerCase();
-  }
-  /** Every word of the query must appear (in title, description, technique name or aliases). */
-  function matches(c, q) { return q.split(/\s+/).filter(Boolean).every(function (w) { return haystack(c).indexOf(w) >= 0; }); }
   function calcCard(c) { return '<a class="card" href="#/calc/' + c.id + '"><b>' + esc(c.title) + '</b><span>' + esc(c.short || '') + '</span></a>'; }
 
-  function buildNav(query) {
-    const q = (query || '').trim().toLowerCase();
+  const NAV_GROUP_KEY = 'nc:nav-groups';
+  function buildNav() {
     const h = parseHash().parts;
     const cur = h[0] === 'calc' ? NC.byId[h[1]] : null;
     const curSec = cur ? (secOf(cur) || {}).id : h[0] === 'section' ? h[1] : h[0] === 'design' ? 'design' : h[0] === 'synthesis' ? 'synthesis' : null;
     const openSet = store.get(NAV_OPEN_KEY) || {};
-    let html = '<div class="nav-top"><a href="#/" data-nav="home">Home</a><a href="#/reading" data-nav="reading">Further reading</a><a href="#/references" data-nav="references">References</a><a href="#/about" data-nav="about">About &amp; validation</a></div>';
+    const openGroups = store.get(NAV_GROUP_KEY) || {};
+    let html = '<div class="nav-top"><a href="#/" data-nav="home">Home</a><a href="#/projects" data-nav="projects">Projects</a><a href="#/reading" data-nav="reading">Further reading</a><a href="#/references" data-nav="references">References</a><a href="#/about" data-nav="about">About &amp; validation</a></div>';
     let any = false;
     NC.sections.forEach(function (sec) {
       let inner = '', count = 0;
-      const pages = (sec.pages || []).filter(function (pg) { return !q || (pg.label + ' ' + pg.blurb).toLowerCase().indexOf(q) >= 0; });
+      const pages = sec.pages || [];
       if (pages.length) {
         count += pages.length;
         inner += '<div class="nav-group nav-pages">' + pages.map(function (pg) { return '<a href="' + pg.href + '" data-nav="' + pg.key + '" class="nav-page">' + esc(pg.label) + '</a>'; }).join('') + '</div>';
       }
       groupsIn(sec.id).forEach(function (g) {
-        const list = calcsIn(g.id).filter(function (c) { return !q || matches(c, q); });
+        const list = calcsIn(g.id);
         if (!list.length) return;
         count += list.length;
-        inner += '<div class="nav-group"><h4>' + esc(g.label) + '</h4>' +
-          list.map(function (c) { return '<a href="#/calc/' + c.id + '" data-nav="' + c.id + '">' + esc(c.title) + '</a>'; }).join('') + '</div>';
+        // technique groups fold so a long section reads as a short list of techniques; the current one is open
+        const gOpen = (cur && cur.category === g.id) || openGroups[g.id] || groupsIn(sec.id).length === 1;
+        inner += '<details class="nav-group" data-group="' + g.id + '"' + (gOpen ? ' open' : '') + '><summary><span>' + esc(g.label) + '</span><span class="count">' + list.length + '</span></summary>' +
+          list.map(function (c) { return '<a href="#/calc/' + c.id + '" data-nav="' + c.id + '">' + esc(c.title) + '</a>'; }).join('') + '</details>';
       });
       if (!count) return;
       any = true;
-      const open = !!q || curSec === sec.id || openSet[sec.id];
+      const open = curSec === sec.id || openSet[sec.id];
       html += '<details class="nav-sec" data-sec="' + sec.id + '"' + (open ? ' open' : '') + '><summary><span>' + esc(sec.label) + '</span><span class="count">' + count + '</span></summary>' +
-        (q ? '' : '<a class="nav-overview" href="#/section/' + sec.id + '" data-nav="section:' + sec.id + '">Overview of ' + esc(sec.label.toLowerCase()) + '</a>') + inner + '</details>';
+        '<a class="nav-overview" href="#/section/' + sec.id + '" data-nav="section:' + sec.id + '">Overview of ' + esc(sec.label.toLowerCase()) + '</a>' + inner + '</details>';
     });
-    if (!any) html += '<p class="nav-empty">No calculators match “' + esc(query) + '”. Try a technique (XRD, DLS, BET) or a quantity (band gap, zeta).</p>';
     $('#sidebar').innerHTML = html;
-    if (!q) {
+    if (!any) return;
+    document.querySelectorAll('.nav-group[data-group] > summary').forEach(function (sm) {
+      sm.addEventListener('click', function () {
+        const d = sm.parentNode, s = store.get(NAV_GROUP_KEY) || {};
+        s[d.getAttribute('data-group')] = !d.open;
+        store.set(NAV_GROUP_KEY, s);
+      });
+    });
+    {
       document.querySelectorAll('.nav-sec').forEach(function (d) {
         d.querySelector('summary').addEventListener('click', function () {
           // the click happens before the toggle: store the state it is about to have
@@ -110,7 +117,7 @@
     const h = parseHash().parts;
     if (h[0] === 'calc') return h[1];
     if (h[0] === 'section') return 'section:' + h[1];
-    if (h[0] === 'references' || h[0] === 'about' || h[0] === 'reading' || h[0] === 'design' || h[0] === 'synthesis') return h[0];
+    if (h[0] === 'references' || h[0] === 'about' || h[0] === 'reading' || h[0] === 'design' || h[0] === 'synthesis' || h[0] === 'projects') return h[0];
     return 'home';
   }
   function setNav(open) {
@@ -123,23 +130,85 @@
     if (open) { const first = $('#sidebar').querySelector('a, button, input, summary'); if (first) setTimeout(function () { first.focus(); }, 0); }
   });
   // The app routes on the URL hash, so the skip link moves focus itself instead of changing the hash.
+  // Feedback: a prefilled GitHub issue naming the page and version (the page path only, never your inputs)
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest && e.target.closest('[data-feedback]');
+    if (!a) return;
+    e.preventDefault();
+    const page = location.hash.split('?')[0] || '#/';
+    const title = 'Problem on ' + (document.title.split(' · ')[0] || page);
+    const body = 'Page: ' + page + '\nNanoCalc version: ' + NC.version + '\n\nWhat happened, and what did you expect?\n\n(Use "Copy link" on a calculator if you want to share your inputs.)';
+    window.open(REPO + '/issues/new?labels=bug&title=' + encodeURIComponent(title) + '&body=' + encodeURIComponent(body), '_blank', 'noopener');
+  });
   $('.skip-link').addEventListener('click', function (e) { e.preventDefault(); main.focus(); main.scrollIntoView(); });
   $('#scrim').addEventListener('click', function () { setNav(false); });
   // Escape closes the mobile navigation and returns focus to the menu button.
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && document.body.classList.contains('nav-open')) { setNav(false); $('#menuBtn').focus(); }
   });
-  $('#search').addEventListener('input', function (e) { buildNav(e.target.value); });
-  $('#search').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      const first = $('#sidebar .nav-group a');
-      if (first) location.hash = first.getAttribute('href');
+  /* ---------------- site-wide search (js/search.js) ---------------- */
+  /** Results grouped by kind as HTML; each hit is an option link. */
+  function searchHTML(query, idPrefix) {
+    const res = NC.search ? NC.search.query(query) : [];
+    if (!res.length) return { html: '<p class="search-empty">Nothing matches “' + esc(query) + '”. Try a technique (XRD, DLS, BET, TEM), a material (gold, silica) or a quantity (band gap, zeta).</p>', n: 0 };
+    let i = 0;
+    const html = NC.search.group(res).map(function (g) {
+      return '<div class="search-group" role="group" aria-label="' + esc(g.label) + '"><div class="search-kind">' + esc(g.label) + '</div>' + g.items.map(function (r) {
+        return '<a class="search-hit" role="option" id="' + idPrefix + (i++) + '" href="' + esc(r.href) + '"><b>' + esc(r.title) + '</b>' + (r.sub ? '<span>' + esc(r.sub) + '</span>' : '') + '</a>';
+      }).join('') + '</div>';
+    }).join('');
+    return { html: html, n: i };
+  }
+  /** Wire an input to a results box: ↑/↓ move, Enter opens, Escape closes. */
+  function attachSearch(input, panel, idPrefix, opts) {
+    opts = opts || {};
+    let active = -1, n = 0;
+    const setActive = function (k) {
+      const hits = panel.querySelectorAll('.search-hit');
+      hits.forEach(function (h, j) { h.classList.toggle('active', j === k); h.setAttribute('aria-selected', String(j === k)); });
+      active = k;
+      if (hits[k]) { input.setAttribute('aria-activedescendant', hits[k].id); hits[k].scrollIntoView({ block: 'nearest' }); } else input.removeAttribute('aria-activedescendant');
+    };
+    const close = function () { if (!opts.inline) { panel.hidden = true; input.setAttribute('aria-expanded', 'false'); } };
+    const update = function () {
+      const q = input.value.trim();
+      if (!q) { panel.innerHTML = ''; close(); n = 0; return; }
+      const r = searchHTML(q, idPrefix);
+      panel.innerHTML = r.html; n = r.n;
+      panel.hidden = false; input.setAttribute('aria-expanded', 'true');
+      setActive(n ? 0 : -1);
+    };
+    input.addEventListener('input', update);
+    input.addEventListener('focus', function () { if (input.value.trim()) update(); });
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown' && n) { e.preventDefault(); setActive((active + 1) % n); }
+      else if (e.key === 'ArrowUp' && n) { e.preventDefault(); setActive((active - 1 + n) % n); }
+      else if (e.key === 'Enter') {
+        const hit = panel.querySelectorAll('.search-hit')[active];
+        if (hit) { e.preventDefault(); location.hash = hit.getAttribute('href'); close(); if (!opts.inline) { input.value = ''; input.blur(); } }
+      } else if (e.key === 'Escape') { e.stopPropagation(); if (input.value) { input.value = ''; update(); } else input.blur(); close(); }
+    });
+    panel.addEventListener('mousedown', function (e) { if (e.target.closest('.search-hit')) e.preventDefault(); }); // keep focus until the click lands
+    panel.addEventListener('click', function (e) { if (e.target.closest('.search-hit')) { close(); if (!opts.inline) { input.value = ''; input.blur(); } } });
+    if (!opts.inline) {
+      input.addEventListener('blur', function () { setTimeout(close, 120); });
+    }
+    return { update: update };
+  }
+  attachSearch($('#search'), $('#searchPanel'), 'sr-');
+  // Ctrl+K (⌘K) or "/" focuses the search box from anywhere except while typing in a field
+  document.addEventListener('keydown', function (e) {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target && e.target.tagName) || '') || (e.target && e.target.isContentEditable);
+    if (((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) || (e.key === '/' && !typing)) {
+      e.preventDefault();
+      const s = $('#search');
+      s.focus(); s.select();
     }
   });
 
   let routed = false;
   function route() {
-    main.classList.remove('wide');
+    main.classList.remove('wide', 'ws-view-results');
     if (designer && designer.destroy) { designer.destroy(); designer = null; }
     setNav(false);
     const h = parseHash();
@@ -148,14 +217,15 @@
     let scrollTarget = null;
     if (p[0] === 'calc' && NC.byId[p[1]]) renderCalc(NC.byId[p[1]], h.state ? NC.decodeState(h.state) : null);
     else if (p[0] === 'section' && NC.sections.some(function (s) { return s.id === p[1]; })) scrollTarget = renderSection(p[1], p[2]);
-    else if (p[0] === 'references') renderReferences();
+    else if (p[0] === 'references') renderReferences(h.q);
+    else if (p[0] === 'projects') renderProjects(p[1] ? decodeURIComponent(p[1]) : null);
     else if (p[0] === 'about') renderAbout();
     else if (p[0] === 'reading') scrollTarget = renderReading(p[1]);
     else if (p[0] === 'design') renderDesigner(h.state ? decodeDesign(h.state) : null);
-    else if (p[0] === 'synthesis') renderSynthesis(p[1] ? decodeURIComponent(p[1]) : null);
+    else if (p[0] === 'synthesis') renderSynthesis(p[1] ? decodeURIComponent(p[1]) : null, h);
     else if (p[0] === '' || p[0] === undefined) renderHome();
     else renderNotFound(p.join('/'));
-    buildNav($('#search').value);
+    buildNav();
     if (scrollTarget) scrollTarget.scrollIntoView(); else window.scrollTo(0, 0);
     // Move focus to the new page for screen readers, but not on first load, so Tab starts at the skip link.
     if (routed) main.focus({ preventScroll: true });
@@ -193,6 +263,7 @@
   function footer() {
     return '<footer class="site-foot"><span>NanoCalc v' + esc(NC.version) + '</span><span>MIT licence</span>' +
       '<a href="#/about">About &amp; validation</a><a href="' + REPO + '" target="_blank" rel="noopener">Source on GitHub</a>' +
+      '<a href="#" data-feedback>Report a problem with this page</a>' +
       '<span class="foot-note">Tested and cross-checked against SciPy and miepython; not yet reviewed by a domain expert. Check results against the cited sources before publishing.</span></footer>';
   }
 
@@ -200,8 +271,8 @@
     document.title = 'NanoCalc · nanomaterials calculations, step by step';
     let html = '<section class="hero"><h1>Design, make and characterise nanomaterials</h1>' +
       '<p>Design a particle layer by layer, follow a published synthesis scaled to your batch, and analyse your measurements with ' + NC.calculators.length + ' calculators. Every result shows its working step by step and cites its sources.</p>' +
-      '<div class="home-search"><input id="homeSearch" type="search" placeholder="What are you calculating? e.g. crystallite size, band gap, zeta, BET, gold…" aria-label="Search calculators" autocomplete="off"></div>' +
-      '<div id="homeResults" aria-live="polite"></div></section>';
+      '<div class="home-search"><input id="homeSearch" type="search" placeholder="What do you need? e.g. crystallite size, Stöber silica, band gap, zeta, gold…" aria-label="Search the site" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="homeResults" aria-autocomplete="list"></div>' +
+      '<div id="homeResults" class="search-inline" role="listbox" aria-label="Search results"></div></section>';
 
     html += '<section class="home-block"><div class="jobs">' + NC.sections.filter(function (s) { return s.id !== 'tools'; }).map(function (s, i) {
       const pg = (s.pages || [])[0];
@@ -211,20 +282,14 @@
         '<ul>' + groups.slice(0, 6).map(function (g) { return '<li><a href="#/section/' + s.id + '/' + g.id + '">' + esc(g.label) + '</a></li>'; }).join('') + '</ul></div>';
     }).join('') + '</div></section>';
 
-    html += '<section class="home-block"><h2>Common tasks</h2><div class="tasks">' +
-      NC.tasks.filter(function (t) { return t.href || NC.byId[t.calc]; }).map(function (t) {
-        return '<a class="task" href="' + (t.href || '#/calc/' + t.calc) + '"><b>' + esc(t.text) + '</b><span>' + esc(t.where || catOf(NC.byId[t.calc]).label) + '</span></a>';
-      }).join('') + '</div></section>';
-
-    html += '<section class="home-block"><h2>Browse by section</h2><div class="sections">' +
-      NC.sections.map(function (s) {
-        const groups = groupsIn(s.id);
-        const n = groups.reduce(function (k, g) { return k + calcsIn(g.id).length; }, 0);
-        return '<div class="sec-card"><a class="sec-title" href="#/section/' + s.id + '"><b>' + esc(s.label) + '</b><span class="count">' + n + '</span></a>' +
-          '<p>' + esc(s.blurb) + '</p><ul>' + groups.map(function (g) {
-            return '<li><a href="#/section/' + s.id + '/' + g.id + '">' + esc(g.label) + '</a> <span class="muted">' + calcsIn(g.id).length + '</span></li>';
-          }).join('') + '</ul></div>';
-      }).join('') + '</div></section>';
+    // your own work first: projects and recent calculations
+    const projects = NC.projects ? NC.projects.list().slice(0, 4) : [];
+    if (projects.length) {
+      html += '<section class="home-block"><div class="hist-head"><h2>Your projects</h2><a class="btn small" href="#/projects">All projects</a></div><div class="tasks">' +
+        projects.map(function (p) {
+          return '<a class="task" href="#/projects/' + encodeURIComponent(p.id) + '"><b>' + esc(p.name) + '</b><span>' + esc(NC.projects.summary(p)) + '</span></a>';
+        }).join('') + '</div></section>';
+    }
 
     const hist = getHistory().filter(function (e) { return NC.byId[e.id]; }).slice(0, 6);
     if (hist.length) {
@@ -234,25 +299,16 @@
         }).join('') + '</ul></section>';
     }
 
-    html += '<section class="home-block"><div class="pillars">' +
-      '<div class="pillar"><b>Transparent</b><span>Each step shows the formula, the substituted values and the intermediate result.</span></div>' +
-      '<div class="pillar"><b>Cited</b><span>Inline citation numbers link to the full reference list, with DOIs where they exist.</span></div>' +
-      '<div class="pillar"><b>With uncertainties</b><span>Add ± to any input to propagate it (Monte Carlo, GUM Supplement 1). Export to Markdown or PDF; share runs as links.</span></div></div></section>';
+    html += '<details class="home-block home-more"><summary>Common tasks</summary><div class="tasks">' +
+      NC.tasks.filter(function (t) { return t.href || NC.byId[t.calc]; }).map(function (t) {
+        return '<a class="task" href="' + (t.href || '#/calc/' + t.calc) + '"><b>' + esc(t.text) + '</b><span>' + esc(t.where || catOf(NC.byId[t.calc]).label) + '</span></a>';
+      }).join('') + '</div></details>';
+
+    html += '<p class="home-pillars"><b>Transparent:</b> every step shows the formula, the numbers and the result. <b>Cited:</b> every equation and constant links to its source. ' +
+      '<b>With uncertainties:</b> add ± to any input to propagate it (Monte Carlo, GUM Supplement 1).</p>';
     main.innerHTML = html + footer();
 
-    const hs = $('#homeSearch'), out = $('#homeResults');
-    hs.addEventListener('input', function () {
-      const q = hs.value.trim().toLowerCase();
-      if (!q) { out.innerHTML = ''; return; }
-      const hits = NC.calculators.filter(function (c) { return matches(c, q); });
-      out.innerHTML = hits.length
-        ? '<p class="muted">' + hits.length + ' match' + (hits.length > 1 ? 'es' : '') + '</p><div class="cards">' + hits.slice(0, 12).map(calcCard).join('') + '</div>'
-        : '<p class="muted">No calculator matches “' + esc(hs.value) + '”. Try a technique (XRD, DLS, BET, TEM) or a quantity (band gap, zeta, surface area).</p>';
-    });
-    hs.addEventListener('keydown', function (e) {
-      const first = out.querySelector('.card');
-      if (e.key === 'Enter' && first) location.hash = first.getAttribute('href');
-    });
+    attachSearch($('#homeSearch'), $('#homeResults'), 'hr-', { inline: true });
     if ($('#clearHist')) $('#clearHist').addEventListener('click', function () { store.del(HISTORY_KEY); renderHome(); });
   }
 
@@ -287,6 +343,8 @@
     main.classList.add('wide');
     main.innerHTML = '<header class="calc-head">' + crumbs('design') + '<h1>Particle designer</h1>' +
       '<p class="lede">Build a spherical particle layer by layer: a core, any number of shells and a ligand shell. Every output updates as you drag, shows its working and cites its sources, and the build plan links to the synthesis protocols.</p></header>' +
+      '<div class="design-actions"><button class="btn primary" id="saveDesignProj" type="button">Save to project</button><a class="btn" href="#/projects">Projects</a></div>' +
+      '<div class="ws-switch" role="group" aria-label="Show"><button type="button" data-view="inputs" aria-pressed="true">Design</button><button type="button" data-view="results" aria-pressed="false">Results</button></div>' +
       '<div id="designer"></div>' + footer();
     const el = $('#designer');
     if (!NC.designerView) { el.innerHTML = '<p class="alert err">The designer did not load.</p>'; return; }
@@ -298,8 +356,17 @@
         try { history.replaceState(null, '', location.href.split('#')[0] + '#/design?state=' + encodeURIComponent(JSON.stringify(state))); } catch (e) { /* ignore */ }
       }
     });
+    main.querySelectorAll('.ws-switch button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        const v = b.getAttribute('data-view');
+        main.classList.toggle('ws-view-results', v === 'results');
+        main.querySelectorAll('.ws-switch button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        window.scrollTo(0, Math.min(window.scrollY, main.querySelector('.ws-switch').offsetTop - 60));
+      });
+    });
+    $('#saveDesignProj').addEventListener('click', function () { addToProject(function (p) { NC.projects.setDesign(p.id, designer.getState()); }); });
   }
-  function renderSynthesis(id) {
+  function renderSynthesis(id, h) {
     const p = id && NC.protocolById ? NC.protocolById[id] : null;
     document.title = (p ? p.title : 'Synthesis protocols') + ' · NanoCalc';
     main.innerHTML = '<header class="calc-head">' + crumbs('synthesis') + (p ? '' : '<h1>Synthesis protocols</h1><p class="lede">Published procedures for nanoparticle cores, shells and surface chemistry, transcribed from the original papers and scaled to your batch. Check each one against its source and do a risk assessment before lab work.</p>') + '</header>' +
@@ -307,9 +374,166 @@
     const el = $('#protocols');
     if (!NC.protocolsView) { el.innerHTML = '<p class="alert err">The protocol library did not load.</p>'; return; }
     if (id && !p) { el.innerHTML = '<p class="alert warn">No protocol called “' + esc(id) + '”. <a href="#/synthesis">See all protocols</a>.</p>'; return; }
-    if (p) NC.protocolsView.renderProtocol(el, id, {});
-    else NC.protocolsView.renderIndex(el);
+    if (!p) { NC.protocolsView.renderIndex(el); return; }
+    const vm = location.hash.match(/[?&]volume=([0-9.eE+-]+)/);
+    const vol = vm ? Number(vm[1]) : NaN;
+    NC.protocolsView.renderProtocol(el, id, isFinite(vol) && vol > 0 ? { volume: vol } : {});
+    // characterisation links: fill in the calculator from the active project's design (or the protocol's material)
+    const proj = NC.projects ? NC.projects.active() : null;
+    const coreMat = ((p.makes || []).find(function (m) { return m.role === 'core'; }) || {}).material;
+    el.querySelectorAll('a[href^="#/calc/"]').forEach(function (a) {
+      const cid = a.getAttribute('href').slice(7).split('?')[0];
+      const pre = NC.projects ? NC.projects.prefill(cid, proj && proj.design, coreMat) : null;
+      if (pre && Object.keys(pre).length) { a.setAttribute('href', calcLink(cid, pre)); a.title = 'Opens with values from ' + (proj && proj.design ? 'your design' : 'this protocol') + ' filled in'; }
+    });
+    const bar = document.createElement('div');
+    bar.className = 'design-actions';
+    bar.innerHTML = '<button class="btn primary" type="button" id="protoProj">Add to project</button>' + (proj ? '<span class="muted">Active project: <a href="#/projects/' + encodeURIComponent(proj.id) + '">' + esc(proj.name) + '</a></span>' : '');
+    el.parentNode.insertBefore(bar, el);
+    $('#protoProj').addEventListener('click', function () {
+      const volIn = el.querySelector('#pv-vol');
+      const v = volIn ? Number(volIn.value) : (isFinite(vol) ? vol : p.baseVolume);
+      addToProject(function (pr) { NC.projects.addProtocol(pr.id, id, v > 0 ? v : p.baseVolume); });
+    });
   }
+
+  /* ---------------- projects (js/projects.js) ---------------- */
+  function renderProjects(id) {
+    const P = NC.projects;
+    if (!P) { main.innerHTML = '<p class="alert err">Projects did not load.</p>'; return; }
+    if (id) return renderProject(id);
+    document.title = 'Projects · NanoCalc';
+    const list = P.list(), act = P.active();
+    main.innerHTML = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>Projects</h1>' +
+      '<p class="lede">A project keeps one particle together: its design, the synthesis protocols you used and your measurements, with the predicted and measured values side by side. Projects are stored in this browser only; export them to keep a copy or move them to another computer.</p></header>' +
+      '<section class="panel"><div class="proj-new"><input id="projName" type="text" maxlength="80" placeholder="Name, e.g. Au@SiO₂ batch 3" aria-label="New project name">' +
+      '<button class="btn primary" id="projCreate" type="button">New project</button>' +
+      '<button class="btn" id="projImport" type="button">Import a project file</button><input type="file" id="projFile" accept=".json,application/json" hidden></div>' +
+      (list.length ? '<ul class="proj-list">' + list.map(function (p) {
+        return '<li><a href="#/projects/' + encodeURIComponent(p.id) + '"><b>' + esc(p.name) + '</b>' + (act && act.id === p.id ? ' <span class="badge">active</span>' : '') +
+          '<span>' + esc(P.summary(p)) + '</span></a><time datetime="' + esc(p.updated) + '">' + esc(relTime(p.updated)) + '</time></li>';
+      }).join('') + '</ul>' : '<p class="muted">No projects yet. Create one here, or press <b>Add to project</b> on any calculator result, <b>Save to project</b> in the particle designer, or <b>Add to project</b> on a synthesis protocol.</p>') +
+      '</section>' + footer();
+    const create = function () { const p = P.create($('#projName').value); location.hash = '#/projects/' + encodeURIComponent(p.id); };
+    $('#projCreate').addEventListener('click', create);
+    $('#projName').addEventListener('keydown', function (e) { if (e.key === 'Enter') create(); });
+    $('#projImport').addEventListener('click', function () { $('#projFile').click(); });
+    $('#projFile').addEventListener('change', function () {
+      const file = $('#projFile').files[0];
+      if (!file) return;
+      const rd = new FileReader();
+      rd.onload = function () {
+        try { const p = P.importJSON(String(rd.result)); toast('Imported “' + p.name + '”'); location.hash = '#/projects/' + encodeURIComponent(p.id); }
+        catch (e) { toast(e.message); }
+      };
+      rd.readAsText(file);
+    });
+  }
+  function renderProject(id) {
+    const P = NC.projects;
+    const p = P.get(id);
+    if (!p) { main.innerHTML = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a><span aria-hidden="true">›</span><a href="#/projects">Projects</a></nav><h1>Project not found</h1><p class="lede">It may have been deleted, or it was made in another browser. <a href="#/projects">See your projects</a>.</p></header>' + footer(); return; }
+    document.title = p.name + ' · NanoCalc';
+    const act = P.active();
+    const isActive = act && act.id === p.id;
+    const cmp = P.compare(p);
+    const f = function (x, s) { return NC.fmt(x, s || 4); };
+    const designHref = p.design ? '#/design?state=' + encodeURIComponent(JSON.stringify(p.design)) : '#/design';
+    const volume = p.design && p.design.batch && p.design.batch.volumeMl;
+    let html = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a><span aria-hidden="true">›</span><a href="#/projects">Projects</a></nav>' +
+      '<h1 class="proj-title"><span id="projTitle">' + esc(p.name) + '</span> <button class="btn small" id="projRename" type="button">Rename</button></h1>' +
+      '<p class="lede">' + (isActive ? 'This is the <b>active project</b>: results you add from calculators, the designer and protocols go here.' : 'Not the active project. <button class="btn small" id="projActivate" type="button">Make it active</button>') + '</p>' +
+      '<div class="proj-steps"><span class="' + (p.design ? 'done' : '') + '">1 Design</span><span class="' + (p.protocols.length ? 'done' : '') + '">2 Make</span><span class="' + (p.measurements.length ? 'done' : '') + '">3 Characterise</span></div></header>';
+    // 1. design
+    html += '<section class="panel"><div class="panel-head"><h2>1 · Design</h2><div class="actions"><a class="btn" href="' + esc(designHref) + '">' + (p.design ? 'Open in the designer' : 'Design a particle') + '</a></div></div>' +
+      (p.design ? '<p class="proj-design">' + esc(P.designSummary(p.design)) + '</p>' + (cmp.error ? '<p class="alert warn">The design cannot be computed: ' + esc(cmp.error) + '</p>' : '')
+        : '<p class="muted">No design yet. Open the designer and press <b>Save to project</b>.</p>') + '</section>';
+    // 2. synthesis
+    let route = [];
+    if (p.design && NC.designer) { try { route = NC.designer.compute(p.design).route || []; } catch (e) { route = []; } }
+    const suggested = [];
+    route.forEach(function (r) { (r.protocols || []).slice(0, 1).forEach(function (pp) { if (!p.protocols.some(function (x) { return x.id === pp.id; }) && suggested.indexOf(pp.id) < 0) suggested.push(pp.id); }); });
+    html += '<section class="panel"><div class="panel-head"><h2>2 · Make</h2><div class="actions">' + (p.protocols.length || suggested.length ? '<button class="btn" id="projShop" type="button">Combined reagent list</button>' : '') + '<a class="btn" href="#/synthesis">All protocols</a></div></div>' +
+      (p.protocols.length ? '<ul class="proj-protos">' + p.protocols.map(function (r) {
+        const pp = NC.protocolById && NC.protocolById[r.id];
+        return '<li><a href="#/synthesis/' + encodeURIComponent(r.id) + '?volume=' + encodeURIComponent(r.volumeMl || '') + '">' + esc(pp ? pp.title : r.id) + '</a> <span class="muted">' + (r.volumeMl ? f(r.volumeMl) + ' mL batch · ' : '') + esc(relTime(r.date)) + '</span></li>';
+      }).join('') + '</ul>' : '<p class="muted">No protocols added yet.</p>') +
+      (suggested.length ? '<p class="proj-suggest">Suggested by the design’s build route: ' + suggested.map(function (sid) {
+        const pp = NC.protocolById[sid];
+        return '<a href="#/synthesis/' + encodeURIComponent(sid) + (volume ? '?volume=' + encodeURIComponent(volume) : '') + '">' + esc(pp ? pp.title : sid) + '</a>';
+      }).join(' · ') + '</p>' : '') + '<div id="projShopOut"></div></section>';
+    // 3. characterise: predicted vs measured
+    const Q = P.QUANTITIES;
+    html += '<section class="panel"><div class="panel-head"><h2>3 · Characterise: predicted and measured</h2></div>';
+    if (cmp.rows.length) {
+      html += '<div class="table-wrap"><table class="proj-cmp"><thead><tr><th>Quantity</th><th>Predicted</th><th>Measured</th><th>Method</th><th>Difference</th></tr></thead><tbody>' +
+        cmp.rows.map(function (r) {
+          const u = r.unit ? ' ' + r.unit : '';
+          const pred = r.predicted !== null ? f(r.predicted) + u : '—';
+          const note = r.note ? '<div class="muted small">' + esc(r.note) + '</div>' : '';
+          if (!r.measured.length) return '<tr><th scope="row">' + esc(r.label) + '</th><td>' + pred + note + '</td><td class="muted">not measured</td><td></td><td></td></tr>';
+          return r.measured.map(function (m, i) {
+            const dev = m.deviation !== null ? (m.deviation >= 0 ? '+' : '−') + NC.fix(Math.abs(m.deviation) * 100, 1) + ' %' : '';
+            const cls = m.deviation === null ? '' : Math.abs(m.deviation) <= 0.1 ? 'ok' : Math.abs(m.deviation) <= 0.3 ? 'warn' : 'bad';
+            return '<tr>' + (i ? '<td></td><td></td>' : '<th scope="row">' + esc(r.label) + '</th><td>' + pred + note + '</td>') + '<td>' + f(m.value) + u + '</td><td>' + esc(m.how) + '</td><td class="dev ' + cls + '">' + dev + '</td></tr>';
+          }).join('');
+        }).join('') + '</tbody></table></div><p class="muted small">Differences within 10 % are shown in green, 10–30 % in amber and larger in red. Different methods see different sizes (TEM the inorganic particle, DLS the particle with its ligands and solvation layer), so compare like with like.</p>';
+    } else html += '<p class="muted">Nothing to compare yet: add a design and measurements.</p>';
+    // suggested measurements: calculators the protocols recommend, filled in from the design
+    const calcs = [];
+    p.protocols.forEach(function (r) { const pp = NC.protocolById && NC.protocolById[r.id]; (pp && pp.characterise || []).forEach(function (c) { if (NC.byId[c.calc] && !calcs.some(function (x) { return x.calc === c.calc; })) calcs.push(c); }); });
+    if (calcs.length) {
+      html += '<h3>Measure it</h3><ul class="proj-measure">' + calcs.map(function (c) {
+        return '<li><a href="' + esc(calcLink(c.calc, P.prefill(c.calc, p.design))) + '">' + esc(NC.byId[c.calc].title) + '</a> <span class="muted">' + esc(c.what) + '</span></li>';
+      }).join('') + '</ul>';
+    }
+    html += '<h3>Measurements</h3>' + (p.measurements.length ? '<ul class="proj-meas">' + p.measurements.map(function (m) {
+      const head = m.results.filter(function (r) { return r.main; }).slice(0, 3).map(function (r) { return esc(r.label) + ' ' + f(r.value, r.sig) + (r.unit ? ' ' + esc(r.unit) : ''); }).join(' · ');
+      const open = m.calc && NC.byId[m.calc] ? '<a href="' + esc(calcLink(m.calc, m.raw)) + '">' + esc(m.title) + '</a>' : '<b>' + esc(m.title) + '</b>';
+      return '<li>' + open + (m.label ? ' <span class="muted">(' + esc(m.label) + ')</span>' : '') + '<span class="proj-res">' + head + '</span><time>' + esc(relTime(m.date)) + '</time>' +
+        '<button class="btn small" type="button" data-del-m="' + esc(m.id) + '" aria-label="Remove this measurement">Remove</button></li>';
+    }).join('') + '</ul>' : '<p class="muted">None yet. Press <b>Add to project</b> under a calculator result, or enter a value measured elsewhere:</p>') +
+      '<form class="proj-manual" id="projManual" onsubmit="return false"><label>Value measured elsewhere <select id="pmQ">' +
+      Object.keys(Q).map(function (k) { return '<option value="' + k + '">' + esc(Q[k].label) + (Q[k].unit ? ' (' + esc(Q[k].unit) + ')' : '') + '</option>'; }).join('') + '</select></label>' +
+      '<input id="pmV" type="text" inputmode="decimal" placeholder="value" aria-label="Measured value"><input id="pmN" type="text" maxlength="60" placeholder="instrument or note (optional)" aria-label="Note">' +
+      '<button class="btn" id="pmAdd" type="button">Add</button></form></section>';
+    // notes and export
+    html += '<section class="panel"><h2>Notes</h2><textarea id="projNotes" rows="5" placeholder="What you did differently, observations, batch numbers… (saved as you type)">' + esc(p.notes || '') + '</textarea></section>' +
+      '<section class="panel"><div class="actions"><button class="btn" id="projMd" type="button">Download report (.md)</button><button class="btn" id="projJson" type="button">Export project file</button>' +
+      '<button class="btn" id="projDelete" type="button">Delete project</button></div></section>' + footer();
+    main.innerHTML = html;
+
+    $('#projRename').addEventListener('click', function () {
+      const n = window.prompt('Project name', p.name);
+      if (n && n.trim()) { P.rename(p.id, n); renderProject(p.id); }
+    });
+    if ($('#projActivate')) $('#projActivate').addEventListener('click', function () { P.setActive(p.id); renderProject(p.id); });
+    main.querySelectorAll('[data-del-m]').forEach(function (b) { b.addEventListener('click', function () { P.removeMeasurement(p.id, b.getAttribute('data-del-m')); renderProject(p.id); }); });
+    $('#pmAdd').addEventListener('click', function () {
+      const x = NC.parseUnitDetailed ? NC.parseUnitDetailed($('#pmV').value, Q[$('#pmQ').value].unit).value : Number($('#pmV').value);
+      try { P.addManual(p.id, $('#pmQ').value, x, $('#pmN').value.trim()); renderProject(p.id); } catch (e) { toast(e.message); }
+    });
+    let nt = null;
+    $('#projNotes').addEventListener('input', function (e) { clearTimeout(nt); const t = e.target.value; nt = setTimeout(function () { P.setNotes(p.id, t); }, 400); });
+    $('#projMd').addEventListener('click', function () { download(slug(p.name) + '-report.md', P.toMarkdown(P.get(p.id)), 'text/markdown'); });
+    $('#projJson').addEventListener('click', function () { download(slug(p.name) + '.nanocalc.json', P.exportJSON(P.get(p.id)), 'application/json'); });
+    $('#projDelete').addEventListener('click', function () {
+      if (window.confirm('Delete “' + p.name + '” from this browser? This cannot be undone (export it first to keep a copy).')) { P.remove(p.id); location.hash = '#/projects'; }
+    });
+    if ($('#projShop')) $('#projShop').addEventListener('click', function () {
+      const ids = p.protocols.map(function (r) { return { id: r.id, volumeMl: r.volumeMl }; }).concat(suggested.map(function (sid) { return { id: sid, volumeMl: volume }; }));
+      $('#projShopOut').innerHTML = NC.protocolsView && NC.protocolsView.shoppingList ? NC.protocolsView.shoppingList(ids) : '';
+    });
+  }
+  function slug(s) { return String(s).toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project'; }
+  /** Save a result to the active project (making one if there is none) and say where it went. */
+  function addToProject(fn) {
+    if (!NC.projects) return;
+    const p = NC.projects.activeOrNew();
+    fn(p);
+    toastLink('Added to “' + p.name + '”', '#/projects/' + encodeURIComponent(p.id), 'Open project');
+  }
+  NC.addToProject = addToProject;
 
   /* ---------------- about ---------------- */
   function renderAbout() {
@@ -320,7 +544,7 @@
       '<section class="panel prose"><h2>What it is</h2><p>NanoCalc is a free, open-source web app with ' + NC.calculators.length + ' calculators for nanomaterials work, citing ' + Object.keys(NC.refs).length + ' sources. ' +
       'Each calculation shows its working step by step, with every equation, constant and empirical coefficient cited. It runs entirely in your browser: nothing you enter is sent anywhere. Once loaded it works offline and can be installed as an app.</p></section>' +
       '<section class="panel prose"><h2>How results are checked</h2><ul>' +
-      '<li><b>About 2,800 automated checks</b> compare every calculator with values worked out by hand, from textbooks, or from synthetic data with a known answer. Every formula is also tested to make sure it typesets.</li>' +
+      '<li><b>About 6,400 automated checks</b> compare every calculator with values worked out by hand, from textbooks, or from synthetic data with a known answer. Every formula is also tested to make sure it typesets. Browser tests run the deployed site in Chromium, Firefox and WebKit.</li>' +
       '<li><b>Cross-validation against established software:</b> Mie theory against miepython; quadrature, smoothing, curve fitting, regression, statistics and constants against SciPy and NumPy. Agreement is to 10⁻⁶ or better. ' + doc('docs/VALIDATION.md', 'Validation report') + '.</li>' +
       '<li><b>Not yet reviewed by a domain expert.</b> A sign-off checklist of every formula, value and reference is ready (' + doc('docs/REVIEW.md', 'REVIEW.md') + ', ' + doc('docs/EXPERT-REVIEW-GUIDE.md', 'reviewer guide') + '). Until it is signed off, check important results against the cited sources.</li></ul></section>' +
       '<section class="panel prose"><h2>Data policy</h2><p>Literature data is built in only when its source is certain, for example CODATA constants, CRC densities and IUPAC atomic weights; see the <a href="#/calc/materials">material database</a>. ' +
@@ -394,7 +618,7 @@
   }
 
   /* ---------------- references page ---------------- */
-  function renderReferences() {
+  function renderReferences(initialQuery) {
     document.title = 'References · NanoCalc';
     const used = {};
     NC.calculators.forEach(function (c) {
@@ -420,6 +644,7 @@
       });
       $('#refCount').textContent = words.length ? shown + ' of ' + ids.length + ' sources' : ids.length + ' sources';
     });
+    if (initialQuery) { $('#refFilter').value = initialQuery; $('#refFilter').dispatchEvent(new Event('input')); }
     $('#bibBtn').addEventListener('click', function () {
       download('nanocalc-references.bib', ids.map(function (id) { return NC.toBibTeX(NC.refs[id]); }).join('\n\n') + '\n', 'application/x-bibtex');
     });
@@ -568,6 +793,62 @@
     return '<div class="field' + (inp.type === 'textarea' || inp.wide || inp.full ? ' wide' : '') + '" data-field="' + inp.id + '">' + label + control + extra + help + '</div>';
   }
 
+  /** How the calculator was checked: cross-checked against reference software, or by the automated tests. */
+  function checkedHTML(def) {
+    const v = (NC.validation || {})[def.id];
+    const link = '<a href="' + REPO + '/blob/main/docs/VALIDATION.md" target="_blank" rel="noopener">How results are checked</a>';
+    return '<p class="checked">' + (v
+      ? '<span class="chk ref">Cross-checked</span> against ' + esc(v.by) + '. Also covered by the automated tests. ' + link + '.'
+      : '<span class="chk">Tested</span> by automated checks against hand-worked values and published examples; not yet compared with independent software. ' + link + '.') +
+      (v && v.caution ? '<br><span class="chk warn">Model limit</span> ' + esc(v.caution) : '') + '</p>';
+  }
+  /** Optional inputs (marked so in their label or help) go under "More inputs". */
+  function isOptional(inp) { return inp.type !== 'textarea' && (inp.advanced === true || /\(optional|override/i.test(inp.label) || /^(optional|leave blank)/i.test(inp.help || '')); }
+  /* ---- data upload preview: choose columns and skip header lines before the data go into the box ---- */
+  function splitRow(line) {
+    const t = line.trim();
+    if (!t) return [];
+    if (t.indexOf('\t') >= 0) return t.split('\t');
+    if (t.indexOf(';') >= 0) return t.split(';');
+    if (t.indexOf(',') >= 0) return t.split(',');
+    return t.split(/\s+/);
+  }
+  const isNum = function (s) { return /^\s*[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?\s*$/.test(s); };
+  /** Show a preview when the file has header lines or more than two columns; returns false when it can go straight in. */
+  function previewTable(ta, text, name, done) {
+    const lines = text.split(/\r?\n/).filter(function (l) { return l.trim() !== ''; });
+    const rows = lines.map(splitRow);
+    let skip = 0;
+    while (skip < rows.length && !rows[skip].every(isNum)) skip++;
+    const data = rows.slice(skip).filter(function (r) { return r.length && r.every(isNum); });
+    if (!data.length) return false;
+    const ncol = Math.max.apply(null, data.map(function (r) { return r.length; }));
+    if (skip === 0 && ncol <= 2) return false;
+    const head = skip > 0 && rows[skip - 1].length === ncol ? rows[skip - 1] : null;
+    const box = document.createElement('div');
+    box.className = 'upload-preview';
+    const colName = function (j) { return head ? head[j].trim() : 'Column ' + (j + 1); };
+    box.innerHTML = '<p><b>' + esc(name) + '</b>: ' + data.length + ' data rows, ' + ncol + ' column' + (ncol > 1 ? 's' : '') + (skip ? ', ' + skip + ' header line' + (skip > 1 ? 's' : '') + ' skipped' : '') + '. Choose the columns to use, in order:</p>' +
+      '<div class="up-cols">' + Array.from({ length: ncol }, function (_, j) { return '<label><input type="checkbox" value="' + j + '"' + (j < 2 ? ' checked' : '') + '> ' + esc(colName(j)) + '</label>'; }).join('') + '</div>' +
+      '<div class="table-wrap"><table class="data"><thead><tr>' + Array.from({ length: ncol }, function (_, j) { return '<th>' + esc(colName(j)) + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      data.slice(0, 6).map(function (r) { return '<tr>' + Array.from({ length: ncol }, function (_, j) { return '<td>' + esc(r[j] || '') + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="actions"><button class="btn primary" type="button" data-up="use">Use these columns</button><button class="btn" type="button" data-up="all">Use the file as it is</button><button class="btn" type="button" data-up="cancel">Cancel</button></div>';
+    const old = ta.parentNode.querySelector('.upload-preview');
+    if (old) old.remove();
+    ta.parentNode.insertBefore(box, ta.nextSibling);
+    box.addEventListener('click', function (e) {
+      const a = e.target.getAttribute && e.target.getAttribute('data-up');
+      if (!a) return;
+      if (a === 'use') {
+        const cols = Array.prototype.map.call(box.querySelectorAll('.up-cols input:checked'), function (c) { return Number(c.value); });
+        if (!cols.length) { toast('Choose at least one column.'); return; }
+        done(data.map(function (r) { return cols.map(function (j) { return (r[j] || '').trim(); }).join(', '); }).join('\n'));
+      } else if (a === 'all') done(text);
+      box.remove();
+    });
+    box.querySelector('[data-up="use"]').focus();
+    return true;
+  }
   function renderCalc(def, urlState) {
     document.title = def.title + ' · NanoCalc';
     const LIM = NC.inputLimits(def);
@@ -593,14 +874,18 @@
       '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a><span aria-hidden="true">›</span>' +
       '<a href="#/section/' + sec.id + '">' + esc(sec.label) + '</a><span aria-hidden="true">›</span>' +
       '<a href="#/section/' + sec.id + '/' + cat.id + '">' + esc(cat.label) + '</a></nav>' +
-      '<h1>' + esc(def.title) + '</h1><p class="lede">' + esc(def.description) + '</p></header>' +
+      '<h1>' + esc(def.title) + '</h1><p class="lede">' + esc(def.description) + '</p>' + checkedHTML(def) + '</header>' +
+      // phones: switch between inputs and results; a bar keeps the main result in view while editing
+      '<div class="ws-switch" role="group" aria-label="Show"><button type="button" data-view="inputs" aria-pressed="true">Inputs</button><button type="button" data-view="results" aria-pressed="false">Results</button></div>' +
       '<div class="workspace"><section class="panel ws-inputs"><div class="panel-head"><h2>Inputs</h2><div class="actions">' + presets +
       (def.example ? '<button class="btn" id="exBtn" type="button">Load example</button>' : '') +
       '<button class="btn" id="resetBtn" type="button">Reset</button>' +
       '<button class="btn" id="uncBtn" type="button" aria-pressed="' + showUnc + '">± Uncertainties</button>' +
       '<button class="btn" id="linkBtn" type="button">Copy link</button></div></div>' +
       '<form class="form' + (showUnc ? ' show-unc' : '') + '" id="form" autocomplete="off" onsubmit="return false">' +
-      def.inputs.map(function (inp) { return fieldHTML(inp, raw[inp.id], raw['u_' + inp.id], LIM[inp.id]); }).join('') + '</form>' +
+      def.inputs.filter(function (inp) { return !isOptional(inp); }).map(function (inp) { return fieldHTML(inp, raw[inp.id], raw['u_' + inp.id], LIM[inp.id]); }).join('') +
+      (def.inputs.some(isOptional) ? '<details class="more-inputs"' + (def.inputs.some(function (inp) { return isOptional(inp) && String(raw[inp.id] || '').trim() !== '' && String(raw[inp.id]) !== String(inp.value === undefined || (typeof inp.value === 'number' && isNaN(inp.value)) ? '' : inp.value); }) ? ' open' : '') + '><summary>More inputs (optional)</summary><div class="more-body">' +
+        def.inputs.filter(isOptional).map(function (inp) { return fieldHTML(inp, raw[inp.id], raw['u_' + inp.id], LIM[inp.id]); }).join('') + '</div></details>' : '') + '</form>' +
       '<p class="units-note">Number fields accept units, e.g. <code>5 Å</code>, <code>0.2 µm</code>, <code>25 °C</code>.' +
       '<span class="unc-only"> The ± boxes take standard uncertainties (1σ); they are propagated by Monte Carlo. Data tables are used as entered.</span></p>' +
       (def.presetNote ? '<p class="preset-note">' + esc(def.presetNote) + '</p>' : '') +
@@ -608,9 +893,17 @@
       '<input id="saveName" type="text" placeholder="Name this run" aria-label="Name for the saved run" maxlength="80">' +
       '<button class="btn" id="saveBtn" type="button">Save run</button></div><ul id="savedList"></ul></details></section>' +
       '<div class="ws-out"><div id="calcError" hidden></div><div id="output" aria-live="polite"></div></div></div>' +
-      '<div id="detail"></div>' + related + footer();
+      '<div id="detail"></div>' + related + footer() +
+      '<button type="button" class="ws-bar" id="wsBar" aria-live="polite" hidden></button>';
 
     const form = $('#form');
+    const setView = function (v) {
+      main.classList.toggle('ws-view-results', v === 'results');
+      main.querySelectorAll('.ws-switch button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === v)); });
+      window.scrollTo(0, Math.min(window.scrollY, main.querySelector('.ws-switch').offsetTop - 60));
+    };
+    main.querySelectorAll('.ws-switch button').forEach(function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view')); }); });
+    $('#wsBar').addEventListener('click', function () { setView('results'); });
     const setValues = function (vals, clearUnc) {
       def.inputs.forEach(function (inp) {
         const el = form.elements[inp.id];
@@ -659,6 +952,7 @@
           const inp = def.inputs.find(function (i) { return i.id === id; });
           return '<li>' + esc(inp.label) + ': ' + esc(P.errors[id]) + '</li>';
         }).join('') + '</ul>');
+        updateBar(null);
         return;
       }
       const out = compute(def, P.v, unc, r, live);
@@ -722,6 +1016,7 @@
     $('#output').addEventListener('click', function (e) {
       const id = e.target && e.target.id;
       if (!lastReport) return;
+      if (id === 'projBtn' && lastSave) lastSave();
       if (id === 'copyBtn') copyText(lastReport(), 'Report copied to clipboard');
       else if (id === 'mdBtn') download('nanocalc-' + def.id + '.md', lastReport(), 'text/markdown');
       else if (id === 'printBtn') window.print();
@@ -757,7 +1052,10 @@
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) { toast('File is larger than 5 MB.'); return; }
         const reader = new FileReader();
-        reader.onload = function () { ta.value = String(reader.result); run(); toast('Loaded ' + file.name); };
+        reader.onload = function () {
+          const text = String(reader.result);
+          if (!previewTable(ta, text, file.name, function (out) { ta.value = out; run(); toast('Loaded ' + file.name); })) { ta.value = text; run(); toast('Loaded ' + file.name); }
+        };
         reader.onerror = function () { toast('Could not read ' + file.name); };
         reader.readAsText(file);
       };
@@ -835,6 +1133,41 @@
     }).join('') + '</ol>';
   }
 
+  /* ---- result unit switch: click a unit to cycle through related units (remembered per result) ---- */
+  const UNIT_FAMILIES = [
+    [['nm', 1], ['Å', 0.1], ['pm', 1e-3], ['µm', 1e3]],
+    [['M', 1], ['mM', 1e-3], ['µM', 1e-6], ['nM', 1e-9], ['pM', 1e-12]],
+    [['g', 1], ['mg', 1e-3], ['µg', 1e-6], ['ng', 1e-9], ['ag', 1e-18]],
+    [['mol', 1], ['mmol', 1e-3], ['µmol', 1e-6], ['nmol', 1e-9]],
+    [['eV', 1], ['meV', 1e-3]],
+    [['mL⁻¹', 1], ['L⁻¹', 1e-3]],
+    [['K', 'K'], ['°C', 'C']]
+  ];
+  const canonUnit = function (u) { return u === 'μM' ? 'µM' : u === 'particles/mL' ? 'mL⁻¹' : u; };
+  function unitFamily(u) { u = canonUnit(u); return UNIT_FAMILIES.find(function (f) { return f.some(function (x) { return x[0] === u; }); }) || null; }
+  /** Convert x from unit a to unit b of the same family; `diff` for a difference (no temperature offset). */
+  function convertUnit(x, a, b, diff) {
+    a = canonUnit(a); b = canonUnit(b);
+    if (a === b) return x;
+    const fam = unitFamily(a);
+    const fa = fam.find(function (u) { return u[0] === a; })[1], fb = fam.find(function (u) { return u[0] === b; })[1];
+    if (fa === 'K' || fa === 'C') { if (diff) return x; return fa === 'K' ? x - 273.15 : x + 273.15; }
+    return (x * fa) / fb;
+  }
+  NC.convertUnit = convertUnit;
+  const UNIT_PREF = 'nc:unitpref';
+  function shownUnit(key, r) {
+    if (!r.unit || typeof r.value !== 'number' || !unitFamily(r.unit)) return r.unit || '';
+    const pref = (store.get(UNIT_PREF) || {})[key + '|' + r.label];
+    return pref && unitFamily(pref) === unitFamily(r.unit) ? pref : r.unit;
+  }
+  function unitHTML(key, r, i) {
+    if (!r.unit) return '';
+    const u = shownUnit(key, r);
+    if (!unitFamily(r.unit) || typeof r.value !== 'number') return '<small>' + esc(r.unit) + '</small>';
+    return '<button type="button" class="unit-sw" data-ri="' + i + '" title="Change the unit" aria-label="Unit ' + esc(u) + ', change">' + esc(u) + '</button>';
+  }
+
   /* Collapsible section whose open/closed state is remembered per kind. */
   function foldHTML(kind, title, body, openByDefault, extraAttrs) {
     const saved = store.get('nc:fold:' + kind);
@@ -856,9 +1189,25 @@
     if (!st) {
       st = el.__nc = { ctrls: [], sig: null };
       el.innerHTML = '<div class="out-live"></div>' + (ctx.detailEl ? '' : '<div class="out-detail"></div>');
+      el.addEventListener('click', function (e) {
+        const b = e.target.closest && e.target.closest('.unit-sw');
+        if (!b || !st.out) return;
+        const i = Number(b.getAttribute('data-ri')), r = st.out.results[i];
+        const fam = unitFamily(r.unit), cur = canonUnit(shownUnit(st.key, r));
+        const k = fam.findIndex(function (u) { return u[0] === cur; });
+        const next = fam[(k + 1) % fam.length][0];
+        const prefs = store.get(UNIT_PREF) || {};
+        prefs[st.key + '|' + r.label] = next;
+        store.set(UNIT_PREF, prefs);
+        b.textContent = next; b.setAttribute('aria-label', 'Unit ' + next + ', change');
+        b.parentNode.querySelector('.num').textContent = NC.fmt(convertUnit(r.value, r.unit, next), r.sig || 4);
+        const u = b.closest('.result').querySelector('.u:not(.pending)');
+        if (u && u.getAttribute('data-u')) u.textContent = NC.fmtUnc(convertUnit(Number(u.getAttribute('data-u')), r.unit, next, true)) + ' ' + next;
+      });
     }
     const liveEl = el.querySelector('.out-live');
     const detailEl = ctx.detailEl || el.querySelector('.out-detail');
+    st.out = out; st.key = ctx.key;
     const refIds = collectRefIds(ctx.refs, out);
     if (ctx.unc) ['jcgm101', 'jcgm100'].forEach(function (id) { if (NC.refs[id] && refIds.indexOf(id) < 0) refIds.push(id); });
     const num = function (id) { return refIds.indexOf(id) + 1; };
@@ -878,8 +1227,8 @@
       ? '<div class="alert warn"><ul>' + out.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' : '';
     liveEl.querySelector('.results').innerHTML = (out.results || []).map(function (r, i) {
       const isText = typeof r.value === 'string';
-      const val = isText ? esc(r.value) : esc(NC.fmt(r.value, r.sig || 4));
-      return '<div class="result' + (r.main ? ' main' : '') + (isText ? ' text' : '') + '" data-ri="' + i + '"><div class="k">' + esc(r.label) + cite(r.ref) + '</div><div class="v">' + val + (r.unit ? '<small>' + esc(r.unit) + '</small>' : '') + '</div>' +
+      const val = isText ? esc(r.value) : esc(NC.fmt(r.unit ? convertUnit(r.value, r.unit, shownUnit(ctx.key, r)) : r.value, r.sig || 4));
+      return '<div class="result' + (r.main ? ' main' : '') + (isText ? ' text' : '') + '" data-ri="' + i + '"><div class="k">' + esc(r.label) + cite(r.ref) + '</div><div class="v"><span class="num">' + val + '</span>' + unitHTML(ctx.key, r, i) + '</div>' +
         (ctx.unc && !isText ? '<div class="u pending">±…</div>' : '') + '</div>';
     }).join('');
 
@@ -965,20 +1314,33 @@
       const msg = e instanceof NC.InputError ? '<b>Check the inputs.</b> ' : '<b>Calculation error.</b> ';
       if (!(e instanceof NC.InputError)) console.error(e);
       showError(msg + esc(e.message));
+      updateBar(null);
       return null;
     }
     hideError();
+    updateBar(out);
     const withUnc = !live && Object.keys(unc).length > 0;
     const state = { mc: null };
     const r = renderOutput(outEl, out, {
       refs: def.refs, detailEl: $('#detail'), live: live, unc: withUnc, key: def.id,
-      actions: '<button class="btn" id="copyBtn" type="button">Copy report</button><button class="btn" id="mdBtn" type="button">Download .md</button><button class="btn" id="printBtn" type="button">Print / PDF</button>'
+      actions: '<button class="btn" id="projBtn" type="button">Add to project</button><button class="btn" id="copyBtn" type="button">Copy report</button><button class="btn" id="mdBtn" type="button">Download .md</button><button class="btn" id="printBtn" type="button">Print / PDF</button>'
     });
     lastReport = function () { return markdownReport(def, v, out, r.refIds, unc, state.mc); };
+    lastSave = function () { addToProject(function (p) { NC.projects.addMeasurement(p.id, def, raw, out); }); };
     if (withUnc) runMonteCarlo(def, v, unc, out, myToken, state);
     return out;
   }
-  let lastReport = null;
+  let lastReport = null, lastSave = null;
+  /** The phone result bar: the first main numeric result, or a prompt to fix the inputs. */
+  function updateBar(out) {
+    const bar = $('#wsBar');
+    if (!bar) return;
+    if (!out) { bar.innerHTML = '<span class="k">Check the inputs</span><span class="go">Results →</span>'; bar.classList.add('err'); bar.hidden = false; return; }
+    const r = (out.results || []).find(function (x) { return x.main && typeof x.value === 'number'; }) || (out.results || []).find(function (x) { return typeof x.value === 'number'; });
+    bar.classList.remove('err');
+    bar.hidden = !r;
+    if (r) bar.innerHTML = '<span class="k">' + esc(r.label) + '</span><span class="v">' + esc(NC.fmt(r.value, r.sig || 4)) + (r.unit ? ' ' + esc(r.unit) : '') + '</span><span class="go">Results →</span>';
+  }
   function showError(html) {
     const box = $('#calcError');
     if (!box) return;
@@ -1028,7 +1390,9 @@
         if (!s || typeof r.value !== 'number' || s.u === 0) { if (card) card.remove(); return; } // counts and constants: no spread to show
         if (card) {
           card.classList.remove('pending');
-          card.textContent = NC.fmtUnc(s.u) + (r.unit ? ' ' + r.unit : '');
+          const su = r.unit ? shownUnit(def.id, r) : '';
+          card.setAttribute('data-u', String(s.u));
+          card.textContent = NC.fmtUnc(r.unit ? convertUnit(s.u, r.unit, su, true) : s.u) + (su ? ' ' + su : '');
           card.title = '95 % interval: ' + NC.fmt(s.lo, 4) + ' – ' + NC.fmt(s.hi, 4) + (r.unit ? ' ' + r.unit : '') + ' (MC mean ' + NC.fmt(s.mean, 4) + ')';
         }
         rows.push('<tr><td>' + esc(r.label) + '</td><td>' + esc(NC.fmt(r.value, r.sig || 4)) + '</td><td>' + esc(NC.fmt(s.u, 2)) + '</td><td>' + esc(s.mean !== 0 ? NC.fix((100 * s.u) / Math.abs(s.mean), 2) + ' %' : '—') + '</td><td>' + esc(NC.fmt(s.lo, 4) + ' – ' + NC.fmt(s.hi, 4)) + '</td><td>' + esc(r.unit || '') + '</td></tr>');
@@ -1133,6 +1497,16 @@
     t.textContent = msg;
     document.body.appendChild(t);
     setTimeout(function () { t.remove(); }, 2200);
+  }
+
+  function toastLink(msg, href, label) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.setAttribute('role', 'status');
+    t.innerHTML = esc(msg) + ' <a href="' + esc(href) + '">' + esc(label) + '</a>';
+    document.body.appendChild(t);
+    t.querySelector('a').addEventListener('click', function () { t.remove(); });
+    setTimeout(function () { t.remove(); }, 5000);
   }
 
   /* ---------------- offline: service worker (http/https only) ---------------- */
