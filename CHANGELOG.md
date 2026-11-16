@@ -2,6 +2,11 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
+## [0.7.1] - 2026-11-16
+
+### Fixed
+- After a deploy, returning visitors could load a mix of old and new scripts for up to 10 minutes: the service worker's network fetch used the browser's HTTP cache, and GitHub Pages allows 10 minutes of caching. On the live site this showed as v0.6.0 core files running alongside the v0.7.0 catalog, which lost the breadcrumbs. App files are now revalidated with the server on every request, and the offline cache is renamed so all clients refresh.
+
 ## [0.7.0] - 2026-11-16
 
 ### Changed

@@ -8,8 +8,15 @@
  * Fetch: network first, cache as fallback. Online users always get the current
  * files (no stale scripts after an update); offline users get the cached copy.
  * Each successful response refreshes the cache.
+ *
+ * App files are fetched with cache: 'no-cache' so the browser revalidates them with
+ * the server every time (a cheap 304 when unchanged). A plain fetch() would use the
+ * HTTP cache, and GitHub Pages lets files be cached for 10 minutes: after a deploy a
+ * visitor could then get a mix of old and new scripts (seen with v0.6.0 → v0.7.0).
+ * The vendored KaTeX files live under a versioned path and never change, so they
+ * keep normal HTTP caching.
  */
-const CACHE = 'nanocalc-v1';
+const CACHE = 'nanocalc-v2';
 const KATEX = 'vendor/katex/0.16.11/';
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-maskable.svg', 'sw.js'];
 
@@ -46,7 +53,11 @@ self.addEventListener('fetch', (event) => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      const res = await fetch(req);
+      const immutable = new URL(req.url).pathname.indexOf('/' + KATEX) >= 0;
+      // A navigation Request cannot be re-used with an init object, so refetch it by URL.
+      const res = immutable ? await fetch(req)
+        : req.mode === 'navigate' ? await fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
+          : await fetch(req, { cache: 'no-cache' });
       if (res && res.ok) cache.put(req, res.clone());
       return res;
     } catch (e) {
