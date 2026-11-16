@@ -2,7 +2,7 @@
 Generate independent reference values for NanoCalc's cross-validation.
 
 Every value here is computed with established scientific software
-(miepython, SciPy, NumPy), NOT with NanoCalc's own code. The output,
+(miepython, SciPy, NumPy, pyGAPS), NOT with NanoCalc's own code. The output,
 tests/validation/reference.json, is committed; tests/validation.test.js
 compares NanoCalc against it, so the regular test suite and CI need no Python.
 
@@ -17,6 +17,7 @@ from datetime import date
 from pathlib import Path
 
 import miepython
+import pygaps
 import numpy as np
 import scipy
 from scipy import constants as sc
@@ -114,6 +115,66 @@ ref["constants"] = {
     "h": sc.h, "hbar": sc.hbar, "e": sc.e, "me": sc.m_e, "eps0": sc.epsilon_0,
     "kB": sc.k, "NA": sc.N_A, "c": sc.c, "R": sc.R, "a0": sc.physical_constants["Bohr radius"][0],
 }
+
+# ------------------------------------------- 9. Gas sorption: BET, t-plot, BJH (pyGAPS)
+# Synthetic isotherms are built here (not by NanoCalc), then analysed by pyGAPS's
+# low-level functions with every adsorbate property passed explicitly.
+from pygaps.characterisation.area_bet import area_BET_raw
+from pygaps.characterisation.t_plots import t_plot_raw
+from pygaps.characterisation.psd_meso import psd_bjh
+from pygaps.characterisation.models_thickness import thickness_harkins_jura
+from pygaps.characterisation.models_kelvin import kelvin_radius
+
+VM_STP = 22413.97  # cm3/mol, ideal gas at 273.15 K and 101.325 kPa
+N2 = {"M": 28.0134, "rho": 0.808, "gamma": 8.85, "T": 77.35, "sigma": 0.162}
+k_liq = N2["M"] / (N2["rho"] * VM_STP)  # cm3 liquid per cm3 STP
+
+
+def halsey_exact(p):
+    # pyGAPS's built-in Halsey curve rounds the exponent 1/3 to 0.333; Halsey (1948) uses 1/3
+    return 0.354 * (-5 / np.log(p)) ** (1 / 3)
+
+
+sorp = {"adsorbate": N2}
+
+# BET: type II isotherm (Vm = 80 cm3 STP/g, C = 120) with a 0.5 % ripple, so the fit is not exact
+x = np.round(np.linspace(0.02, 0.40, 20), 4)
+V = 80 * 120 * x / ((1 - x) * (1 - x + 120 * x)) * (1 + 0.005 * np.sin(37 * x))
+area, c_const, n_m, p_m, slope, intercept, lo, hi, corr = area_BET_raw(
+    x, V / VM_STP, N2["sigma"], p_limits=(0.045, 0.305))  # loading in mol/g
+sorp["bet"] = {"x": x.tolist(), "V": V.tolist(), "xmin": float(x[lo]), "xmax": float(x[hi]),
+               "area": float(area), "C": float(c_const)}
+
+# t-plot: micropores (0.12 cm3/g, Langmuir K = 500) + 60 m2/g external area, read with two t-curves
+x = np.round(np.concatenate([np.linspace(0.005, 0.1, 8), np.linspace(0.12, 0.6, 17)]), 4)
+sorp["tplot"] = []
+for name, tf in (("hj", thickness_harkins_jura), ("halsey", halsey_exact)):
+    Vliq = 0.12 * 500 * x / (1 + 500 * x) + 60 * thickness_harkins_jura(x) * 1e-3
+    Vg = Vliq / k_liq
+    res, _ = t_plot_raw(Vg / VM_STP * 1e3, x, tf, N2["rho"], N2["M"], t_limits=(0.35, 0.5))  # mmol/g
+    sorp["tplot"].append({"curve": name, "x": x.tolist(), "V": Vg.tolist(), "tmin": 0.35, "tmax": 0.5,
+                          "area": float(res[0]["area"]), "Vmic": float(res[0]["adsorbed_volume"])})
+
+# BJH: bimodal cylindrical pores (5 nm and 12 nm) + 40 m2/g external area; both branches
+D = np.linspace(2.5, 25, 3000)
+dD = D[1] - D[0]
+dist = (0.35 * np.exp(-0.5 * ((D - 5) / 0.6) ** 2) / (0.6 * math.sqrt(2 * math.pi))
+        + 0.25 * np.exp(-0.5 * ((D - 12) / 1.5) ** 2) / (1.5 * math.sqrt(2 * math.pi))) * dD
+sorp["bjh"] = []
+for branch, men in (("des", "hemispherical"), ("ads", "cylindrical")):
+    x = np.round(np.concatenate([np.linspace(0.42, 0.90, 25), np.linspace(0.91, 0.99, 9)]), 4)
+    kel = lambda p, men=men: kelvin_radius(p, men, N2["T"], N2["rho"], N2["M"], N2["gamma"])
+    t = thickness_harkins_jura(x)
+    rc = kel(x) + t
+    Vliq = np.array([40 * ti * 1e-3 + np.sum(np.where(D / 2 <= rci, dist, dist * (1 - ((D / 2 - ti) / (D / 2)) ** 2)))
+                     for ti, rci in zip(t, rc)])
+    out = psd_bjh(Vliq, x, "cylinder", thickness_harkins_jura, kel)
+    sorp["bjh"].append({"branch": branch, "x": x.tolist(), "V": (Vliq / k_liq).tolist(),
+                        # pyGAPS returns classes from small to large pores
+                        "Vp": out["pore_volumes"].tolist(), "Ap": out["pore_areas"].tolist(),
+                        "dVdD": out["pore_distribution"].tolist(), "Dlo": out["pore_widths"].tolist()})
+ref["sorption"] = sorp
+ref["software"]["pygaps"] = pygaps.__version__
 
 OUT.write_text(json.dumps(ref, indent=1) + "\n", encoding="utf-8")
 print(f"Wrote {OUT} with {sum(len(v) if isinstance(v, list) else 1 for k, v in ref.items() if k not in ('generated', 'software'))} reference blocks")

@@ -99,6 +99,43 @@ module.exports = function (t) {
     });
   }
 
+  // 9. Gas sorption vs pyGAPS (BET, t-plot, BJH) on the same synthetic isotherms
+  if (R.sorption) {
+    const S = R.sorption, a = S.adsorbate;
+    const rowsOf = (c) => c.x.map((x, i) => [x, c.V[i]]);
+    const dataOf = (c) => rowsOf(c).map((r) => r.join(', ')).join('\n');
+    const runCalc = (id, v) => NC.byId[id].compute(v);
+    const val = (o, re) => o.results.find((r) => re.test(r.label)).value;
+
+    const b = S.bet;
+    const ob = runCalc('bet', { sigma: a.sigma, xmin: b.xmin, xmax: b.xmax, data: dataOf(b) });
+    near(val(ob, /surface area/i), b.area, 1e-6, 'BET area vs pyGAPS'); track('sorption', val(ob, /surface area/i), b.area);
+    near(val(ob, /BET constant/i), b.C, 1e-6, 'BET constant C vs pyGAPS'); track('sorption', val(ob, /BET constant/i), b.C);
+
+    S.tplot.forEach((c) => {
+      const r = NC.sorption.tplot(rowsOf(c), { curve: c.curve, tmin: c.tmin, tmax: c.tmax, M: a.M, rho: a.rho });
+      near(r.Sext, c.area, 1e-6, `t-plot external area vs pyGAPS (${c.curve})`); track('sorption', r.Sext, c.area);
+      near(r.Vmic, c.Vmic, 1e-6, `t-plot micropore volume vs pyGAPS (${c.curve})`); track('sorption', r.Vmic, c.Vmic);
+    });
+
+    S.bjh.forEach((c) => {
+      const r = NC.sorption.bjh(rowsOf(c), { curve: 'hj', gamma: a.gamma * 1e-3, T: a.T, M: a.M, rho: a.rho, fac: c.branch === 'ads' ? 1 : 2 });
+      const iv = r.iv.slice().reverse(); // pyGAPS lists classes from small to large pores
+      ok(iv.length === c.Vp.length, `BJH (${c.branch}) gives as many size classes as pyGAPS (${iv.length} vs ${c.Vp.length})`);
+      let worstV = 0;
+      iv.forEach((j, i) => {
+        const scale = Math.max(...c.Vp.map(Math.abs));
+        worstV = Math.max(worstV, Math.abs(j.Vp - c.Vp[i]) / scale);
+        near(j.A, c.Ap[i], 1e-6, `BJH (${c.branch}) area of class ${i + 1} vs pyGAPS`);
+        near(j.Dlo, c.Dlo[i], 1e-9, `BJH (${c.branch}) class ${i + 1} lower diameter vs pyGAPS`);
+        near(j.dVdD, c.dVdD[i], 1e-6, `BJH (${c.branch}) dV/dD of class ${i + 1} vs pyGAPS`);
+        track('sorption', j.Vp, c.Vp[i]);
+      });
+      ok(worstV < 1e-9, `BJH (${c.branch}) pore volume of every class vs pyGAPS (worst ${worstV.toExponential(1)} of the largest class)`);
+      near(r.Vtot, c.Vp.reduce((s, x) => s + x, 0), 1e-9, `BJH (${c.branch}) total pore volume vs pyGAPS`);
+    });
+  }
+
   t.validationSummary = { software: R.software, generated: R.generated, worstRelativeDeviation: worst };
   console.log('    reference software: ' + Object.entries(R.software).map(([k, v]) => k + ' ' + v).join(', '));
   console.log('    worst relative deviation: ' + Object.entries(worst).map(([k, v]) => k + ' ' + v.toExponential(1)).join(', '));

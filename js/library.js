@@ -138,6 +138,8 @@
     /* ---------------- Surfaces, porosity & colloidal stability ---------------- */
     { ref: 'thommes2015', topic: 'surface', kind: 'standard', use: 'Start here: IUPAC report on physisorption, BET and pore-size analysis.' },
     { id: 'sing1985', topic: 'surface', kind: 'standard', use: 'Earlier IUPAC recommendations on isotherm types and reporting.', type: 'article', authors: 'Sing, K. S. W.; Everett, D. H.; Haul, R. A. W.; Moscou, L.; Pierotti, R. A.; Rouquerol, J.; Siemieniewska, T.', title: 'Reporting physisorption data for gas/solid systems with special reference to the determination of surface area and porosity', journal: 'Pure Appl. Chem.', year: 1985, volume: '57', pages: '603–619', doi: '10.1351/pac198557040603' },
+    { ref: 'lippens1965', topic: 'surface', kind: 'primary', use: 'The original t-method: micropore volume and external area from the film thickness.' },
+    { ref: 'bjh1951', topic: 'surface', kind: 'primary', use: 'The original BJH algorithm for mesopore size distributions from nitrogen isotherms.' },
     { id: 'rouquerol2014', topic: 'surface', kind: 'book', use: 'Comprehensive book on adsorption methods and interpretation.', type: 'book', authors: 'Rouquerol, F.; Rouquerol, J.; Sing, K. S. W.; Llewellyn, P.; Maurin, G.', title: 'Adsorption by Powders and Porous Solids: Principles, Methodology and Applications', edition: '2nd ed.', publisher: 'Academic Press', place: 'Oxford', year: 2014 },
     { ref: 'lowell2004', topic: 'surface', kind: 'book', use: 'Practical surface area and porosimetry.' },
     { ref: 'delgado2005', topic: 'surface', kind: 'standard', use: 'IUPAC report on electrokinetics and zeta potential.' },
@@ -215,6 +217,7 @@
     { ref: 'codata2018', topic: 'data', kind: 'data', use: 'Physical constants used throughout NanoCalc.' },
     { ref: 'ciaaw2021', topic: 'data', kind: 'data', use: 'Standard atomic weights.' },
     { ref: 'crc', topic: 'data', kind: 'data', use: 'Densities, melting points and other bulk data.' },
+    { ref: 'iacomi2019', topic: 'data', kind: 'data', use: 'pyGAPS, the open-source sorption package against which the BET, t-plot and BJH calculators are cross-validated.' },
     { id: 'grazulis2009', topic: 'data', kind: 'data', use: 'Crystallography Open Database: free crystal structures for indexing and refinement.', type: 'article', authors: 'Gražulis, S.; Chateigner, D.; Downs, R. T.; et al.', title: 'Crystallography Open Database – an open-access collection of crystal structures', journal: 'J. Appl. Crystallogr.', year: 2009, volume: '42', pages: '726–729', doi: '10.1107/s0021889809016690' },
     { id: 'jain2013', topic: 'data', kind: 'data', use: 'Materials Project: computed structures and properties.', type: 'article', authors: 'Jain, A.; Ong, S. P.; Hautier, G.; et al.', title: 'Commentary: The Materials Project: a materials genome approach to accelerating materials innovation', journal: 'APL Mater.', year: 2013, volume: '1', pages: '011002', doi: '10.1063/1.4812323' },
     { id: 'polyanskiy2024', topic: 'data', kind: 'data', use: 'refractiveindex.info: curated optical constants (n, k), the easiest source for Mie input.', type: 'article', authors: 'Polyanskiy, M. N.', title: 'Refractiveindex.info database of optical constants', journal: 'Sci. Data', year: 2024, volume: '11', pages: '94', doi: '10.1038/s41597-023-02898-2' },

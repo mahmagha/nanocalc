@@ -112,8 +112,18 @@
     document.body.classList.toggle('nav-open', open);
     $('#menuBtn').setAttribute('aria-expanded', String(open));
   }
-  $('#menuBtn').addEventListener('click', function () { setNav(!document.body.classList.contains('nav-open')); });
+  $('#menuBtn').addEventListener('click', function () {
+    const open = !document.body.classList.contains('nav-open');
+    setNav(open);
+    if (open) { const first = $('#sidebar').querySelector('a, button, input, summary'); if (first) setTimeout(function () { first.focus(); }, 0); }
+  });
+  // The app routes on the URL hash, so the skip link moves focus itself instead of changing the hash.
+  $('.skip-link').addEventListener('click', function (e) { e.preventDefault(); main.focus(); main.scrollIntoView(); });
   $('#scrim').addEventListener('click', function () { setNav(false); });
+  // Escape closes the mobile navigation and returns focus to the menu button.
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && document.body.classList.contains('nav-open')) { setNav(false); $('#menuBtn').focus(); }
+  });
   $('#search').addEventListener('input', function (e) { buildNav(e.target.value); });
   $('#search').addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
@@ -122,6 +132,7 @@
     }
   });
 
+  let routed = false;
   function route() {
     setNav(false);
     const h = parseHash();
@@ -137,7 +148,9 @@
     else renderNotFound(p.join('/'));
     buildNav($('#search').value);
     if (scrollTarget) scrollTarget.scrollIntoView(); else window.scrollTo(0, 0);
-    main.focus({ preventScroll: true });
+    // Move focus to the new page for screen readers, but not on first load, so Tab starts at the skip link.
+    if (routed) main.focus({ preventScroll: true });
+    routed = true;
   }
 
   /* ---------------- history ---------------- */

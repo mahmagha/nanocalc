@@ -18,7 +18,7 @@ Step-by-step calculations and characterization analysis for nanomaterials. Each 
 | `make check` | lint, run the tests, then fail if `docs/REVIEW.md` is out of date (CI runs this) |
 | `make verify-refs` | verify every reference against Crossref / Open Library (needs network) |
 | `make treatise` | rebuild `docs/REFERENCE-TREATISE.md` |
-| `make validate-refs` | regenerate the SciPy/miepython reference values (needs the Python packages in `tests/validation/requirements.txt`) |
+| `make validate-refs` | regenerate the SciPy/miepython/pyGAPS reference values (needs the Python packages in `tests/validation/requirements.txt`) |
 
 Each target is a thin wrapper around the `node` commands below, so you can run those directly if `make` isn't installed.
 
@@ -32,6 +32,10 @@ node tools/serve.js
 
 Then open http://localhost:8080. When served over http(s), the app can be installed as a desktop or phone app (PWA) and keeps working offline. Opening `index.html` directly also works in most browsers.
 
+**Browsers.** NanoCalc targets browsers from the last three years: Safari/iOS 15.4+, Firefox 115+, Chrome/Edge 100+. `make lint` refuses JavaScript and CSS features newer than that. It is tested in Chromium (desktop and phone widths); Firefox and Safari have not been tested by hand yet.
+
+**Accessibility.** Keyboard-only use is supported (skip link, visible focus, Escape closes the menu); equations carry MathML for screen readers, plots have text descriptions, and results are announced when they change. Text and plot contrast meet WCAG 2.2 AA in light and dark themes, and reduced-motion settings are respected. It has not yet been tested with real screen-reader users.
+
 ## Test it
 
 ```bash
@@ -44,7 +48,7 @@ The suite (about 2,700 checks):
 - checks that every cited reference exists and every script is registered;
 - compares results with values worked out by hand, from textbooks, or from synthetic data with known answers (`tests/*.test.js`, one file per area).
 
-## Calculators (56)
+## Calculators (58)
 
 | Area | Calculators |
 |---|---|
@@ -56,7 +60,7 @@ The suite (about 2,700 checks):
 | Optical spectroscopy | Tauc band gap · Urbach energy · QD sizing (Yu 2003) · Au sizing (Haiss 2007) · Mie theory · Gans (nanorods) · Ag/Au size from the plasmon peak · relative PL quantum yield · Beer–Lambert |
 | Colloids | DLS (Stokes–Einstein) · zeta potential with Debye length · DLVO interaction energy · sedimentation & centrifugation |
 | Scattering | SAXS Guinier · SAXS Porod · nanoparticle tracking (NTA) · DLS cumulant analysis |
-| Surface area & porosity | Multipoint BET with Rouquerol checks · Kelvin / Harkins–Jura pore size |
+| Surface area & porosity | Multipoint BET with Rouquerol checks · t-plot (micropore volume, external area) · BJH pore-size distribution · Kelvin / Harkins–Jura pore size |
 | Electron microscopy | Size-distribution statistics, moment diameters, lognormal fit |
 | Raman & XPS | Graphene L_a and L_D / n_D · XPS atomic % |
 | Elemental analysis | ICP-MS/OES → particle number · single-particle ICP-MS · EDX (Cliff–Lorimer) |
@@ -76,11 +80,11 @@ The suite (about 2,700 checks):
 
 ## Validation
 
-The numerical cores (Mie theory, depolarization factors, spheroid areas, Savitzky–Golay, least squares, peak fitting, size statistics, Student t, constants) are cross-checked against **miepython, SciPy and NumPy** on every test run. Agreement is to 10⁻⁶ or better. See [docs/VALIDATION.md](docs/VALIDATION.md) for the method, the results and what is not yet validated.
+The numerical cores (Mie theory, depolarization factors, spheroid areas, Savitzky–Golay, least squares, peak fitting, size statistics, Student t, constants) are cross-checked against **miepython, SciPy and NumPy**, and the BET, t-plot and BJH analyses against **pyGAPS**, on every test run. Agreement is to 10⁻⁶ or better. See [docs/VALIDATION.md](docs/VALIDATION.md) for the method, the results and what is not yet validated.
 
 ## References
 
-[docs/REFERENCE-TREATISE.md](docs/REFERENCE-TREATISE.md) is a curated, annotated bibliography for nanomaterials: 217 works in 15 topics, including every work the calculators cite. Every article and book is verified against Crossref or Open Library (`make verify-refs`), and every standard against its issuing body. The same library appears in the app as **Further reading**.
+[docs/REFERENCE-TREATISE.md](docs/REFERENCE-TREATISE.md) is a curated, annotated bibliography for nanomaterials: 220 works in 15 topics, including every work the calculators cite. Every article and book is verified against Crossref or Open Library (`make verify-refs`), and every standard against its issuing body. The same library appears in the app as **Further reading**.
 
 ## Expert review
 

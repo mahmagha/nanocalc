@@ -28,6 +28,7 @@
       type: 'standard',
       authors: 'JCGM',
       title: 'JCGM 100:2008 Evaluation of measurement data — Guide to the expression of uncertainty in measurement (GUM)',
+      doi: '10.59161/JCGM100-2008E',
       publisher: 'Joint Committee for Guides in Metrology (BIPM)',
       place: 'Sèvres',
       year: 2008

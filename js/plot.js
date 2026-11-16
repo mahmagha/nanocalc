@@ -34,6 +34,16 @@
     return v.toFixed(Math.min(dec, 6)).replace('-', '−');
   }
 
+  /** Text alternative for screen readers: title, axes with ranges, and each series. */
+  function describe(spec, xlo, xhi, ylo, yhi) {
+    const n = function (v) { return Number(v.toPrecision(3)).toString(); };
+    const series = spec.series.map(function (s) {
+      return (s.name || 'data') + ' (' + (s.mode === 'line' ? 'line through ' + s.points.length + ' points' : s.points.length + (s.mode === 'bars' ? ' bar' : ' point') + (s.points.length === 1 ? '' : 's')) + ')';
+    }).join(', ');
+    return (spec.title || 'Plot') + '. Horizontal axis: ' + (spec.xlabel || 'x') + ', ' + n(xlo) + ' to ' + n(xhi) +
+      '. Vertical axis: ' + (spec.ylabel || 'y') + ', ' + n(ylo) + ' to ' + n(yhi) + '. Series: ' + series + '.';
+  }
+
   NC.plot = function (spec) {
     const W = 640, H = 360;
     const m = { l: 70, r: 18, t: 18, b: 52 };
@@ -122,7 +132,8 @@
       '<text class="axlabel" x="' + (m.l + pw / 2) + '" y="' + (H - 10) + '" text-anchor="middle">' + NC.esc(spec.xlabel || '') + '</text>' +
       '<text class="axlabel" transform="translate(16,' + (m.t + ph / 2) + ') rotate(-90)" text-anchor="middle">' + NC.esc(spec.ylabel || '') + '</text>';
 
-    return '<svg class="plot" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + NC.esc(spec.title || 'Plot') + '">' +
+    return '<svg class="plot" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + NC.esc(describe(spec, xlo, xhi, ylo, yhi)) + '">' +
+      '<title>' + NC.esc(spec.title || 'Plot') + '</title>' +
       '<defs><clipPath id="' + clipId + '"><rect x="' + m.l + '" y="' + m.t + '" width="' + pw + '" height="' + ph + '"/></clipPath></defs>' +
       g + '<g clip-path="url(#' + clipId + ')">' + body + '</g>' + legend + labels + '</svg>';
   };

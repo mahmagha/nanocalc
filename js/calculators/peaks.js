@@ -14,7 +14,7 @@
 
   NC.addRefs({
     savitzky1964: { type: 'article', authors: 'Savitzky, A.; Golay, M. J. E.', title: 'Smoothing and differentiation of data by simplified least squares procedures', journal: 'Anal. Chem.', year: 1964, volume: '36', pages: '1627–1639', doi: '10.1021/ac60214a047' },
-    levenberg1944: { type: 'article', authors: 'Levenberg, K.', title: 'A method for the solution of certain non-linear problems in least squares', journal: 'Q. Appl. Math.', year: 1944, volume: '2', pages: '164–168' },
+    levenberg1944: { doi: '10.1090/qam/10666', type: 'article', authors: 'Levenberg, K.', title: 'A method for the solution of certain non-linear problems in least squares', journal: 'Q. Appl. Math.', year: 1944, volume: '2', pages: '164–168' },
     marquardt1963: { type: 'article', authors: 'Marquardt, D. W.', title: 'An algorithm for least-squares estimation of nonlinear parameters', journal: 'J. Soc. Ind. Appl. Math.', year: 1963, volume: '11', pages: '431–441', doi: '10.1137/0111030' },
     shirley1972: { type: 'article', authors: 'Shirley, D. A.', title: 'High-resolution X-ray photoemission spectrum of the valence bands of gold', journal: 'Phys. Rev. B', year: 1972, volume: '5', pages: '4709–4714', doi: '10.1103/PhysRevB.5.4709' },
     lieber2003: { doi: '10.1366/000370203322554518', type: 'article', authors: 'Lieber, C. A.; Mahadevan-Jansen, A.', title: 'Automated method for subtraction of fluorescence from biological Raman spectra', journal: 'Appl. Spectrosc.', year: 2003, volume: '57', pages: '1363–1367' },

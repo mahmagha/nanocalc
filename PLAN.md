@@ -164,3 +164,58 @@ Rules for every item:
   - Shirley test now checks the method's real guarantees
   - service worker is network-first with cache fallback, so updates are never served stale
 
+
+---
+
+# Plan 3: everything I can still do without outside help (2026-11-16)
+
+What is left after v0.8.0 splits in two. This plan covers everything that can be done and checked here. The rest needs people or outside data and is listed at the end.
+
+**Status:** all items done (2026-11-16).
+
+Rules as in Plan 2: every equation and constant is cited, nothing is included unless it is certain, and every new result is tested.
+
+## A. Porosity calculators [`js/calculators/porosity.js`]
+- ☑ **t-plot** (Lippens & de Boer 1965): Harkins–Jura or Halsey t-curve, chosen t range; external surface area from the slope and micropore volume from the intercept, with every step shown
+- ☑ **BJH pore-size distribution** (Barrett, Joyner & Halenda 1951): full desorption or adsorption branch; Kelvin radius plus film thickness; the film-thinning correction for pores emptied earlier; table of size classes, dV/dD, cumulative volume, total volume and area, mode and mean diameter
+- ☑ Warnings for the known failure cases: cavitation below p/p₀ ≈ 0.42 on desorption, negative pore volumes, micropores below 2 nm, a negative t-plot intercept, a curved t-plot
+- ☑ Synthetic examples built from the models themselves, so the expected answers are known
+
+## B. Comparison with established sorption software [`tests/validation/`]
+- ☑ Add pyGAPS (Iacomi & Llewellyn 2019, open source) to the pinned validation environment
+- ☑ Cross-validate BET (area, C), t-plot (area, micropore volume) and BJH (volume and area of every size class) against pyGAPS on the same data
+- ☑ Self-consistency: BJH recovers a known pore distribution; the t-plot recovers a known external area and micropore volume
+
+## C. Accessibility [`index.html`, `css/styles.css`, `js/app.js`, `js/plot.js`]
+- ☑ Keyboard: skip link, visible focus on every control, logical tab order, no keyboard traps
+- ☑ Screen readers: landmarks, labels tied to every input, results announced when they appear, plots given a text description, equations readable (KaTeX MathML)
+- ☑ Colour contrast of text and controls checked against WCAG 2.2 AA (4.5 : 1) in light and dark themes
+- ☑ Respect reduced-motion settings
+
+## D. Cross-browser safety [`tools/lint.js`]
+- ☑ Lint check that the code avoids JavaScript and CSS features missing from current Firefox and Safari (iOS)
+- ☑ State the supported browsers in the README. Firefox and Safari are not tested here (only Chromium is available); say so
+
+## E. References [`js/references.js`, `js/uncertainty.js`]
+- ☑ Find and verify the DOI of JCGM 100:2008 (the GUM), or record that it has none
+- ☑ Verify every new reference with `make verify-refs`; rebuild the treatise
+
+## F. Integration
+- ☑ Tests, `make check`, review sheet, README, VALIDATION.md, CHANGELOG, version bump; browser check of both calculators; commit and deploy
+
+## Plan 3 verification record (2026-11-16)
+
+- `node tests/run-tests.js`: 4503 passed, 0 failed; 58 calculators, 113 references
+- pyGAPS 4.6.1 cross-validation: BET area and C, t-plot area and micropore volume, and the volume, area, diameter and dV/dD of all 66 BJH size classes agree with NanoCalc to ≤ 2.3 × 10⁻¹⁰
+- Self-consistency: the t-plot recovers 80 m²/g and 0.100 cm³/g from its synthetic isotherm; BJH finds a 7.08 nm mode for pores generated at 7 nm, and puts > 85 % of monodisperse 8 nm pores into the class containing 8 nm
+- Accessibility, checked in the browser: text contrast ≥ 4.9 : 1 (light) and ≥ 5.2 : 1 (dark); plot text and marks ≥ 4.3 : 1; every input labelled; skip link, focus ring, Escape and the mobile menu tested with the keyboard; 9 MathML equations on the Kelvin page
+- Cross-browser: only Chromium is available here, so the check is static (`make lint`). It found and fixed one `:has()` rule (Firefox < 121) and six `color-mix()` declarations without a fallback
+- References: all 113 app citations verified or classified (101 verified, 8 classic works not indexed, 4 standards); the GUM DOI 10.59161/JCGM100-2008E confirmed in Crossref
+- Corrections during the work: an expected Harkins–Jura value in a new test was wrong (5.71 Å; correct 6.46 Å at p/p₀ = 0.5), and the first t-plot example used a Langmuir constant too small for the micropores to be full, which biased the area by 3.6 %; both fixed
+
+## Still needs people or outside data (not in this plan)
+- Expert sign-off of `docs/REVIEW.md`
+- Comparison with commercial instrument software (vendor BET/BJH, XPS and EDX quantification, DLS and NTA) on real raw data
+- Checking the empirical relations (Yu 2003, Haiss 2007, Cançado, Ohshima) against the papers' own data tables
+- Measured n, k data for quantitative plasmonics
+- Testing on real Firefox and Safari, and with real screen-reader users

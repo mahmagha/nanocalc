@@ -157,6 +157,12 @@ async function runAll(list) {
   for (const [name, list] of sets) {
     console.log('Verifying ' + list.length + ' ' + name + ' references');
     const res = await runAll(list);
+    // Network hiccups: try failed requests again, one at a time, after a pause.
+    const failed = list.filter(([id]) => res[id].status === 'error');
+    if (failed.length) {
+      console.log('  retrying ' + failed.length + ' failed request(s) one at a time');
+      for (const [id, ref] of failed) { await new Promise((ok) => setTimeout(ok, 3000)); res[id] = await verify(id, ref); }
+    }
     report.sets[name] = res;
     const count = {};
     Object.values(res).forEach((r) => { count[r.status] = (count[r.status] || 0) + 1; });

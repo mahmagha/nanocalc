@@ -5,6 +5,7 @@
  *  - every local script/stylesheet/manifest referenced by index.html exists
  *  - no debugger statements or console.log left in app code (js/)
  *  - version is consistent across package.json, js/core.js (NC.version) and CHANGELOG.md
+ *  - no JavaScript or CSS features newer than the supported browsers (Safari 15.4, Firefox 115, Chrome 100)
  */
 'use strict';
 const fs = require('fs');
@@ -46,6 +47,37 @@ for (const f of files.filter((p) => rel(p).startsWith('js/'))) {
   });
 }
 
+// 5. browser compatibility: the app targets browsers from the last three years
+//    (Safari/iOS 15.4+, Firefox 115 ESR+, Chrome/Edge 100+). Newer features are refused;
+//    in CSS, color-mix() is allowed when the same rule gives a plain value first ("fill: x; fill: color-mix(...)").
+const JS_NEWER = [
+  [/\(\?<[=!]/, 'regex lookbehind (Safari 16.4)'],
+  [/\b(Object|Map)\.groupBy\b/, 'Object.groupBy (Safari 17.4, Firefox 119)'],
+  [/\bPromise\.withResolvers\b/, 'Promise.withResolvers (Safari 17.4, Firefox 121)'],
+  [/\.(union|intersection|symmetricDifference|isSubsetOf|isSupersetOf|isDisjointFrom)\(/, 'Set methods (Safari 17, Firefox 127)'],
+  [/\bArray\.fromAsync\b|\bIterator\.from\b/, 'iterator helpers (Safari 18.4, Firefox 131)'],
+  [/\bstructuredClone\b.*\btransfer\b/, 'structuredClone transfer']
+];
+const CSS_NEWER = [
+  [/:has\(/, ':has() (Firefox 121)'],
+  [/^\s*&/, 'CSS nesting (Safari 16.5, Firefox 117)'],
+  [/@container|container-type/, 'container queries (Safari 16, Firefox 110)'],
+  [/@scope|anchor-name|position-anchor/, 'CSS from 2024 or later']
+];
+for (const f of files.filter((p) => rel(p).startsWith('js/'))) {
+  fs.readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+    if (/^\s*(\/\/|\*|\/\*)/.test(line)) return;
+    JS_NEWER.forEach(([re, what]) => { if (re.test(line)) problems.push(rel(f) + ':' + (i + 1) + ': ' + what + ' is newer than the supported browsers'); });
+  });
+}
+fs.readFileSync(path.join(root, 'css', 'styles.css'), 'utf8').split('\n').forEach((line, i) => {
+  CSS_NEWER.forEach(([re, what]) => { if (re.test(line)) problems.push('css/styles.css:' + (i + 1) + ': ' + what + ' is newer than the supported browsers'); });
+  const m = line.match(/([a-z-]+):\s*color-mix\(/);
+  if (m && !new RegExp('\\b' + m[1] + ':\\s*(?!color-mix)[^;]+;\\s*' + m[1] + ':\\s*color-mix').test(line)) {
+    problems.push('css/styles.css:' + (i + 1) + ': color-mix() (Safari 16.2, Firefox 113) needs a plain ' + m[1] + ' value before it');
+  }
+});
+
 // 4. version consistency
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).version;
 const core = (fs.readFileSync(path.join(root, 'js', 'core.js'), 'utf8').match(/NC\.version = '([^']+)'/) || [])[1];
@@ -56,4 +88,4 @@ if (problems.length) {
   console.error('Lint found ' + problems.length + ' problem(s):\n- ' + problems.join('\n- '));
   process.exit(1);
 }
-console.log('Lint OK: ' + files.length + ' JS files parse, index.html references resolve, no debug leftovers, version ' + pkg + ' consistent.');
+console.log('Lint OK: ' + files.length + ' JS files parse, index.html references resolve, no debug leftovers, no features newer than Safari 15.4 / Firefox 115, version ' + pkg + ' consistent.');

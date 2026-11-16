@@ -2,6 +2,20 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
+## [0.9.0] - 2026-11-16
+
+### Added
+- **t-plot** calculator (Lippens & de Boer 1965): micropore volume and external surface area, with Harkins–Jura or Halsey thickness curves.
+- **BJH pore-size distribution** calculator (Barrett, Joyner & Halenda 1951): full desorption or adsorption branch, film-thinning correction, size-class table, dV/dD and cumulative-volume plots, total volume and area, mode and mean diameter. Warns about cavitation below p/p₀ ≈ 0.42, negative class volumes and micropores.
+- **Cross-validation against pyGAPS** 4.6.1 (open-source sorption software): BET, t-plot and every BJH size class agree to ≤ 10⁻⁹.
+- Accessibility: skip link, visible keyboard focus everywhere, Escape closes the mobile menu, focus moves into the menu when it opens and the closed menu can no longer be tabbed into, MathML in every equation for screen readers, text descriptions of plots, reduced-motion support.
+- `make lint` refuses JavaScript and CSS features newer than the supported browsers (Safari 15.4, Firefox 115, Chrome 100).
+- References: Lippens & de Boer 1965, Halsey 1948, pyGAPS (Iacomi & Llewellyn 2019); DOIs for JCGM 100 (the GUM), Lowell et al. 2004, Thomson 1871, Kreibig & Vollmer 1995 and Levenberg 1944, all verified in Crossref.
+
+### Fixed
+- The uncertainty help text relied on the CSS `:has()` selector, which Firefox before 121 does not support. Shape-sketch and badge colours using `color-mix()` now have plain fallbacks.
+- `make verify-refs` retries failed network requests one at a time instead of recording them as errors.
+
 ## [0.8.0] - 2026-11-16
 
 ### Added

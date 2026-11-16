@@ -1,6 +1,6 @@
 {
   "name": "nanocalc",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "description": "Step-by-step, fully cited calculations and characterization analysis for nanomaterials.",
   "license": "MIT",

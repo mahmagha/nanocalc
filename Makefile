@@ -6,7 +6,7 @@
 #   make lint           syntax, file references, debug leftovers, version consistency
 #   make review         regenerate docs/REVIEW.md (expert sign-off sheet)
 #   make check          lint + tests + up-to-date review sheet (CI runs this)
-#   make validate-refs  regenerate tests/validation/reference.json with SciPy/miepython
+#   make validate-refs  regenerate tests/validation/reference.json with SciPy/miepython/pyGAPS
 #   make verify-refs    verify every citation and library work against Crossref/Open Library [network]
 #   make treatise       rebuild docs/REFERENCE-TREATISE.md from the library and verification report
 
@@ -30,7 +30,7 @@ help:
 	@echo   make lint           - syntax, file references, debug leftovers, version consistency
 	@echo   make review         - regenerate docs/REVIEW.md, the expert sign-off checklist
 	@echo   make check          - lint, test, then fail if docs/REVIEW.md is out of date [CI]
-	@echo   make validate-refs  - regenerate the SciPy/miepython reference values [needs Python]
+	@echo   make validate-refs  - regenerate the SciPy/miepython/pyGAPS reference values [needs Python]
 	@echo   make verify-refs    - verify all references against Crossref/Open Library [needs network]
 	@echo   make treatise       - rebuild docs/REFERENCE-TREATISE.md
 

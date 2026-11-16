@@ -213,13 +213,13 @@
     const tex = explicitTex || NC.toTex(plain);
     if (tex && global.katex) {
       try {
-        return { html: global.katex.renderToString(tex, { throwOnError: true, strict: 'ignore', output: 'html' }), tex: tex };
+        return { html: global.katex.renderToString(tex, { throwOnError: true, strict: 'ignore', output: 'htmlAndMathml' }), tex: tex };
       } catch (e) { /* fall through */ }
     }
     if (!explicitTex && plain && global.katex && isProse(String(plain))) {
       const html = NC.proseTokens(plain).map(function (t) {
         if (t.text !== undefined) return NC.esc(t.text);
-        try { return global.katex.renderToString(t.math, { throwOnError: true, strict: 'ignore', output: 'html' }); }
+        try { return global.katex.renderToString(t.math, { throwOnError: true, strict: 'ignore', output: 'htmlAndMathml' }); }
         catch (e) { return NC.esc(t.src); }
       }).join('');
       // inline style keeps this self-contained: sentences use the body font and wrap normally
