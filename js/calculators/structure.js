@@ -6,8 +6,8 @@
   const f = NC.fmt, C = NC.C;
 
   NC.addRefs({
-    chung1974: { type: 'article', authors: 'Chung, F. H.', title: 'Quantitative interpretation of X-ray diffraction patterns of mixtures. I. Matrix-flushing method for quantitative multicomponent analysis', journal: 'J. Appl. Crystallogr.', year: 1974, volume: '7', pages: '519–525' },
-    hubbard1988: { type: 'article', authors: 'Hubbard, C. R.; Snyder, R. L.', title: 'RIR — measurement and use in quantitative XRD', journal: 'Powder Diffr.', year: 1988, volume: '3', pages: '74–77' },
+    chung1974: { doi: '10.1107/s0021889874010375', type: 'article', authors: 'Chung, F. H.', title: 'Quantitative interpretation of X-ray diffraction patterns of mixtures. I. Matrix-flushing method for quantitative multicomponent analysis', journal: 'J. Appl. Crystallogr.', year: 1974, volume: '7', pages: '519–525' },
+    hubbard1988: { doi: '10.1017/s0885715600013257', type: 'article', authors: 'Hubbard, C. R.; Snyder, R. L.', title: 'RIR — measurement and use in quantitative XRD', journal: 'Powder Diffr.', year: 1988, volume: '3', pages: '74–77' },
     klug1974: { type: 'book', authors: 'Klug, H. P.; Alexander, L. E.', title: 'X-Ray Diffraction Procedures for Polycrystalline and Amorphous Materials', edition: '2nd ed.', publisher: 'Wiley', place: 'New York', year: 1974 },
     williams2009: { type: 'book', authors: 'Williams, D. B.; Carter, C. B.', title: 'Transmission Electron Microscopy: A Textbook for Materials Science', edition: '2nd ed.', publisher: 'Springer', place: 'New York', year: 2009 }
   });

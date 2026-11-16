@@ -16,6 +16,8 @@ Step-by-step calculations and characterization analysis for nanomaterials. Each 
 | `make review` | regenerate `docs/REVIEW.md` |
 | `make lint` | syntax, file references, debug leftovers, version consistency |
 | `make check` | lint, run the tests, then fail if `docs/REVIEW.md` is out of date (CI runs this) |
+| `make verify-refs` | verify every reference against Crossref / Open Library (needs network) |
+| `make treatise` | rebuild `docs/REFERENCE-TREATISE.md` |
 | `make validate-refs` | regenerate the SciPy/miepython reference values (needs the Python packages in `tests/validation/requirements.txt`) |
 
 Each target is a thin wrapper around the `node` commands below, so you can run those directly if `make` isn't installed.
@@ -76,6 +78,10 @@ The suite (about 2,700 checks):
 
 The numerical cores (Mie theory, depolarization factors, spheroid areas, Savitzky–Golay, least squares, peak fitting, size statistics, Student t, constants) are cross-checked against **miepython, SciPy and NumPy** on every test run. Agreement is to 10⁻⁶ or better. See [docs/VALIDATION.md](docs/VALIDATION.md) for the method, the results and what is not yet validated.
 
+## References
+
+[docs/REFERENCE-TREATISE.md](docs/REFERENCE-TREATISE.md) is a curated, annotated bibliography for nanomaterials: 217 works in 15 topics, including every work the calculators cite. Every article and book is verified against Crossref or Open Library (`make verify-refs`), and every standard against its issuing body. The same library appears in the app as **Further reading**.
+
 ## Expert review
 
 `node tools/review-sheet.js` regenerates [docs/REVIEW.md](docs/REVIEW.md): a sign-off checklist (about 1,100 items) of every formula, default value, preset, constant and reference, for a domain expert to verify. The formulas are tested and cross-validated, but they have not yet been reviewed by an expert. [docs/EXPERT-REVIEW-GUIDE.md](docs/EXPERT-REVIEW-GUIDE.md) says where to start; report findings with the *Scientific review finding* issue template.
@@ -93,11 +99,14 @@ js/units.js                typed-unit parsing and conversion
 js/uncertainty.js          Monte Carlo uncertainty propagation
 js/calculators/*.js        one file per area; each calls NC.register(...)
 js/catalog.js              site structure: sections → technique groups → calculator order
+js/library.js              curated reference library (source of docs/REFERENCE-TREATISE.md)
 js/app.js                  UI: navigation, forms, steps, citations, export, saved work
 sw.js, manifest.webmanifest   offline / installable app
 tests/run-tests.js         test runner (+ tests/*.test.js modules)
 tools/serve.js             local static server
 tools/review-sheet.js      generates docs/REVIEW.md
+tools/verify-refs.js       verifies references against Crossref / Open Library
+tools/build-treatise.js    generates docs/REFERENCE-TREATISE.md
 vendor/katex/              bundled KaTeX 0.16.11 (verified, MIT)
 ```
 

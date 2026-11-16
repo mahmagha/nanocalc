@@ -2,6 +2,22 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
+## [0.8.0] - 2026-11-16
+
+### Added
+- **Reference treatise** (`docs/REFERENCE-TREATISE.md`): 217 works on nanomaterials in 15 topics. It covers every work the calculators cite plus 107 curated further-reading works (reviews, books, primary sources, ISO/JCGM/EU standards, data and software). Each entry says what it is good for and how it was verified.
+- **Reference library** (`js/library.js`), the single source for the treatise, and a **Further reading** page in the app (filter, topic links, BibTeX download).
+- **`tools/verify-refs.js`** (`make verify-refs`): checks every reference against Crossref (DOI resolution, or a strict search matching title, first author, year, type, volume and first page) and Open Library for books. Results are in `docs/references/verification.json`, and `tests/library.test.js` checks them offline.
+- `make treatise`; `make check` now also fails if the treatise is out of date.
+
+### Changed
+- 28 app citations gained verified DOIs (49 → 77 of 110).
+- ISO 22412 (DLS) is now cited in its current 2025 edition (2017 withdrawn). Standards show their official catalogue link.
+
+### Fixed
+- The verifier initially accepted loose search matches, e.g. a 1947 article for the 1948 Verwey–Overbeek book. Search matches must now be the same kind of work with matching volume and first page.
+- The peak-fit speed tests used absolute time limits, which failed at random on a busy or throttled machine and would differ on CI runners. They now time the fit relative to a fixed calibration workload, plus a deterministic iteration-count check.
+
 ## [0.7.1] - 2026-11-16
 
 ### Fixed

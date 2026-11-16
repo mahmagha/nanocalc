@@ -10,8 +10,8 @@
     glatter1982: { type: 'book', authors: 'Glatter, O.; Kratky, O., Eds.', title: 'Small Angle X-ray Scattering', publisher: 'Academic Press', place: 'London', year: 1982 },
     koppel1972: { type: 'article', authors: 'Koppel, D. E.', title: 'Analysis of macromolecular polydispersity in intensity correlation spectroscopy: the method of cumulants', journal: 'J. Chem. Phys.', year: 1972, volume: '57', pages: '4814–4820', doi: '10.1063/1.1678153' },
     frisken2001: { type: 'article', authors: 'Frisken, B. J.', title: 'Revisiting the method of cumulants for the analysis of dynamic light-scattering data', journal: 'Appl. Opt.', year: 2001, volume: '40', pages: '4087–4091', doi: '10.1364/AO.40.004087' },
-    filipe2010: { type: 'article', authors: 'Filipe, V.; Hawe, A.; Jiskoot, W.', title: 'Critical evaluation of nanoparticle tracking analysis (NTA) by NanoSight for the measurement of nanoparticles and protein aggregates', journal: 'Pharm. Res.', year: 2010, volume: '27', pages: '796–810' },
-    qian1991: { type: 'article', authors: 'Qian, H.; Sheetz, M. P.; Elson, E. L.', title: 'Single particle tracking. Analysis of diffusion and flow in two-dimensional systems', journal: 'Biophys. J.', year: 1991, volume: '60', pages: '910–921' }
+    filipe2010: { doi: '10.1007/s11095-010-0073-2', type: 'article', authors: 'Filipe, V.; Hawe, A.; Jiskoot, W.', title: 'Critical evaluation of nanoparticle tracking analysis (NTA) by NanoSight for the measurement of nanoparticles and protein aggregates', journal: 'Pharm. Res.', year: 2010, volume: '27', pages: '796–810' },
+    qian1991: { doi: '10.1016/s0006-3495(91)82125-7', type: 'article', authors: 'Qian, H.; Sheetz, M. P.; Elson, E. L.', title: 'Single particle tracking. Analysis of diffusion and flow in two-dimensional systems', journal: 'Biophys. J.', year: 1991, volume: '60', pages: '910–921' }
   });
 
   /* ---------- shared helpers ---------- */

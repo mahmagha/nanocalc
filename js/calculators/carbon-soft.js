@@ -7,10 +7,10 @@
 
   NC.addRefs({
     kroto1985: { type: 'article', authors: 'Kroto, H. W.; Heath, J. R.; O’Brien, S. C.; Curl, R. F.; Smalley, R. E.', title: 'C60: Buckminsterfullerene', journal: 'Nature', year: 1985, volume: '318', pages: '162–163', doi: '10.1038/318162a0' },
-    stoller2008: { type: 'article', authors: 'Stoller, M. D.; Park, S.; Zhu, Y.; An, J.; Ruoff, R. S.', title: 'Graphene-based ultracapacitors', journal: 'Nano Lett.', year: 2008, volume: '8', pages: '3498–3502' },
-    peigney2001: { type: 'article', authors: 'Peigney, A.; Laurent, Ch.; Flahaut, E.; Bacsa, R. R.; Rousset, A.', title: 'Specific surface area of carbon nanotubes and bundles of carbon nanotubes', journal: 'Carbon', year: 2001, volume: '39', pages: '507–514' },
-    nagle2000: { type: 'article', authors: 'Nagle, J. F.; Tristram-Nagle, S.', title: 'Structure of lipid bilayers', journal: 'Biochim. Biophys. Acta', year: 2000, volume: '1469', pages: '159–195' },
-    hou2021: { type: 'article', authors: 'Hou, X.; Zaks, T.; Langer, R.; Dong, Y.', title: 'Lipid nanoparticles for mRNA delivery', journal: 'Nat. Rev. Mater.', year: 2021, volume: '6', pages: '1078–1094' }
+    stoller2008: { doi: '10.1021/nl802558y', type: 'article', authors: 'Stoller, M. D.; Park, S.; Zhu, Y.; An, J.; Ruoff, R. S.', title: 'Graphene-based ultracapacitors', journal: 'Nano Lett.', year: 2008, volume: '8', pages: '3498–3502' },
+    peigney2001: { doi: '10.1016/s0008-6223(00)00155-x', type: 'article', authors: 'Peigney, A.; Laurent, Ch.; Flahaut, E.; Bacsa, R. R.; Rousset, A.', title: 'Specific surface area of carbon nanotubes and bundles of carbon nanotubes', journal: 'Carbon', year: 2001, volume: '39', pages: '507–514' },
+    nagle2000: { doi: '10.1016/s0304-4157(00)00016-2', type: 'article', authors: 'Nagle, J. F.; Tristram-Nagle, S.', title: 'Structure of lipid bilayers', journal: 'Biochim. Biophys. Acta', year: 2000, volume: '1469', pages: '159–195' },
+    hou2021: { doi: '10.1038/s41578-021-00358-0', type: 'article', authors: 'Hou, X.; Zaks, T.; Langer, R.; Dong, Y.', title: 'Lipid nanoparticles for mRNA delivery', journal: 'Nat. Rev. Mater.', year: 2021, volume: '6', pages: '1078–1094' }
   });
 
   const MC = 12.011; // g/mol, conventional standard atomic weight of carbon (IUPAC 2021)

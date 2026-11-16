@@ -7,6 +7,8 @@
 #   make review         regenerate docs/REVIEW.md (expert sign-off sheet)
 #   make check          lint + tests + up-to-date review sheet (CI runs this)
 #   make validate-refs  regenerate tests/validation/reference.json with SciPy/miepython
+#   make verify-refs    verify every citation and library work against Crossref/Open Library [network]
+#   make treatise       rebuild docs/REFERENCE-TREATISE.md from the library and verification report
 
 NODE ?= node
 PORT ?= 8080
@@ -19,7 +21,7 @@ endif
 PYTHON ?= $(if $(wildcard $(VENV_PY)),$(VENV_PY),python)
 
 .DEFAULT_GOAL := help
-.PHONY: help serve test lint review check validate-refs
+.PHONY: help serve test lint review check validate-refs verify-refs treatise
 
 help:
 	@echo NanoCalc make targets:
@@ -29,6 +31,8 @@ help:
 	@echo   make review         - regenerate docs/REVIEW.md, the expert sign-off checklist
 	@echo   make check          - lint, test, then fail if docs/REVIEW.md is out of date [CI]
 	@echo   make validate-refs  - regenerate the SciPy/miepython reference values [needs Python]
+	@echo   make verify-refs    - verify all references against Crossref/Open Library [needs network]
+	@echo   make treatise       - rebuild docs/REFERENCE-TREATISE.md
 
 serve:
 	$(NODE) tools/serve.js $(PORT)
@@ -42,10 +46,16 @@ lint:
 review:
 	$(NODE) tools/review-sheet.js
 
-# Regenerates the review sheet and fails if that changed it, so a commit never
-# carries formulas the review sheet does not list.
-check: lint test review
-	git diff --exit-code --stat -- docs/REVIEW.md
+# Regenerates the review sheet and the treatise and fails if either changed, so a commit
+# never carries formulas or references the documents do not list.
+check: lint test review treatise
+	git diff --exit-code --stat -- docs/REVIEW.md docs/REFERENCE-TREATISE.md
 
 validate-refs:
 	$(PYTHON) tests/validation/generate.py
+
+verify-refs:
+	$(NODE) tools/verify-refs.js
+
+treatise:
+	$(NODE) tools/build-treatise.js

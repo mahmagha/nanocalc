@@ -12,14 +12,14 @@
   const FARADAY = C.e * C.NA; // C/mol (exact)
 
   NC.addRefs({
-    pace2011: { type: 'article', authors: 'Pace, H. E.; Rogers, N. J.; Jarolimek, C.; Coleman, V. A.; Higgins, C. P.; Ranville, J. F.', title: 'Determining transport efficiency for the purpose of counting and sizing nanoparticles via single particle inductively coupled plasma mass spectrometry', journal: 'Anal. Chem.', year: 2011, volume: '83', pages: '9361–9369' },
-    laborda2014: { type: 'article', authors: 'Laborda, F.; Bolea, E.; Jiménez-Lamana, J.', title: 'Single particle inductively coupled plasma mass spectrometry: a powerful tool for nanoanalysis', journal: 'Anal. Chem.', year: 2014, volume: '86', pages: '2270–2278' },
-    cliff1975: { type: 'article', authors: 'Cliff, G.; Lorimer, G. W.', title: 'The quantitative analysis of thin specimens', journal: 'J. Microsc.', year: 1975, volume: '103', pages: '203–207' },
-    bean1959: { type: 'article', authors: 'Bean, C. P.; Livingston, J. D.', title: 'Superparamagnetism', journal: 'J. Appl. Phys.', year: 1959, volume: '30', pages: 'S120–S129' },
+    pace2011: { doi: '10.1021/ac201952t', type: 'article', authors: 'Pace, H. E.; Rogers, N. J.; Jarolimek, C.; Coleman, V. A.; Higgins, C. P.; Ranville, J. F.', title: 'Determining transport efficiency for the purpose of counting and sizing nanoparticles via single particle inductively coupled plasma mass spectrometry', journal: 'Anal. Chem.', year: 2011, volume: '83', pages: '9361–9369' },
+    laborda2014: { doi: '10.1021/ac402980q', type: 'article', authors: 'Laborda, F.; Bolea, E.; Jiménez-Lamana, J.', title: 'Single particle inductively coupled plasma mass spectrometry: a powerful tool for nanoanalysis', journal: 'Anal. Chem.', year: 2014, volume: '86', pages: '2270–2278' },
+    cliff1975: { doi: '10.1111/j.1365-2818.1975.tb03895.x', type: 'article', authors: 'Cliff, G.; Lorimer, G. W.', title: 'The quantitative analysis of thin specimens', journal: 'J. Microsc.', year: 1975, volume: '103', pages: '203–207' },
+    bean1959: { doi: '10.1063/1.2185850', type: 'article', authors: 'Bean, C. P.; Livingston, J. D.', title: 'Superparamagnetism', journal: 'J. Appl. Phys.', year: 1959, volume: '30', pages: 'S120–S129' },
     neel1949: { type: 'article', authors: 'Néel, L.', title: 'Théorie du traînage magnétique des ferromagnétiques en grains fins avec applications aux terres cuites', journal: 'Ann. Géophys.', year: 1949, volume: '5', pages: '99–136' },
-    cullity2009: { type: 'book', authors: 'Cullity, B. D.; Graham, C. D.', title: 'Introduction to Magnetic Materials', edition: '2nd ed.', publisher: 'Wiley-IEEE Press', place: 'Hoboken, NJ', year: 2009 },
-    trasatti1991: { type: 'article', authors: 'Trasatti, S.; Petrii, O. A.', title: 'Real surface area measurements in electrochemistry', journal: 'Pure Appl. Chem.', year: 1991, volume: '63', pages: '711–734' },
-    boudart1995: { type: 'article', authors: 'Boudart, M.', title: 'Turnover rates in heterogeneous catalysis', journal: 'Chem. Rev.', year: 1995, volume: '95', pages: '661–666' }
+    cullity2009: { doi: '10.1002/9780470386323', type: 'book', authors: 'Cullity, B. D.; Graham, C. D.', title: 'Introduction to Magnetic Materials', edition: '2nd ed.', publisher: 'Wiley-IEEE Press', place: 'Hoboken, NJ', year: 2009 },
+    trasatti1991: { doi: '10.1351/pac199163050711', type: 'article', authors: 'Trasatti, S.; Petrii, O. A.', title: 'Real surface area measurements in electrochemistry', journal: 'Pure Appl. Chem.', year: 1991, volume: '63', pages: '711–734' },
+    boudart1995: { doi: '10.1021/cr00035a009', type: 'article', authors: 'Boudart, M.', title: 'Turnover rates in heterogeneous catalysis', journal: 'Chem. Rev.', year: 1995, volume: '95', pages: '661–666' }
   });
 
   /* ---------- shared helpers ---------- */

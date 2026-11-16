@@ -16,7 +16,7 @@
   const NC = global.NC;
 
   NC.addRefs({
-    jcgm101: {
+    jcgm101: { doi: '10.59161/JCGM101-2008',
       type: 'standard',
       authors: 'JCGM',
       title: 'JCGM 101:2008 Evaluation of measurement data — Supplement 1 to the “Guide to the expression of uncertainty in measurement” — Propagation of distributions using a Monte Carlo method',

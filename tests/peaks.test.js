@@ -146,15 +146,31 @@ module.exports = function (t) {
       for (let k = 0; k < 10; k++) y += 100 * Math.exp(-4 * Math.LN2 * ((x - (5 + k * 9.5)) / 1.2) ** 2);
       lines.push(x.toFixed(2) + ',' + y.toFixed(4));
     }
-    const t0 = Date.now();
-    const out = run('peakfit', { tech: 'generic', data: lines.join('\n'), base: 'linear', detect: 'auto', prom: 5, maxp: 10, model: 'pv', xmin: '', xmax: '' });
-    const ms = Date.now() - t0;
+    // Machine-independent speed check. An absolute limit (ms) failed at random on a busy or
+    // throttled machine and would differ on CI runners, so the fit is timed relative to a fixed
+    // calibration workload on the same machine (best of 3 each). Today the ratio is ≈12; the
+    // original unoptimised fit was ≈5× slower (≈60), so a limit of 30 catches that regression.
+    const calib = () => {
+      const t = process.hrtime.bigint();
+      let s = 0;
+      for (let i = 0; i < 3e6; i++) s += Math.exp(-(i % 1000) * 1e-3) * Math.sqrt(i);
+      return s > 0 ? Number(process.hrtime.bigint() - t) / 1e6 : Infinity;
+    };
+    const base = Math.min(calib(), calib(), calib());
+    let out, ms = Infinity;
+    for (let rep = 0; rep < 3; rep++) {
+      const t0 = process.hrtime.bigint();
+      out = run('peakfit', { tech: 'generic', data: lines.join('\n'), base: 'linear', detect: 'auto', prom: 5, maxp: 10, model: 'pv', xmin: '', xmax: '' });
+      ms = Math.min(ms, Number(process.hrtime.bigint() - t0) / 1e6);
+    }
     ok(out.fit.peaks.length === 10, '10 peaks fitted (got ' + out.fit.peaks.length + ')');
-    ok(ms < 1000, '2000 points × 10 pseudo-Voigt peaks fitted in ' + ms + ' ms');
+    ok(out.fit.iter <= 80, '10-peak fit converges in ≤ 80 iterations (took ' + out.fit.iter + ')');
+    ok(ms / base < 30, '2000 points × 10 pseudo-Voigt peaks: ' + Math.round(ms) + ' ms = ' + (ms / base).toFixed(1) + '× the calibration workload (' + Math.round(base) + ' ms); limit 30×');
     // a model mismatch (constant offset, no baseline) must still terminate quickly
-    const t1 = Date.now();
+    const t1 = process.hrtime.bigint();
     run('peakfit', { tech: 'generic', data: lines.join('\n'), base: 'none', detect: 'auto', prom: 5, maxp: 10, model: 'pv', xmin: '', xmax: '' });
-    ok(Date.now() - t1 < 1500, 'fit with an unmodelled offset stops early (' + (Date.now() - t1) + ' ms)');
+    const ms1 = Number(process.hrtime.bigint() - t1) / 1e6;
+    ok(ms1 / base < 45, 'fit with an unmodelled offset stops early (' + Math.round(ms1) + ' ms = ' + (ms1 / base).toFixed(1) + '× calibration; limit 45×)');
   }
 
   /* Input errors */

@@ -62,7 +62,7 @@
     const cur = h[0] === 'calc' ? NC.byId[h[1]] : null;
     const curSec = cur ? (secOf(cur) || {}).id : h[0] === 'section' ? h[1] : null;
     const openSet = store.get(NAV_OPEN_KEY) || {};
-    let html = '<div class="nav-top"><a href="#/" data-nav="home">Home</a><a href="#/references" data-nav="references">References</a><a href="#/about" data-nav="about">About &amp; validation</a></div>';
+    let html = '<div class="nav-top"><a href="#/" data-nav="home">Home</a><a href="#/reading" data-nav="reading">Further reading</a><a href="#/references" data-nav="references">References</a><a href="#/about" data-nav="about">About &amp; validation</a></div>';
     let any = false;
     NC.sections.forEach(function (sec) {
       let inner = '', count = 0;
@@ -105,7 +105,7 @@
     const h = parseHash().parts;
     if (h[0] === 'calc') return h[1];
     if (h[0] === 'section') return 'section:' + h[1];
-    if (h[0] === 'references' || h[0] === 'about') return h[0];
+    if (h[0] === 'references' || h[0] === 'about' || h[0] === 'reading') return h[0];
     return 'home';
   }
   function setNav(open) {
@@ -132,6 +132,7 @@
     else if (p[0] === 'section' && NC.sections.some(function (s) { return s.id === p[1]; })) scrollTarget = renderSection(p[1], p[2]);
     else if (p[0] === 'references') renderReferences();
     else if (p[0] === 'about') renderAbout();
+    else if (p[0] === 'reading') scrollTarget = renderReading(p[1]);
     else if (p[0] === '' || p[0] === undefined) renderHome();
     else renderNotFound(p.join('/'));
     buildNav($('#search').value);
@@ -257,12 +258,62 @@
       '<li><b>Units:</b> type them with the number, e.g. <code>5 Å</code>, <code>0.2 µm</code> or <code>25 °C</code>.</li>' +
       '<li><b>Uncertainties:</b> press <b>± Uncertainties</b> on a calculator to give inputs a standard uncertainty. It is propagated by Monte Carlo (JCGM 101).</li>' +
       '<li><b>Share and save:</b> <b>Copy link</b> shares a calculation with its inputs; <b>Saved runs</b> keeps named runs in this browser.</li>' +
+      '<li><b>Further reading:</b> a curated, verified library of key works by topic, on the <a href="#/reading">further reading</a> page.</li>' +
       '<li><b>Export:</b> a Markdown report (with LaTeX), print to PDF, or BibTeX from the <a href="#/references">references</a> page.</li></ul></section>' +
       '<section class="panel prose"><h2>Report a problem</h2><p>Found an error in a formula, value or reference? Please ' +
       '<a href="' + REPO + '/issues/new?template=review-finding.md" target="_blank" rel="noopener">open a scientific review finding</a>. For app bugs, ' +
       '<a href="' + REPO + '/issues/new?template=bug-report.md" target="_blank" rel="noopener">report a bug</a> and use <b>Copy link</b> to include your inputs.</p></section>' +
       '<section class="panel prose"><h2>Version &amp; licence</h2><p>NanoCalc v' + esc(NC.version) + ' (' + doc('CHANGELOG.md', 'changelog') + '). MIT licence; source on <a href="' + REPO + '" target="_blank" rel="noopener">GitHub</a>. ' +
       'Equations are typeset with KaTeX (MIT), bundled for offline use.</p></section>' + footer();
+  }
+
+  /* ---------------- further reading (js/library.js) ---------------- */
+  function renderReading(topicId) {
+    document.title = 'Further reading · NanoCalc';
+    const lib = NC.library || [], topics = NC.libraryTopics || [];
+    const usedIn = {};
+    NC.calculators.forEach(function (c) { (c.refs || []).forEach(function (id) { (usedIn[id] = usedIn[id] || []).push(c); }); });
+    const KIND = { review: 'Review', book: 'Book', primary: 'Primary source', standard: 'Standard', data: 'Data & software' };
+    let html = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>Further reading</h1>' +
+      '<p class="lede">A curated library of ' + lib.length + ' key works on nanomaterials, each with a note on what it is good for. ' +
+      'Every article and book was verified against Crossref or Open Library, and every standard was checked against the issuing body for its current edition. ' +
+      'The <a href="' + REPO + '/blob/main/docs/REFERENCE-TREATISE.md" target="_blank" rel="noopener">full treatise</a> also lists every work the calculators cite, with its verification status.</p>' +
+      '<div class="chips">' + topics.map(function (t) { return '<a class="chip" href="#/reading/' + t.id + '">' + esc(t.label) + '</a>'; }).join('') + '</div></header>' +
+      '<section class="panel"><div class="panel-head"><h2 id="libCount">' + lib.length + ' works</h2><div class="actions">' +
+      '<input id="libFilter" class="filter" type="search" placeholder="Filter: author, title, technique, year…" aria-label="Filter the library">' +
+      '<button class="btn" id="libBib" type="button">Download BibTeX</button></div></div>';
+    topics.forEach(function (t) {
+      const items = lib.filter(function (e) { return e.topic === t.id; });
+      if (!items.length) return;
+      html += '<section class="lib-topic cat-block" id="g-' + t.id + '"><h3>' + esc(t.label) + '</h3><p class="muted">' + esc(t.blurb) + '</p><ol class="refs lib-list">' +
+        items.map(function (e) {
+          const r = e.ref ? NC.refs[e.ref] : e;
+          if (!r) return '';
+          const uses = e.ref && usedIn[e.ref] ? '<span class="used">Used in: ' + usedIn[e.ref].map(function (c) { return '<a href="#/calc/' + c.id + '">' + esc(c.title) + '</a>'; }).join(', ') + '</span>' : '';
+          return '<li><span class="kind kind-' + e.kind + '">' + esc(KIND[e.kind] || e.kind) + '</span> ' + NC.formatRef(r) + '<span class="use">' + esc(e.use) + '</span>' + uses + '</li>';
+        }).join('') + '</ol></section>';
+    });
+    main.innerHTML = html + '</section>' + footer();
+    $('#libFilter').addEventListener('input', function (ev) {
+      const words = ev.target.value.toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      document.querySelectorAll('.lib-topic').forEach(function (sec) {
+        let any = false;
+        sec.querySelectorAll('.lib-list > li').forEach(function (li) {
+          const hay = (li.textContent + ' ' + sec.querySelector('h3').textContent).toLowerCase();
+          const hit = words.every(function (w) { return hay.indexOf(w) >= 0; });
+          li.hidden = !hit;
+          if (hit) { shown++; any = true; }
+        });
+        sec.hidden = !any;
+      });
+      $('#libCount').textContent = words.length ? shown + ' of ' + lib.length + ' works' : lib.length + ' works';
+    });
+    $('#libBib').addEventListener('click', function () {
+      const refs = lib.map(function (e) { return e.ref ? NC.refs[e.ref] : e; }).filter(Boolean);
+      download('nanocalc-further-reading.bib', refs.map(function (r) { return NC.toBibTeX(r); }).join('\n\n') + '\n', 'application/x-bibtex');
+    });
+    return topicId ? document.getElementById('g-' + topicId) : null;
   }
 
   function renderNotFound(path) {

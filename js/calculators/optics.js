@@ -16,7 +16,7 @@
   NC.addRefs({
     bohren1983: { type: 'book', authors: 'Bohren, C. F.; Huffman, D. R.', title: 'Absorption and Scattering of Light by Small Particles', publisher: 'Wiley', place: 'New York', year: 1983 },
     mie1908: { type: 'article', authors: 'Mie, G.', title: 'Beiträge zur Optik trüber Medien, speziell kolloidaler Metallösungen', journal: 'Ann. Phys.', year: 1908, volume: '330', pages: '377–445', doi: '10.1002/andp.19083300302' },
-    gans1912: { type: 'article', authors: 'Gans, R.', title: 'Über die Form ultramikroskopischer Goldteilchen', journal: 'Ann. Phys.', year: 1912, volume: '342', pages: '881–900' },
+    gans1912: { doi: '10.1002/andp.19123420503', type: 'article', authors: 'Gans, R.', title: 'Über die Form ultramikroskopischer Goldteilchen', journal: 'Ann. Phys.', year: 1912, volume: '342', pages: '881–900' },
     kreibig1995: { type: 'book', authors: 'Kreibig, U.; Vollmer, M.', title: 'Optical Properties of Metal Clusters', publisher: 'Springer', place: 'Berlin', year: 1995 },
     ashcroft1976: { type: 'book', authors: 'Ashcroft, N. W.; Mermin, N. D.', title: 'Solid State Physics', publisher: 'Holt, Rinehart and Winston', place: 'New York', year: 1976 },
     brouwer2011: { type: 'article', authors: 'Brouwer, A. M.', title: 'Standards for photoluminescence quantum yield measurements in solution (IUPAC Technical Report)', journal: 'Pure Appl. Chem.', year: 2011, volume: '83', pages: '2213–2228', doi: '10.1351/PAC-REP-10-09-31' },
