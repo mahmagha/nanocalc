@@ -1,5 +1,9 @@
 # NanoCalc
 
+[![CI](https://github.com/mahmagha/nanocalc/actions/workflows/ci.yml/badge.svg)](https://github.com/mahmagha/nanocalc/actions/workflows/ci.yml) [![Pages](https://github.com/mahmagha/nanocalc/actions/workflows/pages.yml/badge.svg)](https://mahmagha.github.io/nanocalc/)
+
+**Live app: https://mahmagha.github.io/nanocalc/** (works offline once loaded, and can be installed as an app)
+
 Step-by-step calculations and characterization analysis for nanomaterials. Each result shows the formula, the substituted values and the intermediate results, and every equation, constant and empirical coefficient is cited to its source (110 references).
 
 ## Quick start (make)
