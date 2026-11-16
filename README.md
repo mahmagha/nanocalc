@@ -48,6 +48,12 @@ The suite (about 2,700 checks):
 - checks that every cited reference exists and every script is registered;
 - compares results with values worked out by hand, from textbooks, or from synthetic data with known answers (`tests/*.test.js`, one file per area).
 
+## What you can do
+
+- **Design** a particle in the particle designer: a spherical core with any number of shells and a ligand layer. It gives the geometry and composition of every layer, the extinction, scattering and absorption spectrum (multilayer Mie theory), ligands per particle and the hydrodynamic size, and a build plan that links each layer to a synthesis protocol with the precursor amounts for your batch.
+- **Make** it with 13 published synthesis protocols (citrate Au and Ag, Au nanorods, Brust Au, Stöber silica, silica shells on Au, Fe₃O₄ by two routes, CdSe, CdS and ZnS shells, PEG-thiol exchange, purification). Each has reagents scaled to your batch with the mass to weigh, numbered steps, safety notes, the expected result and links to the calculators that check it. Quantities that could not be confirmed from the paper are marked "check against the original".
+- **Characterise** it with the calculators below. Every page is a live workspace: sliders on number fields, results and interactive plots that update while you drag, and the step-by-step working and references underneath.
+
 ## Calculators (58)
 
 | Area | Calculators |
@@ -94,16 +100,20 @@ The numerical cores (Mie theory, depolarization factors, spheroid areas, Savitzk
 
 ```
 index.html                 entry point (registers every script; tests enforce this)
-css/styles.css             styles (light/dark tokens)
+css/styles.css             styles (light/dark tokens); css/plot.css, protocols.css, designer.css for those parts
 js/core.js                 constants (CODATA 2018), validation, parsing, statistics, material data
 js/references.js           bibliography, citation formatting, NC.addRefs for module citations
-js/plot.js                 dependency-free SVG plots
+js/plot.js                 dependency-free SVG plots; NC.plotMount makes them interactive (zoom, hover, keep curves, edit, export)
 js/tex.js                  Unicode formula → LaTeX converter, KaTeX rendering
 js/units.js                typed-unit parsing and conversion
 js/uncertainty.js          Monte Carlo uncertainty propagation
 js/calculators/*.js        one file per area; each calls NC.register(...)
 js/catalog.js              site structure: sections → technique groups → calculator order
 js/library.js              curated reference library (source of docs/REFERENCE-TREATISE.md)
+js/protocols.js            synthesis protocol library (data, batch scaling, molar masses)
+js/protocols-view.js       synthesis pages
+js/designer.js             layered-particle engine: geometry, multilayer Mie, ligands, build route
+js/designer-view.js        particle designer page
 js/app.js                  UI: navigation, forms, steps, citations, export, saved work
 sw.js, manifest.webmanifest   offline / installable app
 tests/run-tests.js         test runner (+ tests/*.test.js modules)

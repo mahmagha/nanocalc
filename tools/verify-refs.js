@@ -79,7 +79,8 @@ const crossrefSearch = (q) => get('https://api.crossref.org/works?rows=6&select=
 const openLibrary = (title, author) => get('https://openlibrary.org/search.json?limit=5&fields=title,author_name,first_publish_year,publisher&title=' + encodeURIComponent(title) + '&author=' + encodeURIComponent(author));
 
 function compare(ref, m) {
-  const t = (m.title || [''])[0] + ' ' + ((m.subtitle || [])[0] || '');
+  // Crossref titles may carry markup such as MFe<sub>2</sub>O<sub>4</sub>; compare the text only
+  const t = ((m.title || [''])[0] + ' ' + ((m.subtitle || [])[0] || '')).replace(/<[^>]+>/g, '');
   const c = contain(ref.title, t);
   const y = yearOf(m);
   const issues = [];

@@ -1,0 +1,52 @@
+/* Layered particle designer (js/designer-view.js). Uses the variables from css/styles.css. */
+.dz-head h1 { font-size: 26px; letter-spacing: -.01em; }
+.dz-grid { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.dz-editor { position: sticky; top: 72px; max-height: calc(100vh - 88px); overflow-y: auto; padding-right: 4px; min-width: 0; }
+.dz-out { min-width: 0; }
+.dz-out.dz-stale .dz-live, .dz-out.dz-stale .dz-fig, .dz-out.dz-stale .dz-route-panel { opacity: .45; }
+
+.dz-toolbar { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+.dz-toolbar label { font-size: 13px; font-weight: 600; }
+.dz-toolbar select { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+
+.dz-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 10px 14px 14px; margin: 0 0 12px; min-width: 0; box-shadow: var(--shadow); }
+.dz-card legend { font-weight: 650; font-size: 14.5px; padding: 0 6px; display: flex; align-items: center; gap: 7px; }
+.dz-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--border); }
+.dz-swatch.dz-hatch { background: repeating-linear-gradient(45deg, var(--muted) 0 2px, var(--surface) 2px 5px); }
+.dz-card-actions { display: flex; gap: 6px; justify-content: flex-end; margin: -4px 0 8px; }
+.dz-card-actions .btn[disabled] { opacity: .4; cursor: default; }
+.dz-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 1fr)); gap: 10px 12px; }
+.dz-fields .field.wide { grid-column: 1 / -1; }
+.dz-shells { list-style: none; margin: 0; padding: 0; }
+.dz-add { width: 100%; margin: 0 0 14px; padding: 8px 12px; border-style: dashed; }
+
+.dz-sizerow { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dz-sizerow input[type="range"] { flex: 1 1 auto; min-width: 0; accent-color: var(--accent); padding: 0; border: 0; background: transparent; }
+.dz-sizerow input[type="number"] { flex: 0 0 6.5em; width: 6.5em; }
+.dz-check { flex-direction: row; align-items: center; gap: 8px; }
+.dz-check input { width: auto; }
+.dz-check label { font-weight: 500; }
+.dz-hint { grid-column: 1 / -1; margin: 0; font-size: 12.5px; color: var(--muted); }
+
+.dz-fig { padding: 12px 16px; }
+.dz-fig-body { display: flex; justify-content: center; }
+.dz-fig svg.designer-xsec { width: 100%; max-width: 460px; height: auto; display: block; font-family: var(--font); }
+.dz-error:empty { display: none; }
+
+.dz-route { margin: 6px 0 0; padding-left: 22px; }
+.dz-rstep { margin: 0 0 12px; padding-left: 4px; }
+.dz-rlabel { font-weight: 600; }
+.dz-ramount { font-size: 13.5px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; margin-top: 2px; }
+.dz-rnote { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.dz-protos { margin: 4px 0 0; padding-left: 18px; font-size: 13.5px; }
+.dz-note { font-size: 13px; color: var(--muted); margin: 8px 0 0; padding-top: 8px; border-top: 1px dashed var(--border); }
+.dz-math { overflow-x: auto; }
+
+@media (max-width: 900px) {
+  .dz-grid { grid-template-columns: minmax(0, 1fr); }
+  .dz-editor { position: static; max-height: none; overflow: visible; padding-right: 0; }
+}
+@media print {
+  .dz-editor { display: none; }
+  .dz-grid { display: block; }
+}

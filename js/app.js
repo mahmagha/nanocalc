@@ -60,12 +60,17 @@
     const q = (query || '').trim().toLowerCase();
     const h = parseHash().parts;
     const cur = h[0] === 'calc' ? NC.byId[h[1]] : null;
-    const curSec = cur ? (secOf(cur) || {}).id : h[0] === 'section' ? h[1] : null;
+    const curSec = cur ? (secOf(cur) || {}).id : h[0] === 'section' ? h[1] : h[0] === 'design' ? 'design' : h[0] === 'synthesis' ? 'synthesis' : null;
     const openSet = store.get(NAV_OPEN_KEY) || {};
     let html = '<div class="nav-top"><a href="#/" data-nav="home">Home</a><a href="#/reading" data-nav="reading">Further reading</a><a href="#/references" data-nav="references">References</a><a href="#/about" data-nav="about">About &amp; validation</a></div>';
     let any = false;
     NC.sections.forEach(function (sec) {
       let inner = '', count = 0;
+      const pages = (sec.pages || []).filter(function (pg) { return !q || (pg.label + ' ' + pg.blurb).toLowerCase().indexOf(q) >= 0; });
+      if (pages.length) {
+        count += pages.length;
+        inner += '<div class="nav-group nav-pages">' + pages.map(function (pg) { return '<a href="' + pg.href + '" data-nav="' + pg.key + '" class="nav-page">' + esc(pg.label) + '</a>'; }).join('') + '</div>';
+      }
       groupsIn(sec.id).forEach(function (g) {
         const list = calcsIn(g.id).filter(function (c) { return !q || matches(c, q); });
         if (!list.length) return;
@@ -105,7 +110,7 @@
     const h = parseHash().parts;
     if (h[0] === 'calc') return h[1];
     if (h[0] === 'section') return 'section:' + h[1];
-    if (h[0] === 'references' || h[0] === 'about' || h[0] === 'reading') return h[0];
+    if (h[0] === 'references' || h[0] === 'about' || h[0] === 'reading' || h[0] === 'design' || h[0] === 'synthesis') return h[0];
     return 'home';
   }
   function setNav(open) {
@@ -134,6 +139,8 @@
 
   let routed = false;
   function route() {
+    main.classList.remove('wide');
+    if (designer && designer.destroy) { designer.destroy(); designer = null; }
     setNav(false);
     const h = parseHash();
     const p = h.parts;
@@ -144,6 +151,8 @@
     else if (p[0] === 'references') renderReferences();
     else if (p[0] === 'about') renderAbout();
     else if (p[0] === 'reading') scrollTarget = renderReading(p[1]);
+    else if (p[0] === 'design') renderDesigner(h.state ? decodeDesign(h.state) : null);
+    else if (p[0] === 'synthesis') renderSynthesis(p[1] ? decodeURIComponent(p[1]) : null);
     else if (p[0] === '' || p[0] === undefined) renderHome();
     else renderNotFound(p.join('/'));
     buildNav($('#search').value);
@@ -189,14 +198,22 @@
 
   function renderHome() {
     document.title = 'NanoCalc · nanomaterials calculations, step by step';
-    let html = '<section class="hero"><h1>Nanomaterials calculations, shown step by step</h1>' +
-      '<p>' + NC.calculators.length + ' calculators for nanoparticle design, synthesis and characterization. Every result shows the formula, the numbers substituted in and each intermediate value, and every equation and constant is cited to its source.</p>' +
+    let html = '<section class="hero"><h1>Design, make and characterise nanomaterials</h1>' +
+      '<p>Design a particle layer by layer, follow a published synthesis scaled to your batch, and analyse your measurements with ' + NC.calculators.length + ' calculators. Every result shows its working step by step and cites its sources.</p>' +
       '<div class="home-search"><input id="homeSearch" type="search" placeholder="What are you calculating? e.g. crystallite size, band gap, zeta, BET, gold…" aria-label="Search calculators" autocomplete="off"></div>' +
       '<div id="homeResults" aria-live="polite"></div></section>';
 
-    html += '<section class="home-block"><h2>What do you want to do?</h2><div class="tasks">' +
-      NC.tasks.filter(function (t) { return NC.byId[t.calc]; }).map(function (t) {
-        return '<a class="task" href="#/calc/' + t.calc + '"><b>' + esc(t.text) + '</b><span>' + esc(catOf(NC.byId[t.calc]).label) + '</span></a>';
+    html += '<section class="home-block"><div class="jobs">' + NC.sections.filter(function (s) { return s.id !== 'tools'; }).map(function (s, i) {
+      const pg = (s.pages || [])[0];
+      const groups = groupsIn(s.id);
+      return '<div class="job"><div class="job-num">' + (i + 1) + '</div><h2>' + esc(s.verb) + '</h2><p>' + esc(s.blurb) + '</p>' +
+        (pg ? '<a class="btn primary" href="' + pg.href + '">Open the ' + esc(pg.label.toLowerCase()) + '</a>' : '<a class="btn primary" href="#/section/' + s.id + '">Browse ' + groups.length + ' techniques</a>') +
+        '<ul>' + groups.slice(0, 6).map(function (g) { return '<li><a href="#/section/' + s.id + '/' + g.id + '">' + esc(g.label) + '</a></li>'; }).join('') + '</ul></div>';
+    }).join('') + '</div></section>';
+
+    html += '<section class="home-block"><h2>Common tasks</h2><div class="tasks">' +
+      NC.tasks.filter(function (t) { return t.href || NC.byId[t.calc]; }).map(function (t) {
+        return '<a class="task" href="' + (t.href || '#/calc/' + t.calc) + '"><b>' + esc(t.text) + '</b><span>' + esc(t.where || catOf(NC.byId[t.calc]).label) + '</span></a>';
       }).join('') + '</div></section>';
 
     html += '<section class="home-block"><h2>Browse by section</h2><div class="sections">' +
@@ -246,11 +263,52 @@
     document.title = s.label + ' · NanoCalc';
     let html = '<header class="calc-head"><nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a></nav><h1>' + esc(s.label) + '</h1><p class="lede">' + esc(s.blurb) + '</p>' +
       (groups.length > 1 ? '<div class="chips">' + groups.map(function (g) { return '<a class="chip" href="#/section/' + secId + '/' + g.id + '">' + esc(g.label) + '</a>'; }).join('') + '</div>' : '') + '</header>';
+    (s.pages || []).forEach(function (pg) {
+      html += '<a class="feature" href="' + pg.href + '"><b>' + esc(pg.label) + '</b><span>' + esc(pg.blurb) + '</span><span class="go">Open →</span></a>';
+    });
     groups.forEach(function (g) {
       html += '<section class="cat-block" id="g-' + g.id + '"><h2>' + esc(g.label) + '</h2><p>' + esc(g.blurb) + '</p><div class="cards">' + calcsIn(g.id).map(calcCard).join('') + '</div></section>';
     });
     main.innerHTML = html + footer();
     return groupId ? document.getElementById('g-' + groupId) : null;
+  }
+
+  /* ---------------- designer & synthesis workspaces ---------------- */
+  function crumbs(secId) {
+    const s = NC.sections.find(function (x) { return x.id === secId; });
+    return '<nav class="crumb" aria-label="Breadcrumb"><a href="#/">Home</a><span aria-hidden="true">›</span><a href="#/section/' + secId + '">' + esc(s.label) + '</a></nav>';
+  }
+  let designer = null;
+  function decodeDesign(str) {
+    try { const d = JSON.parse(decodeURIComponent(str)); return d && typeof d === 'object' && d.core ? d : null; } catch (e) { return null; }
+  }
+  function renderDesigner(urlState) {
+    document.title = 'Particle designer · NanoCalc';
+    main.classList.add('wide');
+    main.innerHTML = '<header class="calc-head">' + crumbs('design') + '<h1>Particle designer</h1>' +
+      '<p class="lede">Build a spherical particle layer by layer: a core, any number of shells and a ligand shell. Every output updates as you drag, shows its working and cites its sources, and the build plan links to the synthesis protocols.</p></header>' +
+      '<div id="designer"></div>' + footer();
+    const el = $('#designer');
+    if (!NC.designerView) { el.innerHTML = '<p class="alert err">The designer did not load.</p>'; return; }
+    designer = NC.designerView.render(el, {
+      state: urlState,
+      heading: false,
+      onChange: function (state) {
+        // the design is nested JSON, so it is stored whole (calculator links use the flat NC.encodeState)
+        try { history.replaceState(null, '', location.href.split('#')[0] + '#/design?state=' + encodeURIComponent(JSON.stringify(state))); } catch (e) { /* ignore */ }
+      }
+    });
+  }
+  function renderSynthesis(id) {
+    const p = id && NC.protocolById ? NC.protocolById[id] : null;
+    document.title = (p ? p.title : 'Synthesis protocols') + ' · NanoCalc';
+    main.innerHTML = '<header class="calc-head">' + crumbs('synthesis') + (p ? '' : '<h1>Synthesis protocols</h1><p class="lede">Published procedures for nanoparticle cores, shells and surface chemistry, transcribed from the original papers and scaled to your batch. Check each one against its source and do a risk assessment before lab work.</p>') + '</header>' +
+      '<div id="protocols"></div>' + footer();
+    const el = $('#protocols');
+    if (!NC.protocolsView) { el.innerHTML = '<p class="alert err">The protocol library did not load.</p>'; return; }
+    if (id && !p) { el.innerHTML = '<p class="alert warn">No protocol called “' + esc(id) + '”. <a href="#/synthesis">See all protocols</a>.</p>'; return; }
+    if (p) NC.protocolsView.renderProtocol(el, id, {});
+    else NC.protocolsView.renderIndex(el);
   }
 
   /* ---------------- about ---------------- */
@@ -412,6 +470,38 @@
     return { v: v, errors: errors, unc: unc, conv: conv };
   }
 
+  /* ---------------- sliders ---------------- */
+  // Range for a number field: the input's own { range: [lo, hi], log, integer } when given, otherwise a
+  // range around its current value (a decade either side, on a log scale). No slider for zero or negative
+  // values without an explicit range, or when the input says slider: false.
+  function sliderSpec(inp, val) {
+    if (inp.slider === false) return null;
+    const x = Number(val);
+    let lo, hi, log;
+    if (inp.range) { lo = inp.range[0]; hi = inp.range[1]; log = inp.log !== undefined ? !!inp.log : lo > 0 && hi / lo >= 100; }
+    else if (inp.unit === '°') { lo = 0; hi = isFinite(x) && x > 90 ? 180 : 90; log = false; }
+    else if (!(isFinite(x) && x > 0)) return null;
+    else if (inp.unit === '' && x < 1 && /p\/p|fraction|ratio|coverage|probability/i.test(inp.label)) { lo = 0; hi = 1; log = false; }
+    else { lo = x / 10; hi = x * 10; log = true; }
+    if (isFinite(x) && (x < lo || x > hi)) {
+      if (log && x > 0) { lo = Math.min(lo, x / 3); hi = Math.max(hi, x * 3); } else { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+    }
+    return { lo: lo, hi: hi, log: log, int: !!inp.integer };
+  }
+  function sliderPos(sl, x) {
+    if (!isFinite(x)) return 500;
+    const t = sl.log ? Math.log(x / sl.lo) / Math.log(sl.hi / sl.lo) : (x - sl.lo) / (sl.hi - sl.lo || 1);
+    return Math.round(1000 * Math.min(1, Math.max(0, t)));
+  }
+  function sliderValue(el) {
+    const lo = +el.getAttribute('data-lo'), hi = +el.getAttribute('data-hi'), t = +el.value / 1000;
+    const x = el.getAttribute('data-log') === '1' ? lo * Math.pow(hi / lo, t) : lo + t * (hi - lo);
+    if (el.getAttribute('data-int')) return String(Math.round(x));
+    if (Math.abs(x) < 1e-12) return '0';
+    return String(Number(x.toPrecision(3)));
+  }
+  NC.sliderUtil = { spec: sliderSpec, pos: sliderPos };
+
   function fieldHTML(inp, val, uval) {
     const id = 'f-' + inp.id;
     const label = '<label for="' + id + '">' + esc(inp.label) + (inp.unit ? ' <span class="unit">(' + esc(inp.unit) + ')</span>' : '') + '</label>';
@@ -439,6 +529,13 @@
       const hint = NC.unitHint ? NC.unitHint(inp.unit) : '';
       control = '<div class="valrow"><input id="' + id + '" name="' + inp.id + '" type="text" autocomplete="off" spellcheck="false" value="' + esc(val) + '"' + (hint ? ' title="' + esc(hint) + '"' : '') + '>' +
         '<span class="unc-wrap"><span class="pm" aria-hidden="true">±</span><input name="u_' + inp.id + '" class="unc" type="text" autocomplete="off" spellcheck="false" aria-label="Standard uncertainty of ' + esc(inp.label) + '" placeholder="u (1σ)" value="' + esc(uval || '') + '" title="Standard uncertainty (1σ), in ' + esc(inp.unit || 'the same unit') + '; units allowed"></span></div>';
+      const sl = sliderSpec(inp, val);
+      if (sl) {
+        control += '<input type="range" class="slider" min="0" max="1000" step="1" value="' + sliderPos(sl, Number(val)) + '" data-for="' + inp.id + '"' +
+          ' data-lo="' + sl.lo + '" data-hi="' + sl.hi + '" data-log="' + (sl.log ? 1 : 0) + '"' + (sl.int ? ' data-int="1"' : '') +
+          ' aria-label="' + esc(inp.label) + ' slider" aria-valuetext="' + esc(val + (inp.unit ? ' ' + inp.unit : '')) + '">' +
+          '<div class="slider-ends" aria-hidden="true"><span>' + esc(NC.fmt(sl.lo, 3)) + '</span><span>' + esc(NC.fmt(sl.hi, 3)) + '</span></div>';
+      }
       extra = '<div class="field-msg" hidden></div>';
     }
     const help = inp.help ? '<div class="help">' + esc(inp.help) + '</div>' : '';
@@ -447,6 +544,7 @@
 
   function renderCalc(def, urlState) {
     document.title = def.title + ' · NanoCalc';
+    main.classList.add('wide');
     const cat = catOf(def);
     const sec = secOf(def) || { id: '', label: '' };
     const siblings = calcsIn(cat.id);
@@ -469,7 +567,7 @@
       '<a href="#/section/' + sec.id + '">' + esc(sec.label) + '</a><span aria-hidden="true">›</span>' +
       '<a href="#/section/' + sec.id + '/' + cat.id + '">' + esc(cat.label) + '</a></nav>' +
       '<h1>' + esc(def.title) + '</h1><p class="lede">' + esc(def.description) + '</p></header>' +
-      '<section class="panel"><div class="panel-head"><h2>Inputs</h2><div class="actions">' + presets +
+      '<div class="workspace"><section class="panel ws-inputs"><div class="panel-head"><h2>Inputs</h2><div class="actions">' + presets +
       (def.example ? '<button class="btn" id="exBtn" type="button">Load example</button>' : '') +
       '<button class="btn" id="resetBtn" type="button">Reset</button>' +
       '<button class="btn" id="uncBtn" type="button" aria-pressed="' + showUnc + '">± Uncertainties</button>' +
@@ -482,13 +580,14 @@
       '<details class="saved-runs" id="savedRuns"><summary>Saved runs</summary><div class="save-row">' +
       '<input id="saveName" type="text" placeholder="Name this run" aria-label="Name for the saved run" maxlength="80">' +
       '<button class="btn" id="saveBtn" type="button">Save run</button></div><ul id="savedList"></ul></details></section>' +
-      '<div id="output" aria-live="polite"></div>' + related + footer();
+      '<div class="ws-out"><div id="calcError" hidden></div><div id="output" aria-live="polite"></div></div></div>' +
+      '<div id="detail"></div>' + related + footer();
 
     const form = $('#form');
     const setValues = function (vals, clearUnc) {
       def.inputs.forEach(function (inp) {
         const el = form.elements[inp.id];
-        if (el && vals[inp.id] !== undefined) el.value = vals[inp.id];
+        if (el && vals[inp.id] !== undefined) { el.value = vals[inp.id]; if (inp.type === 'number') syncSlider(inp.id); }
         if (inp.type === 'number') {
           const u = form.elements['u_' + inp.id];
           if (vals['u_' + inp.id] !== undefined) u.value = vals['u_' + inp.id];
@@ -504,7 +603,8 @@
       });
       return r;
     };
-    const run = function () {
+    const run = function (live) {
+      live = live === true;
       const r = read();
       store.set('nc:v:' + def.id, r);
       const P = parseAll(def, r);
@@ -528,17 +628,52 @@
       updateUncBtn(Object.keys(unc).length);
       if (errs.length) {
         mcToken++;
-        $('#output').innerHTML = '<section class="panel"><div class="alert err" role="alert"><b>Check the inputs.</b><ul>' + errs.map(function (id) {
+        showError('<b>Check the inputs.</b><ul>' + errs.map(function (id) {
           const inp = def.inputs.find(function (i) { return i.id === id; });
           return '<li>' + esc(inp.label) + ': ' + esc(P.errors[id]) + '</li>';
-        }).join('') + '</ul></div></section>';
+        }).join('') + '</ul>');
         return;
       }
-      const out = compute(def, P.v, unc, r);
-      if (out) recordHistory(def, r, out);
+      const out = compute(def, P.v, unc, r, live);
+      if (out && !live) recordHistory(def, r, out);
     };
-    form.addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 180); });
-    form.addEventListener('change', run);
+    // Sliders move the number field and recalculate live (results and plots) once per animation frame;
+    // steps, tables and the uncertainty follow when the slider stops.
+    let frame = 0;
+    function syncSlider(name) {
+      const sl = form.querySelector('input.slider[data-for="' + name + '"]');
+      if (!sl) return;
+      const inp = def.inputs.find(function (i) { return i.id === name; }) || {};
+      const p = NC.parseUnitDetailed ? NC.parseUnitDetailed(form.elements[name].value, inp.unit) : { value: Number(form.elements[name].value) };
+      if (isFinite(p.value)) sl.value = sliderPos({ lo: +sl.getAttribute('data-lo'), hi: +sl.getAttribute('data-hi'), log: sl.getAttribute('data-log') === '1' }, p.value);
+      sl.setAttribute('aria-valuetext', form.elements[name].value + (inp.unit ? ' ' + inp.unit : ''));
+    }
+    form.addEventListener('input', function (e) {
+      const t = e.target;
+      if (t.classList.contains('slider')) {
+        const name = t.getAttribute('data-for');
+        const inp = def.inputs.find(function (i) { return i.id === name; }) || {};
+        form.elements[name].value = sliderValue(t);
+        t.setAttribute('aria-valuetext', form.elements[name].value + (inp.unit ? ' ' + inp.unit : ''));
+        clearTimeout(timer);
+        if (!frame) frame = requestAnimationFrame(function () { frame = 0; run(true); });
+        timer = setTimeout(run, 450);
+        return;
+      }
+      if (t.name && form.elements[t.name] === t && !t.classList.contains('unc')) syncSlider(t.name);
+      clearTimeout(timer); timer = setTimeout(run, 180);
+    });
+    form.addEventListener('change', function (e) {
+      if (e.target.classList.contains('slider')) { clearTimeout(timer); if (frame) { cancelAnimationFrame(frame); frame = 0; } }
+      run();
+    });
+    $('#output').addEventListener('click', function (e) {
+      const id = e.target && e.target.id;
+      if (!lastReport) return;
+      if (id === 'copyBtn') copyText(lastReport(), 'Report copied to clipboard');
+      else if (id === 'mdBtn') download('nanocalc-' + def.id + '.md', lastReport(), 'text/markdown');
+      else if (id === 'printBtn') window.print();
+    });
     if ($('#presetSel')) $('#presetSel').addEventListener('change', function (e) {
       if (e.target.value === '') return;
       const p = def.presets[+e.target.value];
@@ -620,72 +755,22 @@
     run();
   }
 
-  function collectRefIds(def, out) {
+  function collectRefIds(refs, out) {
     const ids = [];
     const add = function (r) {
-      (Array.isArray(r) ? r : r ? [r] : []).forEach(function (id) { if (ids.indexOf(id) < 0) ids.push(id); });
+      (Array.isArray(r) ? r : r ? [r] : []).forEach(function (id) { if (NC.refs[id] && ids.indexOf(id) < 0) ids.push(id); });
     };
     if (out) {
       (out.steps || []).forEach(function (s) { add(s.ref); });
       (out.results || []).forEach(function (r) { add(r.ref); });
+      add(out.refs);
     }
-    add(def.refs);
+    add(refs);
     return ids;
   }
 
-  /** Render a calculation; returns the output object, or null on error. */
-  function compute(def, v, unc, raw) {
-    const outEl = $('#output');
-    const myToken = ++mcToken;
-    let out;
-    try {
-      out = def.compute(v);
-    } catch (e) {
-      if (e instanceof NC.InputError) {
-        outEl.innerHTML = '<section class="panel"><div class="alert err" role="alert"><b>Check the inputs.</b> ' + esc(e.message) + '</div></section>';
-      } else {
-        console.error(e);
-        outEl.innerHTML = '<section class="panel"><div class="alert err" role="alert"><b>Calculation error.</b> ' + esc(e.message) + '</div></section>';
-      }
-      return null;
-    }
-    const withUnc = Object.keys(unc).length > 0;
-    const refIds = collectRefIds(def, out);
-    if (withUnc) ['jcgm101', 'jcgm100'].forEach(function (id) { if (NC.refs[id] && refIds.indexOf(id) < 0) refIds.push(id); });
-    const num = function (id) { return refIds.indexOf(id) + 1; };
-    const cite = function (r) {
-      const list = (Array.isArray(r) ? r : r ? [r] : []).filter(function (id) { return NC.refs[id]; });
-      if (!list.length) return '';
-      return '<sup class="cite">' + list.map(function (id) { return '<a href="#" data-ref="' + id + '" title="' + esc(NC.refs[id].authors + ' (' + NC.refs[id].year + ')') + '">[' + num(id) + ']</a>'; }).join('') + '</sup>';
-    };
-    const state = { mc: null };
-
-    let html = '<section class="panel"><div class="panel-head"><h2>Results</h2><div class="actions no-print">' +
-      '<button class="btn" id="copyBtn" type="button">Copy report</button><button class="btn" id="mdBtn" type="button">Download .md</button><button class="btn" id="printBtn" type="button">Print / PDF</button></div></div>';
-    if (out.warnings && out.warnings.length) html += '<div class="alert warn"><ul>' + out.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>';
-    html += '<div class="results">' + (out.results || []).map(function (r, i) {
-      const isText = typeof r.value === 'string';
-      const val = isText ? esc(r.value) : esc(NC.fmt(r.value, r.sig || 4));
-      return '<div class="result' + (r.main ? ' main' : '') + (isText ? ' text' : '') + '" data-ri="' + i + '"><div class="k">' + esc(r.label) + cite(r.ref) + '</div><div class="v">' + val + (r.unit ? '<small>' + esc(r.unit) + '</small>' : '') + '</div>' +
-        (withUnc && !isText ? '<div class="u pending">±…</div>' : '') + '</div>';
-    }).join('') + '</div>';
-
-    const figs = (out.figures || []).map(function (fg) { return '<figure class="sketch"><figcaption>' + esc(fg.title || '') + '</figcaption>' + fg.svg + '</figure>'; })
-      .concat((out.plots || []).map(function (p) { return '<figure><figcaption>' + esc(p.title || '') + '</figcaption>' + NC.plot(p) + '</figure>'; }));
-    if (figs.length) html += '<div class="plots" style="margin-top:16px">' + figs.join('') + '</div>';
-    (out.tables || []).forEach(function (t) {
-      html += '<h3>' + esc(t.title) + '</h3><div class="table-wrap"><table class="data"><thead><tr>' + t.columns.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') +
-        '</tr></thead><tbody>' + t.rows.map(function (row) { return '<tr>' + row.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
-    });
-    html += '</section>';
-
-    if (withUnc) {
-      html += '<section class="panel" id="uncPanel"><h2>Uncertainty' + cite(['jcgm101', 'jcgm100']) + '</h2>' +
-        '<p class="unc-status">Propagating input uncertainties…</p><div class="unc-body"></div>' +
-        '<p class="note">Method: Monte Carlo propagation of distributions (GUM Supplement 1). Each input with a ± value is sampled as an independent normal distribution with that standard uncertainty; the whole calculation is repeated for every trial. Each result is reported with the standard deviation of its trial values (standard uncertainty) and the 2.5th–97.5th percentile range (95 % coverage interval). Trials whose sampled inputs are outside the model’s valid range are discarded and counted. Correlations between inputs are not modelled. The step-by-step solution below uses the nominal values.</p></section>';
-    }
-
-    html += '<section class="panel"><h2>Step-by-step solution</h2><ol class="steps">' + (out.steps || []).map(function (s) {
+  function stepsHTML(steps, cite) {
+    return '<ol class="steps">' + (steps || []).map(function (s) {
       if (s.kind === 'heading') return '<li class="heading">' + esc(s.title) + '</li>';
       const box = function (cls, plain, tex) {
         if (!plain && !tex) return '';
@@ -693,36 +778,168 @@
         return '<div class="' + cls + (r.tex ? ' tex' : '') + (r.prose ? ' prose' : '') + '">' + r.html + '</div>';
       };
       return '<li class="step"><div class="step-title">' + esc(s.title) + cite(s.ref) + '</div>' +
-        box('formula', s.formula, s.tex) +
-        box('sub', s.sub, s.subTex) +
-        box('res', s.result, s.resultTex) +
+        box('formula', s.formula, s.tex) + box('sub', s.sub, s.subTex) + box('res', s.result, s.resultTex) +
         (s.note ? '<div class="note">' + esc(s.note) + '</div>' : '') + '</li>';
-    }).join('') + '</ol></section>';
+    }).join('') + '</ol>';
+  }
 
-    if (out.notes && out.notes.length) html += '<section class="panel"><h2>Assumptions & notes</h2><ul class="notes">' + out.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul></section>';
+  /* Collapsible section whose open/closed state is remembered per kind. */
+  function foldHTML(kind, title, body, openByDefault, extraAttrs) {
+    const saved = store.get('nc:fold:' + kind);
+    const open = saved === null || saved === undefined ? openByDefault : !!saved;
+    return '<details class="panel fold" data-fold="' + kind + '"' + (open ? ' open' : '') + (extraAttrs || '') + '><summary><h2>' + title + '</h2></summary>' + body + '</details>';
+  }
 
-    html += '<section class="panel"><h2>References</h2><ol class="refs">' + refIds.map(function (id) {
-      return '<li id="cite-' + id + '">' + NC.formatRef(NC.refs[id]) + '</li>';
-    }).join('') + '</ol><p class="disclaimer">Constants: CODATA 2018. Check results against the original sources before publishing them.</p></section>';
+  /**
+   * Render a calculation output (results, plots, tables, steps, notes, references) into el.
+   * ctx: { refs: [ids], detailEl: element for the slow part (default: inside el), live: true to update only
+   *        results and plots (fast, for slider drags), unc: true to show uncertainty placeholders,
+   *        actions: html for the results header, report: true }
+   * Plots become interactive with NC.plotMount when it is available, and keep their zoom across updates.
+   * Returns { refIds, cite } for the caller.
+   */
+  function renderOutput(el, out, ctx) {
+    ctx = ctx || {};
+    let st = el.__nc;
+    if (!st) {
+      st = el.__nc = { ctrls: [], sig: null };
+      el.innerHTML = '<div class="out-live"></div>' + (ctx.detailEl ? '' : '<div class="out-detail"></div>');
+    }
+    const liveEl = el.querySelector('.out-live');
+    const detailEl = ctx.detailEl || el.querySelector('.out-detail');
+    const refIds = collectRefIds(ctx.refs, out);
+    if (ctx.unc) ['jcgm101', 'jcgm100'].forEach(function (id) { if (NC.refs[id] && refIds.indexOf(id) < 0) refIds.push(id); });
+    const num = function (id) { return refIds.indexOf(id) + 1; };
+    const cite = function (r) {
+      const list = (Array.isArray(r) ? r : r ? [r] : []).filter(function (id) { return NC.refs[id]; });
+      if (!list.length) return '';
+      return '<sup class="cite">' + list.map(function (id) { return '<a href="#cite-' + id + '" data-ref="' + id + '" title="' + esc(NC.refs[id].authors + ' (' + NC.refs[id].year + ')') + '">[' + num(id) + ']</a>'; }).join('') + '</sup>';
+    };
 
-    outEl.innerHTML = html;
-    outEl.querySelectorAll('a[data-ref]').forEach(function (a) {
-      a.addEventListener('click', function (e) {
-        e.preventDefault();
-        const li = document.getElementById('cite-' + a.getAttribute('data-ref'));
-        if (!li) return;
-        li.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        li.style.background = 'var(--accent-weak)';
-        setTimeout(function () { li.style.background = ''; }, 1600);
-      });
+    /* ---- live part: warnings, results, figures and plots ---- */
+    if (!st.head) {
+      liveEl.innerHTML = '<section class="panel results-panel"><div class="panel-head"><h2>Results</h2><div class="actions no-print">' + (ctx.actions || '') + '</div></div>' +
+        '<div class="warn-slot"></div><div class="results"></div></section><div class="plots"></div>';
+      st.head = true;
+    }
+    liveEl.querySelector('.warn-slot').innerHTML = out.warnings && out.warnings.length
+      ? '<div class="alert warn"><ul>' + out.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' : '';
+    liveEl.querySelector('.results').innerHTML = (out.results || []).map(function (r, i) {
+      const isText = typeof r.value === 'string';
+      const val = isText ? esc(r.value) : esc(NC.fmt(r.value, r.sig || 4));
+      return '<div class="result' + (r.main ? ' main' : '') + (isText ? ' text' : '') + '" data-ri="' + i + '"><div class="k">' + esc(r.label) + cite(r.ref) + '</div><div class="v">' + val + (r.unit ? '<small>' + esc(r.unit) + '</small>' : '') + '</div>' +
+        (ctx.unc && !isText ? '<div class="u pending">±…</div>' : '') + '</div>';
+    }).join('');
+
+    const figs = out.figures || [], plots = out.plots || [];
+    const sig = figs.map(function (f) { return 'f:' + (f.title || ''); }).concat(plots.map(function (p) { return 'p:' + (p.title || '') + ':' + p.series.length; })).join('|');
+    const plotsEl = liveEl.querySelector('.plots');
+    const interactive = typeof NC.plotMount === 'function';
+    if (sig !== st.sig) {
+      st.ctrls.forEach(function (c) { if (c && c.destroy) c.destroy(); });
+      st.ctrls = [];
+      plotsEl.innerHTML = figs.map(function (fg, i) { return '<figure class="sketch" data-fig="' + i + '"><figcaption>' + esc(fg.title || '') + '</figcaption><div class="fig-body"></div></figure>'; }).join('') +
+        plots.map(function (p, i) { return '<figure class="plotfig" data-plot="' + i + '"><figcaption>' + esc(p.title || '') + '</figcaption><div class="plot-host"></div></figure>'; }).join('');
+      st.sig = sig;
+    }
+    figs.forEach(function (fg, i) { plotsEl.querySelector('[data-fig="' + i + '"] .fig-body').innerHTML = fg.svg; });
+    plots.forEach(function (p, i) {
+      const host = plotsEl.querySelector('[data-plot="' + i + '"] .plot-host');
+      if (!interactive) { host.innerHTML = NC.plot(p); return; }
+      if (st.ctrls[i]) st.ctrls[i].update(p);
+      else st.ctrls[i] = NC.plotMount(host, p, { key: (ctx.key || '') + ':' + i });
     });
-    const md = function () { return markdownReport(def, v, out, refIds, unc, state.mc); };
-    $('#copyBtn').addEventListener('click', function () { copyText(md(), 'Report copied to clipboard'); });
-    $('#mdBtn').addEventListener('click', function () { download('nanocalc-' + def.id + '.md', md(), 'text/markdown'); });
-    $('#printBtn').addEventListener('click', function () { window.print(); });
+    plotsEl.hidden = !(figs.length || plots.length);
 
+    /* ---- detail part: tables, uncertainty, steps, notes, references (skipped while dragging) ---- */
+    if (!ctx.live) {
+      let html = '';
+      if (out.tables && out.tables.length) {
+        html += foldHTML('tables', 'Tables', out.tables.map(function (t) {
+          return '<h3>' + esc(t.title) + '</h3><div class="table-wrap"><table class="data"><thead><tr>' + t.columns.map(function (c) { return '<th>' + esc(c) + '</th>'; }).join('') +
+            '</tr></thead><tbody>' + t.rows.map(function (row) { return '<tr>' + row.map(function (c) { return '<td>' + esc(c) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div>';
+        }).join(''), true);
+      }
+      if (ctx.unc) {
+        html += '<section class="panel" id="uncPanel"><h2>Uncertainty' + cite(['jcgm101', 'jcgm100']) + '</h2>' +
+          '<p class="unc-status">Propagating input uncertainties…</p><div class="unc-body"></div>' +
+          '<p class="note">Method: Monte Carlo propagation of distributions (GUM Supplement 1). Each input with a ± value is sampled as an independent normal distribution with that standard uncertainty; the whole calculation is repeated for every trial. Each result is reported with the standard deviation of its trial values (standard uncertainty) and the 2.5th–97.5th percentile range (95 % coverage interval). Trials whose sampled inputs are outside the model’s valid range are discarded and counted. Correlations between inputs are not modelled. The step-by-step solution below uses the nominal values.</p></section>';
+      }
+      const nSteps = (out.steps || []).filter(function (s) { return s.kind !== 'heading'; }).length;
+      html += foldHTML('steps', 'Step-by-step solution <span class="count">' + nSteps + ' steps</span>', stepsHTML(out.steps, cite), true);
+      if (out.notes && out.notes.length) html += foldHTML('notes', 'Assumptions &amp; notes', '<ul class="notes">' + out.notes.map(function (n) { return '<li>' + esc(n) + '</li>'; }).join('') + '</ul>', true);
+      html += foldHTML('refs', 'References <span class="count">' + refIds.length + '</span>', '<ol class="refs">' + refIds.map(function (id) {
+        return '<li id="cite-' + id + '">' + NC.formatRef(NC.refs[id]) + '</li>';
+      }).join('') + '</ol><p class="disclaimer">Constants: CODATA 2018. Check results against the original sources before publishing them.</p>', true);
+      detailEl.innerHTML = html;
+      detailEl.querySelectorAll('details.fold').forEach(function (d) {
+        d.addEventListener('toggle', function () { store.set('nc:fold:' + d.getAttribute('data-fold'), d.open); });
+      });
+      st.stale = false;
+    } else if (!st.stale) {
+      st.stale = true;
+      detailEl.classList.add('stale');
+    }
+    if (!ctx.live) detailEl.classList.remove('stale');
+    return { refIds: refIds, cite: cite };
+  }
+  NC.renderOutput = renderOutput;
+
+  // Printing shows every section, including collapsed ones.
+  window.addEventListener('beforeprint', function () { document.querySelectorAll('details.fold').forEach(function (d) { d.open = true; }); });
+
+  /* Citation links anywhere on the page open and highlight the reference (delegated once). */
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest ? e.target.closest('a[data-ref]') : null;
+    if (!a) return;
+    e.preventDefault();
+    const li = document.getElementById('cite-' + a.getAttribute('data-ref'));
+    if (!li) return;
+    const d = li.closest('details');
+    if (d) d.open = true;
+    li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    li.classList.add('flash');
+    setTimeout(function () { li.classList.remove('flash'); }, 1600);
+  });
+
+  /** Render a calculation into the calculator page; returns the output object, or null on error. */
+  function compute(def, v, unc, raw, live) {
+    const outEl = $('#output');
+    const myToken = ++mcToken;
+    let out;
+    try {
+      out = def.compute(v);
+    } catch (e) {
+      const msg = e instanceof NC.InputError ? '<b>Check the inputs.</b> ' : '<b>Calculation error.</b> ';
+      if (!(e instanceof NC.InputError)) console.error(e);
+      showError(msg + esc(e.message));
+      return null;
+    }
+    hideError();
+    const withUnc = !live && Object.keys(unc).length > 0;
+    const state = { mc: null };
+    const r = renderOutput(outEl, out, {
+      refs: def.refs, detailEl: $('#detail'), live: live, unc: withUnc, key: def.id,
+      actions: '<button class="btn" id="copyBtn" type="button">Copy report</button><button class="btn" id="mdBtn" type="button">Download .md</button><button class="btn" id="printBtn" type="button">Print / PDF</button>'
+    });
+    lastReport = function () { return markdownReport(def, v, out, r.refIds, unc, state.mc); };
     if (withUnc) runMonteCarlo(def, v, unc, out, myToken, state);
     return out;
+  }
+  let lastReport = null;
+  function showError(html) {
+    const box = $('#calcError');
+    if (!box) return;
+    box.innerHTML = '<div class="alert err" role="alert">' + html + '</div>';
+    box.hidden = false;
+    const o = $('#output');
+    if (o) o.classList.add('stale');
+  }
+  function hideError() {
+    const box = $('#calcError');
+    if (box) { box.hidden = true; box.innerHTML = ''; }
+    const o = $('#output');
+    if (o) o.classList.remove('stale');
   }
 
   /* ---------------- Monte Carlo (async, cancellable) ---------------- */

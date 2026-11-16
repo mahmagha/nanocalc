@@ -13,6 +13,8 @@ module.exports = function (t) {
   const placed = new Set(NC.calculators.map((c) => c.category));
   ok(NC.calculators.every((c) => NC.categories.some((g) => g.id === c.category)), 'every calculator is in a catalog group');
   ok(placed.size === NC.categories.length, 'every group is used');
-  NC.tasks.forEach((task) => ok(NC.byId[task.calc], 'home task "' + task.text + '" links to an existing calculator'));
+  const pageKeys = [].concat(...NC.sections.map((s) => (s.pages || []).map((p) => p.href)));
+  NC.tasks.forEach((task) => ok(task.href ? pageKeys.includes(task.href) : NC.byId[task.calc], 'home task "' + task.text + '" links to an existing calculator or workspace page'));
+  NC.sections.forEach((s) => (s.pages || []).forEach((p) => ok(['#/design', '#/synthesis'].includes(p.href) && p.label && p.blurb && p.key, 'section ' + s.id + ' page ' + p.label + ' is complete and routed')));
   ok(new Set(NC.calculators.map((c) => c.id)).size === NC.calculators.length, 'calculator ids are unique');
 };

@@ -2,7 +2,26 @@
 
 All notable changes to NanoCalc. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses [Semantic Versioning](https://semver.org/). It stays below 1.0.0 until the expert review in `docs/REVIEW.md` is complete.
 
-## [0.9.0] - 2026-11-16
+## [0.10.0] - 2026-11-16
+
+### Added
+- **Particle designer** (`#/design`): a spherical core with any number of shells and a ligand layer, edited with sliders and updated live. Outputs:
+  - geometry and composition of every layer (sizes, volumes, masses, atoms, fractions, density, surface area), particle concentration, and a to-scale cross-section;
+  - extinction, scattering and absorption spectra by multilayer Mie theory (Yang 2003), the molar extinction coefficient, peak and width;
+  - ligands per particle from a grafting density or footprint (alkanethiol SAM 4.67 nm⁻², Love et al. 2005), PEG mushroom or brush regime and thickness (de Gennes 1980, Alexander 1977), ligand amounts for the batch and a hydrodynamic size estimate;
+  - a build route from core to shells to ligands to purification, linked to the synthesis protocols, with the stoichiometric precursor amount for each shell;
+  - designs saved in the browser and shared by link.
+- **Synthesis protocols** (`#/synthesis`): 13 published procedures with reagents scaled to the batch (mass to weigh for every stock, hydrates handled), numbered steps with temperatures and times, safety notes, expected results, characterisation links and troubleshooting; printable and downloadable as Markdown. Values not confirmed from the paper are flagged.
+- **Live workspace** on every calculator page: inputs with sliders on the left, results and plots on the right updating while you drag; tables, steps, notes and references in collapsible sections below.
+- **Interactive plots**: hover read-out, box and wheel zoom, legend toggles, log axes, "keep curves" for comparison while inputs change, an edit panel for limits and labels, and PNG, SVG and CSV export. Zoom and settings survive recalculation.
+- Site organised around three jobs on the home page and in the navigation: Design, Make, Characterise.
+- 20 new references, all verified in Crossref.
+
+### Changed
+- Single-sphere Mie: the downward recurrence starts further above |mx|, improving agreement with miepython from 1.8 × 10⁻⁸ to 2.5 × 10⁻¹¹.
+- `make verify-refs` ignores markup in Crossref titles (e.g. MFe<sub>2</sub>O<sub>4</sub>).
+
+
 
 ### Added
 - **t-plot** calculator (Lippens & de Boer 1965): micropore volume and external surface area, with Harkins–Jura or Halsey thickness curves.

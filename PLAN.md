@@ -219,3 +219,57 @@ Rules as in Plan 2: every equation and constant is cited, nothing is included un
 - Checking the empirical relations (Yu 2003, Haiss 2007, Cançado, Ohshima) against the papers' own data tables
 - Measured n, k data for quantitative plasmonics
 - Testing on real Firefox and Safari, and with real screen-reader users
+
+---
+
+# Plan 4: a workspace you can design and build with (2026-11-16)
+
+**Why.** The calculators work, but using them feels like filling in a form: no sliders, static plots, a long stacked page, no lab procedures, and no way to design a layered particle. This plan turns NanoCalc into a workspace.
+
+Decisions (from the user): live-workspace layout; full cited lab protocols scaled to the batch; a designer for core + shells + ligands with geometry, optical spectrum, ligands and a synthesis route.
+
+**Status:** all items done (2026-11-16).
+
+Rules as before: every equation, constant and procedure is cited; nothing is included unless it is certain (a quantity not certain from the paper says "see the original"); every new result is tested. Each workstream owns its files so agents can work in parallel.
+
+## A. Interactive plots [`js/plot.js`, `css/plot.css`, `tests/plot.test.js`] (agent)
+- ☑ `NC.plot(spec)` stays a static SVG (print, reports, tests)
+- ☑ `NC.plotMount(el, spec)` makes it interactive and returns `{ update(spec), destroy() }`, so sliders redraw it without losing zoom or settings
+- ☑ Hover read-out of the nearest point(s) with crosshair; drag-box zoom, wheel zoom, double-click to reset; click a legend entry to hide or show a series
+- ☑ Toolbar: reset, log x / log y (when the data allow), "keep curve" to freeze the current curves for comparison while inputs change, clear kept curves
+- ☑ Edit panel: axis limits, axis labels and title, markers/lines
+- ☑ Export PNG, SVG and CSV of the plotted data
+- ☑ Keyboard and screen-reader accessible; works by touch
+
+## B. Synthesis protocols [`js/protocols.js`, `js/protocols-view.js`, `css/protocols.css`, `tests/protocols.test.js`] (agent)
+- ☑ Library of published procedures, each from its original paper (cited, with DOI): citrate Au (Turkevich/Frens), citrate Ag (Lee–Meisel), seed-mediated Au nanorods (Nikoobakht & El-Sayed), two-phase thiol-capped Au (Brust–Schiffrin), Stöber silica, silica shells on Au (Liz-Marzán), Fe₃O₄ by thermal decomposition (Sun) and co-precipitation (Massart), CdSe from CdO (Peng & Peng), ZnS shells (SILAR, Li et al.), thiol-PEG and other ligand exchange, purification
+- ☑ Each protocol: what it makes and the size range; reagents table (formula, molar mass, stock concentration, amount); equipment; numbered steps with temperature and time; critical points; safety (hazards of every reagent, waste); expected result (colour, λ_max, size); characterisation checks linked to NanoCalc calculators; how to tune the size; troubleshooting
+- ☑ Batch scaling: choose the final volume and every amount (and the mass to weigh for each stock) is recalculated
+- ☑ Lookup `NC.protocolsFor(role, material)` so the designer can build a route
+- ☑ Synthesis pages: index by material and role, one page per protocol, printable
+
+## C. Layered particle designer [`js/designer.js`, `js/designer-view.js`, `css/designer.css`, `tests/designer.test.js`] (agent)
+- ☑ Spherical core plus any number of concentric shells; each layer: material (NanoCalc presets or custom density/molar mass), size or thickness with sliders, optical model; then a ligand shell and a medium
+- ☑ Geometry and composition: radius of every interface, layer volumes, masses, atoms or formula units, mass and volume fractions, effective density, surface area and SSA, particle concentration from mass concentration; a to-scale cross-section drawing
+- ☑ Optical spectrum: multilayer Mie theory (Yang 2003) for extinction, scattering and absorption cross-sections and efficiencies, molar extinction coefficient, peak and width; cross-checked against single-sphere Mie (bhmie) and an independent coated-sphere code (Bohren–Huffman bhcoat)
+- ☑ Ligands and surface: ligands per particle from footprint or grafting density, ligand mass, shell thickness (PEG mushroom/brush), hydrodynamic diameter estimate, ligand amount needed for a batch
+- ☑ Synthesis route: ordered build plan (core → each shell → ligands → purification), the matching protocol for each step, and the precursor amount for each shell from a mass balance for the batch
+- ☑ Every output has its steps and citations; designs saved and shared by link
+
+## D. Live workspace [`js/app.js`, `css/styles.css`, `js/core.js`] (main session)
+- ☑ Two-column calculator page on wide screens: inputs (sticky) left, results and interactive plots right; steps, notes and references collapsible below; one column on phones
+- ☑ Sliders beside every number field (log scale when the range spans decades; per-input ranges where they matter) with live recalculation while dragging; uncertainty propagation runs when dragging stops
+- ☑ Results output reusable by the designer (`NC.renderOutput`)
+
+## E. Structure and integration (main session)
+- ☑ Home and navigation reorganised around three jobs: Design (designer, builder), Make (synthesis protocols, lab calculators), Characterise (analysis calculators)
+- ☑ Register files, routes (`#/design`, `#/synthesis`, `#/synthesis/<id>`), verify new references, tests, browser check at desktop and phone width, docs, release
+
+## Plan 4 verification record (2026-11-16)
+
+- `node tests/run-tests.js`: 5795 passed, 0 failed; 58 calculators, 133 references (20 new, all verified in Crossref)
+- Designer: multilayer Mie agrees with bhmie (≤ 5 × 10⁻¹⁶), miepython (2.5 × 10⁻¹¹), bhcoat (1.1 × 10⁻¹⁰) and an independent transfer-matrix solver (2.8 × 10⁻¹¹); geometry matches the nanoparticle builder to 10⁻⁹
+- Protocols: 889 checks (molar masses from formulas incl. hydrates, scaling, mass to weigh, links to calculators)
+- Browser: all 58 calculators load their examples in the new workspace with no errors (313 sliders, 39 interactive plots); a slider frame recalculates in 12–31 ms (Mie) and the full update after release in about 56 ms; designer and protocol pages have no horizontal overflow at 375 px; a shared designer link restores a three-layer design
+- Corrections during integration: Li et al. 2003 is a CdS (not ZnS) shell, so Dabbousi et al. 1997 was added for ZnS; seven library entries duplicated new protocol citations and now link to them; designer links stored nested designs as "[object Object]" (now JSON); a long equation result widened the page (now capped)
+- Not covered: optical constants for Fe₃O₄, CdSe and ZnS are not built in (no certain source), so those layers need user n, k for a spectrum; the Drude models for Au and Ag are qualitative; visual look and dark mode of the designer were checked only through the DOM

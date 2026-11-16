@@ -10,11 +10,15 @@
   'use strict';
   const NC = global.NC;
 
+  // Sections follow the three jobs: design a particle, make it, characterise it (plus reference data).
+  // A section's "pages" are full workspaces (not calculators) listed first in the navigation.
   NC.sections = [
-    { id: 'design', label: 'Design & properties', blurb: 'Build a nanoparticle and predict its size-dependent properties.' },
-    { id: 'synthesis', label: 'Synthesis & lab', blurb: 'Plan a synthesis: precursor amounts, dilutions, growth and yield.' },
-    { id: 'characterization', label: 'Characterization', blurb: 'Turn measurements into results, organised by technique.' },
-    { id: 'tools', label: 'Data & reference', blurb: 'Process raw spectra and look up the material data the calculators use.' }
+    { id: 'design', label: 'Design', verb: 'Design a nanoparticle', blurb: 'Design a particle layer by layer (core, shells, ligands) and predict its size, composition, optical spectrum and size-dependent properties.',
+      pages: [{ key: 'design', href: '#/design', label: 'Particle designer', blurb: 'Core + any number of shells + ligands: geometry, composition, optical spectrum (multilayer Mie), ligand counts and a step-by-step build plan.' }] },
+    { id: 'synthesis', label: 'Make', verb: 'Make it in the lab', blurb: 'Step-by-step synthesis protocols from the literature, scaled to your batch, and the lab calculations around them.',
+      pages: [{ key: 'synthesis', href: '#/synthesis', label: 'Synthesis protocols', blurb: 'Published procedures for cores, shells and ligand exchange: reagents scaled to your batch, steps, safety, expected results and checks.' }] },
+    { id: 'characterization', label: 'Characterise', verb: 'Characterise what you made', blurb: 'Turn measurements into results, organised by technique.' },
+    { id: 'tools', label: 'Data & reference', verb: 'Look up data', blurb: 'Process raw spectra and look up the material data the calculators use.' }
   ];
 
   /* Groups: id, section, label, short (sidebar), blurb, aliases (extra search words), calcs (ordered). */
@@ -44,6 +48,8 @@
 
   /* "What do you want to do?" shortcuts on the home page. */
   NC.tasks = [
+    { href: '#/design', text: 'Design a core–shell particle with ligands', where: 'Particle designer' },
+    { href: '#/synthesis', text: 'Follow a synthesis protocol', where: 'Synthesis protocols' },
     { calc: 'scherrer', text: 'Crystallite size from an XRD peak' },
     { calc: 'tauc', text: 'Band gap from a UV-vis spectrum' },
     { calc: 'psd', text: 'Size statistics from TEM images' },
@@ -51,7 +57,7 @@
     { calc: 'bet', text: 'Surface area from an N₂ isotherm' },
     { calc: 'haiss', text: 'Gold nanoparticle size from UV-vis' },
     { calc: 'qdyu', text: 'Quantum-dot size from the absorption peak' },
-    { calc: 'nanoparticle', text: 'Design a nanoparticle (atoms, surface area)' },
+    { calc: 'nanoparticle', text: 'Atoms and surface area of any shape' },
     { calc: 'zeta', text: 'Zeta potential from mobility' },
     { calc: 'solution', text: 'Precursor mass for a synthesis' },
     { calc: 'icp2n', text: 'Particle number from ICP-MS' },

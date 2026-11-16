@@ -10,7 +10,7 @@
 
   const NC = (global.NC = global.NC || {});
   /** App version; keep in step with package.json and CHANGELOG.md (checked by tools/lint.js). */
-  NC.version = '0.9.0';
+  NC.version = '0.10.0';
 
   /* ------------------------------------------------------------------ */
   /* Registry                                                            */

@@ -3,6 +3,18 @@
  "tool": "tools/verify-refs.js",
  "sets": {
   "app": {
+   "codata2018": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1103/RevModPhys.93.025010",
+    "score": 1,
+    "year": 2021,
+    "issues": [],
+    "warnings": [],
+    "title": "CODATA recommended values of the fundamental physical constants: 2018",
+    "journal": "Reviews of Modern Physics",
+    "volume": "93"
+   },
    "ciaaw2021": {
     "status": "verified",
     "via": "crossref-doi",
@@ -16,24 +28,12 @@
     "volume": "94",
     "page": "573-600"
    },
-   "crc": {
+   "iupacGreen": {
     "status": "verified",
     "via": "openlibrary",
-    "title": "Crc Handbook of Chemistry and Physics",
-    "year": 2016,
+    "title": "Quantities, units and symbols in physical chemistry",
+    "year": 2007,
     "warnings": []
-   },
-   "codata2018": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1103/RevModPhys.93.025010",
-    "score": 1,
-    "year": 2021,
-    "issues": [],
-    "warnings": [],
-    "title": "CODATA recommended values of the fundamental physical constants: 2018",
-    "journal": "Reviews of Modern Physics",
-    "volume": "93"
    },
    "madelung2004": {
     "status": "verified",
@@ -45,11 +45,11 @@
     "warnings": [],
     "title": "Semiconductors: Data Handbook"
    },
-   "iupacGreen": {
+   "kittel2005": {
     "status": "verified",
     "via": "openlibrary",
-    "title": "Quantities, units and symbols in physical chemistry",
-    "year": 2007,
+    "title": "Introduction to solid state physics",
+    "year": 1953,
     "warnings": []
    },
    "brus1984": {
@@ -65,19 +65,6 @@
     "volume": "80",
     "page": "4403-4409"
    },
-   "roduner2006": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1039/b502142c",
-    "score": 1,
-    "year": 2006,
-    "issues": [],
-    "warnings": [],
-    "title": "Size matters: why nanomaterials are different",
-    "journal": "Chemical Society Reviews",
-    "volume": "35",
-    "page": "583"
-   },
    "pawlow1909": {
     "status": "verified",
     "via": "crossref-doi",
@@ -91,31 +78,31 @@
     "volume": "65U",
     "page": "1-35"
    },
-   "buffat1976": {
+   "xia2009": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1103/PhysRevA.13.2287",
+    "doi": "10.1002/anie.200802248",
     "score": 1,
-    "year": 1976,
+    "year": 2009,
     "issues": [],
     "warnings": [],
-    "title": "Size effect on the melting temperature of gold particles",
-    "journal": "Physical Review A",
-    "volume": "13",
-    "page": "2287-2298"
+    "title": "Shape‐Controlled Synthesis of Metal Nanocrystals: Simple Chemistry Meets Complex Physics?",
+    "journal": "Angewandte Chemie International Edition",
+    "volume": "48",
+    "page": "60-103"
    },
-   "marks2016": {
+   "roduner2006": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1088/0953-8984/28/5/053001",
+    "doi": "10.1039/b502142c",
     "score": 1,
-    "year": 2016,
+    "year": 2006,
     "issues": [],
     "warnings": [],
-    "title": "Nanoparticle shape, thermodynamics and kinetics",
-    "journal": "Journal of Physics: Condensed Matter",
-    "volume": "28",
-    "page": "053001"
+    "title": "Size matters: why nanomaterials are different",
+    "journal": "Chemical Society Reviews",
+    "volume": "35",
+    "page": "583"
    },
    "chaudhuri2012": {
     "status": "verified",
@@ -143,6 +130,26 @@
     "volume": "41",
     "page": "1587-1595"
    },
+   "marks2016": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1088/0953-8984/28/5/053001",
+    "score": 1,
+    "year": 2016,
+    "issues": [],
+    "warnings": [],
+    "title": "Nanoparticle shape, thermodynamics and kinetics",
+    "journal": "Journal of Physics: Condensed Matter",
+    "volume": "28",
+    "page": "053001"
+   },
+   "crc": {
+    "status": "verified",
+    "via": "openlibrary",
+    "title": "Crc Handbook of Chemistry and Physics",
+    "year": 2016,
+    "warnings": []
+   },
    "wadell1935": {
     "status": "verified",
     "via": "crossref-doi",
@@ -155,6 +162,19 @@
     "journal": "The Journal of Geology",
     "volume": "43",
     "page": "250-280"
+   },
+   "jorio2001": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1103/PhysRevLett.86.1118",
+    "score": 1,
+    "year": 2001,
+    "issues": [],
+    "warnings": [],
+    "title": "Structural (n,m) Determination of Isolated Single-Wall Carbon Nanotubes by Resonant Raman Scattering",
+    "journal": "Physical Review Letters",
+    "volume": "86",
+    "page": "1118-1121"
    },
    "saito1998": {
     "status": "verified",
@@ -171,26 +191,6 @@
     "via": "openlibrary",
     "title": "Regular polytopes",
     "year": 1948,
-    "warnings": []
-   },
-   "swinehart1962": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1021/ed039p333",
-    "score": 1,
-    "year": 1962,
-    "issues": [],
-    "warnings": [],
-    "title": "The Beer-Lambert Law",
-    "journal": "Journal of Chemical Education",
-    "volume": "39",
-    "page": "333"
-   },
-   "kittel2005": {
-    "status": "verified",
-    "via": "openlibrary",
-    "title": "Introduction to solid state physics",
-    "year": 1953,
     "warnings": []
    },
    "bragg1913": {
@@ -210,27 +210,44 @@
     "status": "verified",
     "via": "crossref-doi",
     "doi": "10.1103/PhysRevA.56.4554",
-    "score": 1,
+    "score": 0.8,
     "year": 1997,
     "issues": [],
     "warnings": [],
-    "title": "<mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mml:mi>K</mml:mi><mml:mrow><mml:msub><mml:mrow><mml:mi>α</mml:mi></mml:mrow><mml:mrow><mml:mn>1</mml:mn><mml:mo>,</mml:mo><mml:mn>2</mml:mn></mml:mrow></mml:msub></mml:mrow></mml:math>and<mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mml:mi>K</mml:mi><mml:mrow><mml:msub><mml:mrow><mml:mi>β</mml:mi></mml:mrow><mml:mrow><mml:mn>1</mml:mn><mml:mo>,</mml:mo><mml:mn>3</mml:mn></mml:mrow></mml:msub></mml:mrow></mml:math>x-ray emission lines of the<mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mml:mn>3</mml:mn><mml:mi>d</mml:mi></mml:math>transition metals",
+    "title": "Kα1,2andKβ1,3x-ray emission lines of the3dtransition metals",
     "journal": "Physical Review A",
     "volume": "56",
     "page": "4554-4568"
    },
-   "xia2009": {
+   "swinehart1962": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1002/anie.200802248",
+    "doi": "10.1021/ed039p333",
     "score": 1,
-    "year": 2009,
+    "year": 1962,
     "issues": [],
     "warnings": [],
-    "title": "Shape‐Controlled Synthesis of Metal Nanocrystals: Simple Chemistry Meets Complex Physics?",
-    "journal": "Angewandte Chemie International Edition",
-    "volume": "48",
-    "page": "60-103"
+    "title": "The Beer-Lambert Law",
+    "journal": "Journal of Chemical Education",
+    "volume": "39",
+    "page": "333"
+   },
+   "itcC2004": {
+    "status": "not-found",
+    "note": "no strong match in Crossref or Open Library (older or non-indexed works may be genuine)"
+   },
+   "patterson1939": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1103/PhysRev.56.978",
+    "score": 1,
+    "year": 1939,
+    "issues": [],
+    "warnings": [],
+    "title": "The Scherrer Formula for X-Ray Particle Size Determination",
+    "journal": "Physical Review",
+    "volume": "56",
+    "page": "978-982"
    },
    "cullity2001": {
     "status": "verified",
@@ -238,10 +255,6 @@
     "title": "Elements of X-ray diffraction",
     "year": 1956,
     "warnings": []
-   },
-   "itcC2004": {
-    "status": "not-found",
-    "note": "no strong match in Crossref or Open Library (older or non-indexed works may be genuine)"
    },
    "langford1978": {
     "status": "verified",
@@ -269,22 +282,18 @@
     "volume": "13",
     "page": "7359-7365"
    },
-   "patterson1939": {
+   "williamson1953": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1103/PhysRev.56.978",
+    "doi": "10.1016/0001-6160(53)90006-6",
     "score": 1,
-    "year": 1939,
+    "year": 1953,
     "issues": [],
     "warnings": [],
-    "title": "The Scherrer Formula for X-Ray Particle Size Determination",
-    "journal": "Physical Review",
-    "volume": "56",
-    "page": "978-982"
-   },
-   "scherrer1918": {
-    "status": "not-found",
-    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
+    "title": "X-ray line broadening from filed aluminium and wolfram",
+    "journal": "Acta Metallurgica",
+    "volume": "1",
+    "page": "22-31"
    },
    "tauc1966": {
     "status": "verified",
@@ -325,31 +334,18 @@
     "volume": "15",
     "page": "2854-2860"
    },
-   "jasieniak2009": {
+   "buffat1976": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1021/jp906827m",
+    "doi": "10.1103/PhysRevA.13.2287",
     "score": 1,
-    "year": 2009,
+    "year": 1976,
     "issues": [],
     "warnings": [],
-    "title": "Re-examination of the Size-Dependent Absorption Properties of CdSe Quantum Dots",
-    "journal": "The Journal of Physical Chemistry C",
-    "volume": "113",
-    "page": "19468-19474"
-   },
-   "jorio2001": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1103/PhysRevLett.86.1118",
-    "score": 1,
-    "year": 2001,
-    "issues": [],
-    "warnings": [],
-    "title": "Structural (<mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" display=\"inline\"><mml:mi mathvariant=\"italic\">n</mml:mi><mml:mo>,</mml:mo><mml:mi/><mml:mi mathvariant=\"italic\">m</mml:mi></mml:math>) Determination of Isolated Single-Wall Carbon Nanotubes by Resonant Raman Scattering",
-    "journal": "Physical Review Letters",
-    "volume": "86",
-    "page": "1118-1121"
+    "title": "Size effect on the melting temperature of gold particles",
+    "journal": "Physical Review A",
+    "volume": "13",
+    "page": "2287-2298"
    },
    "haiss2007": {
     "status": "verified",
@@ -364,6 +360,27 @@
     "volume": "79",
     "page": "4215-4221"
    },
+   "jasieniak2009": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/jp906827m",
+    "score": 1,
+    "year": 2009,
+    "issues": [],
+    "warnings": [],
+    "title": "Re-examination of the Size-Dependent Absorption Properties of CdSe Quantum Dots",
+    "journal": "The Journal of Physical Chemistry C",
+    "volume": "113",
+    "page": "19468-19474"
+   },
+   "kubelka1931": {
+    "status": "not-found",
+    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
+   },
+   "iso22412": {
+    "status": "not-checkable",
+    "note": "standard or guide: check against the issuing body's catalogue"
+   },
    "einstein1905": {
     "status": "verified",
     "via": "crossref-doi",
@@ -377,13 +394,22 @@
     "volume": "322",
     "page": "549-560"
    },
-   "iso22412": {
-    "status": "not-checkable",
-    "note": "standard or guide: check against the issuing body's catalogue"
-   },
-   "kubelka1931": {
+   "scherrer1918": {
     "status": "not-found",
     "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
+   },
+   "huber2009": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1063/1.3088050",
+    "score": 1,
+    "year": 2009,
+    "issues": [],
+    "warnings": [],
+    "title": "New International Formulation for the Viscosity of H2O",
+    "journal": "Journal of Physical and Chemical Reference Data",
+    "volume": "38",
+    "page": "101-125"
    },
    "malmberg1956": {
     "status": "verified",
@@ -424,32 +450,18 @@
     "volume": "168",
     "page": "269-271"
    },
-   "williamson1953": {
+   "bet1938": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1016/0001-6160(53)90006-6",
+    "doi": "10.1021/ja01269a023",
     "score": 1,
-    "year": 1953,
+    "year": 1938,
     "issues": [],
     "warnings": [],
-    "title": "X-ray line broadening from filed aluminium and wolfram",
-    "journal": "Acta Metallurgica",
-    "volume": "1",
-    "page": "22-31"
-   },
-   "hunter1981": {
-    "status": "verified",
-    "via": "openlibrary",
-    "title": "Zeta Potential in Colloid Science",
-    "year": 1981,
-    "warnings": []
-   },
-   "berne1976": {
-    "status": "verified",
-    "via": "openlibrary",
-    "title": "Dynamic light scattering",
-    "year": 1976,
-    "warnings": []
+    "title": "Adsorption of Gases in Multimolecular Layers",
+    "journal": "Journal of the American Chemical Society",
+    "volume": "60",
+    "page": "309-319"
    },
    "israelachvili2011": {
     "status": "verified",
@@ -457,10 +469,6 @@
     "title": "Intermolecular and surface forces",
     "year": 1985,
     "warnings": []
-   },
-   "rouquerol2007": {
-    "status": "not-found",
-    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
    },
    "thommes2015": {
     "status": "verified",
@@ -475,29 +483,16 @@
     "volume": "87",
     "page": "1051-1069"
    },
-   "lowell2004": {
+   "hunter1981": {
     "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1007/978-1-4020-2303-3",
-    "score": 1,
-    "year": 2004,
-    "issues": [],
-    "warnings": [],
-    "title": "Characterization of Porous Solids and Powders: Surface Area, Pore Size and Density",
-    "journal": "Particle Technology Series"
+    "via": "openlibrary",
+    "title": "Zeta Potential in Colloid Science",
+    "year": 1981,
+    "warnings": []
    },
-   "thomson1871": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1080/14786447108640606",
-    "score": 1,
-    "year": 1871,
-    "issues": [],
-    "warnings": [],
-    "title": "LX. <i>On the equilibrium of vapour at a curved surface of liquid</i>",
-    "journal": "The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science",
-    "volume": "42",
-    "page": "448-452"
+   "rouquerol2007": {
+    "status": "not-found",
+    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
    },
    "bjh1951": {
     "status": "verified",
@@ -511,6 +506,17 @@
     "journal": "Journal of the American Chemical Society",
     "volume": "73",
     "page": "373-380"
+   },
+   "lowell2004": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1007/978-1-4020-2303-3",
+    "score": 1,
+    "year": 2004,
+    "issues": [],
+    "warnings": [],
+    "title": "Characterization of Porous Solids and Powders: Surface Area, Pore Size and Density",
+    "journal": "Particle Technology Series"
    },
    "iso9276": {
     "status": "not-checkable",
@@ -627,26 +633,6 @@
     "status": "not-checkable",
     "note": "standard or guide: check against the issuing body's catalogue"
    },
-   "bet1938": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1021/ja01269a023",
-    "score": 1,
-    "year": 1938,
-    "issues": [],
-    "warnings": [],
-    "title": "Adsorption of Gases in Multimolecular Layers",
-    "journal": "Journal of the American Chemical Society",
-    "volume": "60",
-    "page": "309-319"
-   },
-   "schneider2014": {
-    "status": "verified",
-    "via": "openlibrary",
-    "title": "Convex Bodies",
-    "year": 2008,
-    "warnings": []
-   },
    "mansfield2014": {
     "status": "verified",
     "via": "crossref-doi",
@@ -660,35 +646,43 @@
     "volume": "86",
     "page": "1478-1484"
    },
-   "hamaker1937": {
+   "thomson1871": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1016/s0031-8914(37)80203-7",
+    "doi": "10.1080/14786447108640606",
     "score": 1,
-    "year": 1937,
+    "year": 1871,
     "issues": [],
     "warnings": [],
-    "title": "The London—van der Waals attraction between spherical particles",
-    "journal": "Physica",
-    "volume": "4",
-    "page": "1058-1072"
+    "title": "LX. On the equilibrium of vapour at a curved surface of liquid",
+    "journal": "The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science",
+    "volume": "42",
+    "page": "448-452"
    },
-   "huber2009": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1063/1.3088050",
-    "score": 1,
-    "year": 2009,
-    "issues": [],
-    "warnings": [],
-    "title": "New International Formulation for the Viscosity of H2O",
-    "journal": "Journal of Physical and Chemical Reference Data",
-    "volume": "38",
-    "page": "101-125"
-   },
-   "stokes1851": {
+   "derjaguin1941": {
     "status": "not-found",
     "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
+   },
+   "schneider2014": {
+    "status": "verified",
+    "via": "openlibrary",
+    "title": "Convex Bodies",
+    "year": 2008,
+    "warnings": []
+   },
+   "berne1976": {
+    "status": "verified",
+    "via": "openlibrary",
+    "title": "Dynamic light scattering",
+    "year": 1976,
+    "warnings": []
+   },
+   "verwey1948": {
+    "status": "verified",
+    "via": "openlibrary",
+    "title": "Theory of the stability of lyophobic colloids",
+    "year": 1948,
+    "warnings": []
    },
    "lamer1950": {
     "status": "verified",
@@ -703,10 +697,6 @@
     "volume": "72",
     "page": "4847-4854"
    },
-   "derjaguin1941": {
-    "status": "not-found",
-    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
-   },
    "thanh2014": {
     "status": "verified",
     "via": "crossref-doi",
@@ -719,6 +709,10 @@
     "journal": "Chemical Reviews",
     "volume": "114",
     "page": "7610-7630"
+   },
+   "stokes1851": {
+    "status": "not-found",
+    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
    },
    "wagner1961": {
     "status": "verified",
@@ -745,6 +739,19 @@
     "journal": "Langmuir",
     "volume": "17",
     "page": "6782-6786"
+   },
+   "hamaker1937": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1016/s0031-8914(37)80203-7",
+    "score": 1,
+    "year": 1937,
+    "issues": [],
+    "warnings": [],
+    "title": "The London—van der Waals attraction between spherical particles",
+    "journal": "Physica",
+    "volume": "4",
+    "page": "1058-1072"
    },
    "bastus2011": {
     "status": "verified",
@@ -837,19 +844,6 @@
     "volume": "7",
     "page": "519-525"
    },
-   "hubbard1988": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1017/s0885715600013257",
-    "score": 1,
-    "year": 1988,
-    "issues": [],
-    "warnings": [],
-    "title": "RIR - Measurement and Use in Quantitative XRD",
-    "journal": "Powder Diffraction",
-    "volume": "3",
-    "page": "74-77"
-   },
    "lifshitz1961": {
     "status": "verified",
     "via": "crossref-doi",
@@ -863,6 +857,19 @@
     "volume": "19",
     "page": "35-50"
    },
+   "hubbard1988": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1017/s0885715600013257",
+    "score": 1,
+    "year": 1988,
+    "issues": [],
+    "warnings": [],
+    "title": "RIR - Measurement and Use in Quantitative XRD",
+    "journal": "Powder Diffraction",
+    "volume": "3",
+    "page": "74-77"
+   },
    "klug1974": {
     "status": "verified",
     "via": "openlibrary",
@@ -870,12 +877,18 @@
     "year": 1954,
     "warnings": []
    },
-   "verwey1948": {
+   "mie1908": {
     "status": "verified",
-    "via": "openlibrary",
-    "title": "Theory of the stability of lyophobic colloids",
-    "year": 1948,
-    "warnings": []
+    "via": "crossref-doi",
+    "doi": "10.1002/andp.19083300302",
+    "score": 1,
+    "year": 1908,
+    "issues": [],
+    "warnings": [],
+    "title": "Beiträge zur Optik trüber Medien, speziell kolloidaler Metallösungen",
+    "journal": "Annalen der Physik",
+    "volume": "330",
+    "page": "377-445"
    },
    "williams2009": {
     "status": "verified",
@@ -908,12 +921,18 @@
     "title": "Optical Properties of Metal Clusters",
     "journal": "Springer Series in Materials Science"
    },
-   "bohren1983": {
+   "teeguarden2007": {
     "status": "verified",
-    "via": "openlibrary",
-    "title": "Absorption and Scattering of Light by Small Particles",
+    "via": "crossref-doi",
+    "doi": "10.1093/toxsci/kfl165",
+    "score": 1,
     "year": 2007,
-    "warnings": []
+    "issues": [],
+    "warnings": [],
+    "title": "Particokinetics In Vitro: Dosimetry Considerations for In Vitro Nanoparticle Toxicity Assessments",
+    "journal": "Toxicological Sciences",
+    "volume": "95",
+    "page": "300-312"
    },
    "brouwer2011": {
     "status": "verified",
@@ -928,6 +947,13 @@
     "volume": "83",
     "page": "2213-2228"
    },
+   "ashcroft1976": {
+    "status": "verified",
+    "via": "openlibrary",
+    "title": "Solid state physics",
+    "year": 1976,
+    "warnings": []
+   },
    "urbach1953": {
     "status": "verified",
     "via": "crossref-doi",
@@ -941,36 +967,25 @@
     "volume": "92",
     "page": "1324-1324"
    },
-   "ashcroft1976": {
-    "status": "verified",
-    "via": "openlibrary",
-    "title": "Solid state physics",
-    "year": 1976,
-    "warnings": []
-   },
-   "porod1951": {
-    "status": "not-found",
-    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
-   },
-   "teeguarden2007": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1093/toxsci/kfl165",
-    "score": 1,
-    "year": 2007,
-    "issues": [],
-    "warnings": [],
-    "title": "Particokinetics In Vitro: Dosimetry Considerations for In Vitro Nanoparticle Toxicity Assessments",
-    "journal": "Toxicological Sciences",
-    "volume": "95",
-    "page": "300-312"
-   },
    "guinier1955": {
     "status": "verified",
     "via": "openlibrary",
     "title": "Small-angle scattering of X-rays",
     "year": 1955,
     "warnings": []
+   },
+   "koppel1972": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1063/1.1678153",
+    "score": 1,
+    "year": 1972,
+    "issues": [],
+    "warnings": [],
+    "title": "Analysis of Macromolecular Polydispersity in Intensity Correlation Spectroscopy: The Method of Cumulants",
+    "journal": "The Journal of Chemical Physics",
+    "volume": "57",
+    "page": "4814-4820"
    },
    "frisken2001": {
     "status": "verified",
@@ -985,18 +1000,12 @@
     "volume": "40",
     "page": "4087"
    },
-   "filipe2010": {
+   "bohren1983": {
     "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1007/s11095-010-0073-2",
-    "score": 1,
-    "year": 2010,
-    "issues": [],
-    "warnings": [],
-    "title": "Critical Evaluation of Nanoparticle Tracking Analysis (NTA) by NanoSight for the Measurement of Nanoparticles and Protein Aggregates",
-    "journal": "Pharmaceutical Research",
-    "volume": "27",
-    "page": "796-810"
+    "via": "openlibrary",
+    "title": "Absorption and Scattering of Light by Small Particles",
+    "year": 2007,
+    "warnings": []
    },
    "qian1991": {
     "status": "verified",
@@ -1011,38 +1020,22 @@
     "volume": "60",
     "page": "910-921"
    },
-   "lippens1965": {
+   "filipe2010": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1016/0021-9517(65)90307-6",
+    "doi": "10.1007/s11095-010-0073-2",
     "score": 1,
-    "year": 1965,
+    "year": 2010,
     "issues": [],
     "warnings": [],
-    "title": "Studies on pore systems in catalysts V. The t method",
-    "journal": "Journal of Catalysis",
-    "volume": "4",
-    "page": "319-323"
+    "title": "Critical Evaluation of Nanoparticle Tracking Analysis (NTA) by NanoSight for the Measurement of Nanoparticles and Protein Aggregates",
+    "journal": "Pharmaceutical Research",
+    "volume": "27",
+    "page": "796-810"
    },
-   "halsey1948": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1063/1.1746689",
-    "score": 1,
-    "year": 1948,
-    "issues": [],
-    "warnings": [],
-    "title": "Physical Adsorption on Non-Uniform Surfaces",
-    "journal": "The Journal of Chemical Physics",
-    "volume": "16",
-    "page": "931-937"
-   },
-   "glatter1982": {
-    "status": "verified",
-    "via": "openlibrary",
-    "title": "Small angle x-ray scattering",
-    "year": 1982,
-    "warnings": []
+   "porod1951": {
+    "status": "not-found",
+    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
    },
    "iacomi2019": {
     "status": "verified",
@@ -1109,9 +1102,28 @@
     "volume": "30",
     "page": "S120-S129"
    },
-   "neel1949": {
-    "status": "not-found",
-    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
+   "lippens1965": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1016/0021-9517(65)90307-6",
+    "score": 1,
+    "year": 1965,
+    "issues": [],
+    "warnings": [],
+    "title": "Studies on pore systems in catalysts V. The t method",
+    "journal": "Journal of Catalysis",
+    "volume": "4",
+    "page": "319-323"
+   },
+   "cullity2009": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1002/9780470386323",
+    "score": 1,
+    "year": 2008,
+    "issues": [],
+    "warnings": [],
+    "title": "Introduction to Magnetic Materials"
    },
    "trasatti1991": {
     "status": "verified",
@@ -1139,6 +1151,19 @@
     "volume": "95",
     "page": "661-666"
    },
+   "halsey1948": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1063/1.1746689",
+    "score": 1,
+    "year": 1948,
+    "issues": [],
+    "warnings": [],
+    "title": "Physical Adsorption on Non-Uniform Surfaces",
+    "journal": "The Journal of Chemical Physics",
+    "volume": "16",
+    "page": "931-937"
+   },
    "savitzky1964": {
     "status": "verified",
     "via": "crossref-doi",
@@ -1152,41 +1177,9 @@
     "volume": "36",
     "page": "1627-1639"
    },
-   "levenberg1944": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1090/qam/10666",
-    "score": 1,
-    "year": 1944,
-    "issues": [],
-    "warnings": [],
-    "title": "A method for the solution of certain non-linear problems in least squares",
-    "journal": "Quarterly of Applied Mathematics",
-    "volume": "2",
-    "page": "164-168"
-   },
-   "marquardt1963": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1137/0111030",
-    "score": 1,
-    "year": 1963,
-    "issues": [],
-    "warnings": [],
-    "title": "An Algorithm for Least-Squares Estimation of Nonlinear Parameters",
-    "journal": "Journal of the Society for Industrial and Applied Mathematics",
-    "volume": "11",
-    "page": "431-441"
-   },
-   "cullity2009": {
-    "status": "verified",
-    "via": "crossref-doi",
-    "doi": "10.1002/9780470386323",
-    "score": 1,
-    "year": 2008,
-    "issues": [],
-    "warnings": [],
-    "title": "Introduction to Magnetic Materials"
+   "neel1949": {
+    "status": "not-found",
+    "note": "no strong match in Crossref (older or non-indexed works may be genuine)"
    },
    "shirley1972": {
     "status": "verified",
@@ -1214,6 +1207,130 @@
     "volume": "57",
     "page": "1363-1367"
    },
+   "glatter1982": {
+    "status": "verified",
+    "via": "openlibrary",
+    "title": "Small angle x-ray scattering",
+    "year": 1982,
+    "warnings": []
+   },
+   "levenberg1944": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1090/qam/10666",
+    "score": 1,
+    "year": 1944,
+    "issues": [],
+    "warnings": [],
+    "title": "A method for the solution of certain non-linear problems in least squares",
+    "journal": "Quarterly of Applied Mathematics",
+    "volume": "2",
+    "page": "164-168"
+   },
+   "frens1973": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1038/physci241020a0",
+    "score": 1,
+    "year": 1973,
+    "issues": [],
+    "warnings": [],
+    "title": "Controlled Nucleation for the Regulation of the Particle Size in Monodisperse Gold Suspensions",
+    "journal": "Nature Physical Science",
+    "volume": "241",
+    "page": "20-22"
+   },
+   "brust1994": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1039/c39940000801",
+    "score": 1,
+    "year": 1994,
+    "issues": [],
+    "warnings": [],
+    "title": "Synthesis of thiol-derivatised gold nanoparticles in a two-phase Liquid–Liquid system",
+    "journal": "J. Chem. Soc., Chem. Commun.",
+    "volume": "0",
+    "page": "801-802"
+   },
+   "marquardt1963": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1137/0111030",
+    "score": 1,
+    "year": 1963,
+    "issues": [],
+    "warnings": [],
+    "title": "An Algorithm for Least-Squares Estimation of Nonlinear Parameters",
+    "journal": "Journal of the Society for Industrial and Applied Mathematics",
+    "volume": "11",
+    "page": "431-441"
+   },
+   "peng2001": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/ja003633m",
+    "score": 1,
+    "year": 2001,
+    "issues": [],
+    "warnings": [],
+    "title": "Formation of High-Quality CdTe, CdSe, and CdS Nanocrystals Using CdO as Precursor",
+    "journal": "Journal of the American Chemical Society",
+    "volume": "123",
+    "page": "183-184"
+   },
+   "stober1968": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1016/0021-9797(68)90272-5",
+    "score": 1,
+    "year": 1968,
+    "issues": [],
+    "warnings": [],
+    "title": "Controlled growth of monodisperse silica spheres in the micron size range",
+    "journal": "Journal of Colloid and Interface Science",
+    "volume": "26",
+    "page": "62-69"
+   },
+   "nikoobakht2003": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/cm020732l",
+    "score": 1,
+    "year": 2003,
+    "issues": [],
+    "warnings": [],
+    "title": "Preparation and Growth Mechanism of Gold Nanorods (NRs) Using Seed-Mediated Growth Method",
+    "journal": "Chemistry of Materials",
+    "volume": "15",
+    "page": "1957-1962"
+   },
+   "turkevich1951": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1039/df9511100055",
+    "score": 1,
+    "year": 1951,
+    "issues": [],
+    "warnings": [],
+    "title": "A study of the nucleation and growth processes in the synthesis of colloidal gold",
+    "journal": "Discussions of the Faraday Society",
+    "volume": "11",
+    "page": "55"
+   },
+   "lizmarzan1996": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/la9601871",
+    "score": 1,
+    "year": 1996,
+    "issues": [],
+    "warnings": [],
+    "title": "Synthesis of Nanosized Gold−Silica Core−Shell Particles",
+    "journal": "Langmuir",
+    "volume": "12",
+    "page": "4329-4335"
+   },
    "press2007": {
     "status": "verified",
     "via": "openlibrary",
@@ -1221,31 +1338,174 @@
     "year": 1988,
     "warnings": []
    },
-   "koppel1972": {
+   "sun2004mfe": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1063/1.1678153",
+    "doi": "10.1021/ja0380852",
     "score": 1,
-    "year": 1972,
+    "year": 2004,
     "issues": [],
     "warnings": [],
-    "title": "Analysis of Macromolecular Polydispersity in Intensity Correlation Spectroscopy: The Method of Cumulants",
-    "journal": "The Journal of Chemical Physics",
-    "volume": "57",
-    "page": "4814-4820"
+    "title": "Monodisperse MFe2O4 (M = Fe, Co, Mn) Nanoparticles",
+    "journal": "Journal of the American Chemical Society",
+    "volume": "126",
+    "page": "273-279"
    },
-   "mie1908": {
+   "massart1981": {
     "status": "verified",
     "via": "crossref-doi",
-    "doi": "10.1002/andp.19083300302",
+    "doi": "10.1109/TMAG.1981.1061188",
     "score": 1,
-    "year": 1908,
+    "year": 1981,
     "issues": [],
     "warnings": [],
-    "title": "Beiträge zur Optik trüber Medien, speziell kolloidaler Metallösungen",
-    "journal": "Annalen der Physik",
-    "volume": "330",
-    "page": "377-445"
+    "title": "Preparation of aqueous magnetic liquids in alkaline and acidic media",
+    "journal": "IEEE Transactions on Magnetics",
+    "volume": "17",
+    "page": "1247-1248"
+   },
+   "sun2002mag": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/ja026501x",
+    "score": 1,
+    "year": 2002,
+    "issues": [],
+    "warnings": [],
+    "title": "Size-Controlled Synthesis of Magnetite Nanoparticles",
+    "journal": "Journal of the American Chemical Society",
+    "volume": "124",
+    "page": "8204-8205"
+   },
+   "li2003silar": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/ja0363563",
+    "score": 1,
+    "year": 2003,
+    "issues": [],
+    "warnings": [],
+    "title": "Large-Scale Synthesis of Nearly Monodisperse CdSe/CdS Core/Shell Nanocrystals Using Air-Stable Reagents via Successive Ion Layer Adsorption and Reaction",
+    "journal": "Journal of the American Chemical Society",
+    "volume": "125",
+    "page": "12567-12575"
+   },
+   "dabbousi1997": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/jp971091y",
+    "score": 1,
+    "year": 1997,
+    "issues": [],
+    "warnings": [],
+    "title": "(CdSe)ZnS Core−Shell Quantum Dots:  Synthesis and Characterization of a Size Series of Highly Luminescent Nanocrystallites",
+    "journal": "The Journal of Physical Chemistry B",
+    "volume": "101",
+    "page": "9463-9475"
+   },
+   "manson2011": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1007/s13404-011-0015-8",
+    "score": 1,
+    "year": 2011,
+    "issues": [],
+    "warnings": [],
+    "title": "Polyethylene glycol functionalized gold nanoparticles: the influence of capping density on stability in various media",
+    "journal": "Gold Bulletin",
+    "volume": "44",
+    "page": "99-105"
+   },
+   "yang2003": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1364/AO.42.001710",
+    "score": 1,
+    "year": 2003,
+    "issues": [],
+    "warnings": [],
+    "title": "Improved recursive algorithm for light scattering by a multilayered sphere",
+    "journal": "Applied Optics",
+    "volume": "42",
+    "page": "1710"
+   },
+   "malitson1965": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1364/JOSA.55.001205",
+    "score": 1,
+    "year": 1965,
+    "issues": [],
+    "warnings": [],
+    "title": "Interspecimen Comparison of the Refractive Index of Fused Silica*,†",
+    "journal": "Journal of the Optical Society of America",
+    "volume": "55",
+    "page": "1205"
+   },
+   "leemeisel1982": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/j100214a025",
+    "score": 1,
+    "year": 1982,
+    "issues": [],
+    "warnings": [],
+    "title": "Adsorption and surface-enhanced Raman of dyes on silver and gold sols",
+    "journal": "The Journal of Physical Chemistry",
+    "volume": "86",
+    "page": "3391-3395"
+   },
+   "alexander1977": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1051/jphys:01977003808098300",
+    "score": 1,
+    "year": 1977,
+    "issues": [],
+    "warnings": [],
+    "title": "Adsorption of chain molecules with a polar head a scaling description",
+    "journal": "Journal de Physique",
+    "volume": "38",
+    "page": "983-987"
+   },
+   "sweeney2006": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/ja0558241",
+    "score": 1,
+    "year": 2006,
+    "issues": [],
+    "warnings": [],
+    "title": "Rapid Purification and Size Separation of Gold Nanoparticles via Diafiltration",
+    "journal": "Journal of the American Chemical Society",
+    "volume": "128",
+    "page": "3190-3197"
+   },
+   "love2005": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/cr0300789",
+    "score": 1,
+    "year": 2005,
+    "issues": [],
+    "warnings": [],
+    "title": "Self-Assembled Monolayers of Thiolates on Metals as a Form of Nanotechnology",
+    "journal": "Chemical Reviews",
+    "volume": "105",
+    "page": "1103-1170"
+   },
+   "degennes1980": {
+    "status": "verified",
+    "via": "crossref-doi",
+    "doi": "10.1021/ma60077a009",
+    "score": 1,
+    "year": 1980,
+    "issues": [],
+    "warnings": [],
+    "title": "Conformations of Polymers Attached to an Interface",
+    "journal": "Macromolecules",
+    "volume": "13",
+    "page": "1069-1075"
    }
   },
   "library": {

@@ -10,7 +10,7 @@ Reference software: Python 3.13.3, NumPy 2.5.5, SciPy 1.18.1, miepython 3.3.1, p
 
 | What | NanoCalc | Reference | Cases | Worst relative deviation |
 |---|---|---|---|---|
-| Mie efficiencies Q_ext, Q_sca (dielectric, absorbing, metallic; x = 0.1–50) | `NC.optics.bhmie` | miepython `efficiencies_mx` | 8 | 1.8 × 10⁻⁸ |
+| Mie efficiencies Q_ext, Q_sca (dielectric, absorbing, metallic; x = 0.1–50) | `NC.optics.bhmie` | miepython `efficiencies_mx` | 8 | 2.5 × 10⁻¹¹ |
 | Spheroid depolarization factor (aspect ratio 1–8) | `NC.optics.gansL` | SciPy `quad` of the defining integral | 6 | 1.1 × 10⁻⁹ |
 | Spheroid surface area (prolate and oblate) | `NC.shapes.spheroid.A` | SciPy `quad`, surface of revolution | 5 | 8 × 10⁻¹⁴ |
 | Savitzky–Golay coefficients (5 window/order pairs) | `NC.peaks.sgCoeffs` | `scipy.signal.savgol_coeffs` | 5 | < 10⁻¹⁰ (absolute) |
@@ -26,7 +26,11 @@ Reference software: Python 3.13.3, NumPy 2.5.5, SciPy 1.18.1, miepython 3.3.1, p
 
 The sorption isotherms are synthetic and built in `generate.py`, not by NanoCalc; all adsorbate properties (N₂ at 77 K) are passed to pyGAPS explicitly. pyGAPS's built-in Halsey curve rounds the exponent 1/3 to 0.333, so the Halsey case passes pyGAPS the exact 1/3 form used by NanoCalc and by Halsey (1948). This checks the BJH and t-plot arithmetic, not the physical model: both programs use the same classical Kelvin-plus-film model.
 
-**Found by this cross-check:** confidence intervals for samples larger than ~120 used t = 1.96 instead of the exact quantile (t = 1.968 at n = 300), so they were about 0.4 % too narrow. This is fixed: `NC.stats.t95` now uses the Cornish–Fisher expansion above 30 degrees of freedom.
+**Multilayer spheres (particle designer).** No installable multilayer reference package was available here: scattnlay has no Windows wheel, and PyMieScatt does not import with SciPy 1.18. NanoCalc's implementation of Yang's (2003) recursion is therefore checked four ways in `tests/designer.test.js`: a single layer against `bhmie` (≤ 5 × 10⁻¹⁶) and against the miepython values above (2.5 × 10⁻¹¹); a core–shell sphere against an independent port of Bohren & Huffman's coated-sphere code `bhcoat` (1.1 × 10⁻¹⁰); 3- and 4-layer spheres against an independent transfer-matrix solver written for the test (2.8 × 10⁻¹¹); and physical limits (a shell with the medium's index vanishes, identical layers equal one sphere, lossless layers give Q_ext = Q_sca, and the small-particle limit matches the quasi-static coated-sphere polarizability).
+
+**Found by these cross-checks:** the single-sphere Mie code started its downward recurrence too close to |mx|, leaving errors of 1.8 × 10⁻⁸ at x = 50; it now starts at |mx| + 4|mx|^⅓ + 15 and agrees with miepython to 2.5 × 10⁻¹¹.
+
+**Also found by this cross-check:** confidence intervals for samples larger than ~120 used t = 1.96 instead of the exact quantile (t = 1.968 at n = 300), so they were about 0.4 % too narrow. This is fixed: `NC.stats.t95` now uses the Cornish–Fisher expansion above 30 degrees of freedom.
 
 To regenerate the references:
 
@@ -38,7 +42,7 @@ make validate-refs
 
 ## 2. Known-value tests
 
-There are about 4,500 automated checks, run by `make test`:
+There are about 5,800 automated checks, run by `make test`:
 - **Hand calculations and textbook values.** Examples: Scherrer at 38.2°/0.5° → 16.81 nm; a 20 nm Ag sphere has 2.455 × 10⁵ atoms; a 100 nm Au particle settles at 112 nm/s in water; Pt ECSA from 1.05 mC H-UPD charge → 5 cm².
 - **Exact geometry.** Known volumes, areas and sphericities of polyhedra, plus a consistency check that removing a thin layer from every face removes A·dt of volume (dV/dt = A).
 - **Synthetic data with a known answer.** Guinier, Porod, cumulants, Tauc, Urbach, BET, t-plot, BJH, lattice refinement and peak fitting each recover the parameters the data was generated with (e.g. BJH puts > 85 % of the volume of monodisperse 8 nm pores into the size class containing 8 nm).

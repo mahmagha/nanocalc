@@ -52,7 +52,9 @@
   function bhmie(x, m) {
     const nstop = Math.max(1, Math.round(x + 4 * Math.cbrt(x) + 2));
     const y = cmul(m, cx(x));
-    const nmx = Math.round(Math.max(nstop, Math.sqrt(cabs2(y))) + 15);
+    // Start the downward recurrence well above |mx| (Wiscombe-style margin) so D_n has converged at n = nstop.
+    const my = Math.sqrt(cabs2(y));
+    const nmx = Math.round(Math.max(nstop, my + 4 * Math.cbrt(my)) + 15);
     const D = new Array(nmx + 1);
     D[nmx] = cx(0, 0);
     for (let n = nmx; n >= 2; n--) {

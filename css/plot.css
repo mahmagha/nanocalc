@@ -1,0 +1,79 @@
+/* NanoCalc interactive plots (js/plot.js: NC.plotMount). Colours come from the tokens in css/styles.css. */
+
+/* additions to the static plot (NC.plot) */
+svg.plot .grid.minor { stroke: var(--border); opacity: .45; }
+svg.plot .kept { opacity: .55; }
+svg.plot .legend-bg { fill: var(--surface); opacity: .85; }
+svg.plot .ptitle { fill: var(--text); font-size: 14px; font-weight: 600; font-family: var(--font); }
+
+/* interactive plot */
+.ncp { position: relative; min-width: 0; max-width: 100%; }
+.ncp-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 4px; opacity: 0; transition: opacity .12s; }
+.ncp:hover .ncp-toolbar, .ncp:focus-within .ncp-toolbar, .ncp.ncp-editing .ncp-toolbar { opacity: 1; }
+@media (hover: none) { .ncp-toolbar { opacity: 1; } }
+@media print { .ncp-toolbar, .ncp-edit, .ncp-tip { display: none !important; } }
+.ncp-toolbar button, .ncp-edit button {
+  font: inherit; font-size: 12px; line-height: 1.2; padding: 4px 8px; min-height: 28px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); white-space: nowrap;
+}
+.ncp-toolbar button:hover:not(:disabled), .ncp-edit button:hover { border-color: var(--accent); color: var(--accent); }
+.ncp-toolbar button[aria-pressed="true"], .ncp-toolbar button[aria-expanded="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-weak); }
+.ncp-toolbar button:disabled { opacity: .45; cursor: not-allowed; }
+.ncp-toolbar button:focus-visible, .ncp-edit button:focus-visible, .ncp-lg:focus-visible, .ncp-edit input:focus-visible, .ncp-edit select:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
+.ncp-sep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
+
+.ncp-edit { border: 1px solid var(--border); border-radius: 8px; background: var(--surface-2); padding: 8px 10px; margin: 0 0 6px; font-size: 12.5px; }
+.ncp-edit[hidden] { display: none; }
+.ncp-edit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 1fr)); gap: 6px 10px; }
+.ncp-edit label { display: flex; flex-direction: column; gap: 2px; min-width: 0; color: var(--muted); font-weight: 600; }
+.ncp-edit input, .ncp-edit select {
+  font: inherit; font-weight: 400; width: 100%; min-width: 0; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text);
+}
+.ncp-edit input[aria-invalid="true"] { border-color: var(--err-border); background: var(--err-bg); }
+.ncp-edit-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.ncp-hint { flex: 1 1 160px; color: var(--muted); }
+
+.ncp-area { position: relative; border-radius: 6px; outline: none; touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+.ncp-area:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.ncp-area svg.plot { cursor: crosshair; }
+.ncp-cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+.ncp-zoom { fill: var(--accent-weak); fill-opacity: .45; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 3; }
+.ncp-dot { stroke: var(--surface) !important; stroke-width: 2; }
+.ncp-dot.s0 { fill: var(--s0); } .ncp-dot.s1 { fill: var(--s1); } .ncp-dot.s2 { fill: var(--s2); } .ncp-dot.s3 { fill: var(--s3); } .ncp-dot.s4 { fill: var(--s4); }
+
+.ncp-tip {
+  position: absolute; z-index: 5; pointer-events: none; max-width: min(260px, 70%); padding: 6px 8px; border-radius: 6px;
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0, 0, 0, .15);
+  font-size: 12px; line-height: 1.35; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+.ncp-tip[hidden] { display: none; }
+.ncp-tip-h { color: var(--muted); margin-bottom: 3px; }
+.ncp-tip-r { margin-top: 3px; }
+.ncp-tip-r b { font-weight: 600; }
+
+.ncp-legend { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 4px; }
+.ncp-legend[hidden] { display: none; }
+.ncp-lg {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 2px 8px; min-height: 26px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 12px; text-align: left; overflow-wrap: anywhere;
+}
+.ncp-lg:hover { border-color: var(--accent); }
+.ncp-lg[aria-pressed="false"] { color: var(--muted); text-decoration: line-through; opacity: .6; }
+
+/* swatches (legend and read-out) */
+.ncp-sw { display: inline-block; flex: none; width: 16px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 4px; background: var(--muted); }
+.ncp-sw.pt { width: 8px; height: 8px; border-radius: 50%; margin: 0 4px; }
+.ncp-sw.bar { width: 12px; height: 10px; border-radius: 2px; opacity: .8; }
+.ncp-sw.c0 { background: var(--s0); color: var(--s0); } .ncp-sw.c1 { background: var(--s1); color: var(--s1); }
+.ncp-sw.c2 { background: var(--s2); color: var(--s2); } .ncp-sw.c3 { background: var(--s3); color: var(--s3); }
+.ncp-sw.c4 { background: var(--s4); color: var(--s4); }
+.ncp-sw.line.kept { height: 0; background: transparent; border-top: 2px dashed; opacity: .7; }
+.ncp-sw.pt.kept { background: transparent; border: 1.5px solid; opacity: .7; }
+.ncp-sw.bar.kept { opacity: .45; }
+
+.ncp-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+@media (prefers-reduced-motion: reduce) { .ncp-toolbar { transition: none; } }
