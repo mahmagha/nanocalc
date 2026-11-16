@@ -9,6 +9,8 @@
   'use strict';
 
   const NC = (global.NC = global.NC || {});
+  /** App version; keep in step with package.json and CHANGELOG.md (checked by tools/lint.js). */
+  NC.version = '0.6.0';
 
   /* ------------------------------------------------------------------ */
   /* Registry                                                            */
@@ -252,10 +254,12 @@
     t95: function (df) {
       if (df < 1) return NaN;
       if (df <= 30) return T95[df - 1];
-      if (df <= 40) return 2.042 + ((2.021 - 2.042) * (df - 30)) / 10;
-      if (df <= 60) return 2.021 + ((2.0 - 2.021) * (df - 40)) / 20;
-      if (df <= 120) return 2.0 + ((1.98 - 2.0) * (df - 60)) / 60;
-      return 1.96;
+      // Cornish–Fisher expansion of the t quantile about the normal quantile z = 1.959964
+      // (Abramowitz & Stegun 26.7.5); error < 1e-5 for df > 30. Replaces a linear table
+      // interpolation that rounded to 1.96 above df = 120 (≈0.4 % narrow at n = 300).
+      const z = 1.959963984540054, z2 = z * z, v = df;
+      return z + (z2 * z + z) / (4 * v) + (5 * z2 * z2 * z + 16 * z2 * z + 3 * z) / (96 * v * v) +
+        (3 * Math.pow(z, 7) + 19 * z2 * z2 * z + 17 * z2 * z - 15 * z) / (384 * v * v * v);
     },
     /** Ordinary least-squares fit y = m x + b. */
     linreg: function (x, y) {

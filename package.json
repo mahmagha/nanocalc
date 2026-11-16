@@ -1,0 +1,14 @@
+{
+  "name": "nanocalc",
+  "version": "0.6.0",
+  "private": true,
+  "description": "Step-by-step, fully cited calculations and characterization analysis for nanomaterials.",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "serve": "node tools/serve.js",
+    "test": "node tests/run-tests.js",
+    "lint": "node tools/lint.js",
+    "review": "node tools/review-sheet.js"
+  }
+}

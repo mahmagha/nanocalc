@@ -10,7 +10,9 @@ Step-by-step calculations and characterization analysis for nanomaterials. Each 
 | `make serve` | run the app at http://localhost:8080 (`make serve PORT=9000` to change the port) |
 | `make test` | run the full test suite |
 | `make review` | regenerate `docs/REVIEW.md` |
-| `make check` | run the tests, then fail if `docs/REVIEW.md` is out of date (run before committing) |
+| `make lint` | syntax, file references, debug leftovers, version consistency |
+| `make check` | lint, run the tests, then fail if `docs/REVIEW.md` is out of date (CI runs this) |
+| `make validate-refs` | regenerate the SciPy/miepython reference values (needs the Python packages in `tests/validation/requirements.txt`) |
 
 Each target is a thin wrapper around the `node` commands below, so you can run those directly if `make` isn't installed.
 
@@ -66,9 +68,13 @@ The suite (about 2,700 checks):
 - **Export:** a Markdown report with LaTeX maths, print to PDF, or the bibliography as BibTeX.
 - **Equations:** typeset with KaTeX. Formulas are written in readable Unicode and converted by `js/tex.js`; a step can give hand-written LaTeX through `tex`, `subTex` and `resultTex`.
 
+## Validation
+
+The numerical cores (Mie theory, depolarization factors, spheroid areas, Savitzky–Golay, least squares, peak fitting, size statistics, Student t, constants) are cross-checked against **miepython, SciPy and NumPy** on every test run. Agreement is to 10⁻⁶ or better. See [docs/VALIDATION.md](docs/VALIDATION.md) for the method, the results and what is not yet validated.
+
 ## Expert review
 
-`node tools/review-sheet.js` regenerates [docs/REVIEW.md](docs/REVIEW.md): a sign-off checklist (about 1,100 items) of every formula, default value, preset, constant and reference, for a domain expert to verify. The formulas are tested, but they have not yet been reviewed by an expert.
+`node tools/review-sheet.js` regenerates [docs/REVIEW.md](docs/REVIEW.md): a sign-off checklist (about 1,100 items) of every formula, default value, preset, constant and reference, for a domain expert to verify. The formulas are tested and cross-validated, but they have not yet been reviewed by an expert. [docs/EXPERT-REVIEW-GUIDE.md](docs/EXPERT-REVIEW-GUIDE.md) says where to start; report findings with the *Scientific review finding* issue template.
 
 ## Project layout
 
@@ -100,3 +106,7 @@ vendor/katex/              bundled KaTeX 0.16.11 (verified, MIT)
 ## Accuracy
 
 Citations are there so every number can be traced to its source. Check results against the original publications before relying on them. Preset material parameters are representative literature values (see the Material database page), and many models have stated validity ranges, shown as warnings in the app. No tabulated literature data (such as optical constants or sensitivity factors) is built in without a verifiable source; users supply those values.
+
+## Licence
+
+MIT, see [LICENSE](LICENSE). The bundled KaTeX is also MIT-licensed. The changelog is in [CHANGELOG.md](CHANGELOG.md).

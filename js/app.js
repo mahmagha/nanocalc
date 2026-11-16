@@ -146,6 +146,8 @@
         list.map(function (c) { return '<a class="card" href="#/calc/' + c.id + '"><b>' + esc(c.title) + '</b><span>' + esc(c.short || '') + '</span></a>'; }).join('') +
         '</div></section>';
     });
+    html += '<p class="disclaimer">NanoCalc v' + esc(NC.version) + ' · MIT licence · Results are tested and cross-checked against SciPy and miepython, ' +
+      'but not yet reviewed by a domain expert. Check them against the cited sources before publishing.</p>';
     main.innerHTML = html;
     if ($('#clearHist')) $('#clearHist').addEventListener('click', function () { store.del(HISTORY_KEY); renderHome(); });
   }
